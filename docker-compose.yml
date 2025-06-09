@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=tu_password
+      - POSTGRES_DB=tienda_viajes
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    ports:
+      - "${PORT-3000}:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:tu_password@db:5432/tienda_viajes
+      - JWT_SECRET=tu_secreto_jwt
+      - PORT=3000
+    depends_on:
+      - db
+
+volumes:
+  db_data:
