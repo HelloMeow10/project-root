@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUSIMUNDO/TRAVEL</title>
+    <link rel="stylesheet" href="../css/paquetes.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <i class="fas fa-globe-americas"></i>
+                    <span>MUSIMUNDO/Travel</span>
+                </div>
+                
+                </ul>
+                <div class="nav-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Nuestros paquetes de turismo</h1>
+            <p class="hero-subtitle">Descubre nuevos lugares increibles y dejate llevar</p>
+            <div class="hero-search">
+                <input type="text" id="searchInput" placeholder="Search destinations...">
+                <button class="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+        <div class="hero-background"></div>
+    </section>
+
+    <!-- Filter Section -->
+    <section class="filters">
+        <div class="container">
+            <div class="filter-tabs">
+                <button class="filter-btn active" data-filter="all">Todos</button>
+                <button class="filter-btn" data-filter="beach">Playa</button>
+                <button class="filter-btn" data-filter="mountain">Montaña</button>
+                <button class="filter-btn" data-filter="city">Ciudad</button>
+                <button class="filter-btn" data-filter="adventure">Aventura</button>
+            </div>
+            <div class="sort-options">
+                <select id="sortSelect">
+                    <option value="price-low">Precio: bajo a alto</option>
+                    <option value="price-high">Precio: alto a bajo</option>
+                    <option value="duration">Duracion</option>
+                    <option value="rating">Rating</option>
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <!-- Packages Grid -->
+    <section class="packages">
+        <div class="container">
+            <div class="packages-grid" id="packagesGrid">
+                <!-- Package 1 -->
+                <div class="package-card" data-category="beach" data-price="1299" data-duration="7" data-rating="4.8">
+                    <div class="package-image">
+                        <img src="/placeholder.svg?height=250&width=400" alt="Maldives Paradise">
+                        <div class="package-badge">Mas vendido</div>
+                        <div class="package-overlay">
+                            <button class="quick-view-btn" data-package="maldives">Vista rapida</button>
+                        </div>
+                    </div>
+                    <div class="package-content">
+                        <div class="package-header">
+                            <h3>Maldives Paradise</h3>
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <span>4.8</span>
+                            </div>
+                        </div>
+                        <p class="package-description">7 dias de lujo en bungalos bajo el agua con todo incluido</p>
+                        <div class="package-features">
+                            <span><i class="fas fa-plane"></i> Vuelos</span>
+                            <span><i class="fas fa-bed"></i> 5-Star Hotel</span>
+                            <span><i class="fas fa-utensils"></i>Bufet completo</span>
+                        </div>
+                        <div class="package-footer">
+                            <div class="price">
+                                <span class="price-from">desde</span>
+                                <span class="price-amount">$1,299</span>
+                                <span class="price-per">por persona</span>
+                            </div>
+                            <button class="book-btn" data-package="maldives">Comprar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Package 2 -->
+                <div class="package-card" data-category="mountain" data-price="899" data-duration="5" data-rating="4.6">
+                    <div class="package-image">
+                        <img src="/placeholder.svg?height=250&width=400" alt="Swiss Alps Adventure">
+                        <div class="package-overlay">
+                            <button class="quick-view-btn" data-package="swiss">Vista rapida</button>
+                        </div>
+                    </div>
+                    <div class="package-content">
+                        <div class="package-header">
+                            <h3>Swiss Alps Adventure</h3>
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <span>4.6</span>
+                            </div>
+                        </div>
+                        <p class="package-description">5 dias explorando los majesticos alpes suizos con guias turisticas</p>
+                        <div class="package-features">
+                            <span><i class="fas fa-plane"></i>Vuelos</span>
+                            <span><i class="fas fa-mountain"></i> Hiking</span>
+                            <span><i class="fas fa-camera"></i>Fotografia</span>
+                        </div>
+                        <div class="package-footer">
+                            <div class="price">
+                                <span class="price-from">Desde</span>
+                                <span class="price-amount">$899</span>
+                                <span class="price-per">por persona</span>
+                            </div>
+                            <button class="book-btn" data-package="swiss">Book Now</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Package 3 -->
+                <div class="package-card" data-category="city" data-price="1599" data-duration="6" data-rating="4.9">
+                    <div class="package-image">
+                        <img src="/placeholder.svg?height=250&width=400" alt="Tokyo Cultural Experience">
+                        <div class="package-badge popular">Popular</div>
+                        <div class="package-overlay">
+                            <button class="quick-view-btn" data-package="tokyo">Vista rapida</button>
+                        </div>
+                    </div>
+                    <div class="package-content">
+                        <div class="package-header">
+                            <h3>Tokyo Cultural Experience</h3>
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <span>4.9</span>
+                            </div>
+                        </div>
+                        <p class="package-description">6 dias inmerso en la cultura japonesa y la vida moderna</p>
+                        <div class="package-features">
+                            <span><i class="fas fa-plane"></i>Vuelos</span>
+                            <span><i class="fas fa-torii-gate"></i> Templos</span>
+                            <span><i class="fas fa-utensils"></i> Food tours</span>
+                        </div>
+                        <div class="package-footer">
+                            <div class="price">
+                                <span class="price-from">Desde</span>
+                                <span class="price-amount">$1,599</span>
+                                <span class="price-per">por persona</span>
+                            </div>
+                            <button class="book-btn" data-package="tokyo">Comprar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Package 4 -->
+                <div class="package-card" data-category="adventure" data-price="2199" data-duration="10" data-rating="4.7">
+                    <div class="package-image">
+                        <img src="/placeholder.svg?height=250&width=400" alt="African Safari">
+                        <div class="package-overlay">
+                            <button class="quick-view-btn" data-package="safari">Quick View</button>
+                        </div>
+                    </div>
+                    <div class="package-content">
+                        <div class="package-header">
+                            <h3>African Safari Adventure</h3>
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <span>4.7</span>
+                            </div>
+                        </div>
+                        <p class="package-description">10 days wildlife safari across Kenya and Tanzania</p>
+                        <div class="package-features">
+                            <span><i class="fas fa-plane"></i> Flights</span>
+                            <span><i class="fas fa-binoculars"></i> Safari</span>
+                            <span><i class="fas fa-camera"></i> Photography</span>
+                        </div>
+                        <div class="package-footer">
+                            <div class="price">
+                                <span class="price-from">From</span>
+                                <span class="price-amount">$2,199</span>
+                                <span class="price-per">per person</span>
+                            </div>
+                            <button class="book-btn" data-package="safari">Book Now</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Package 5 -->
+                <div class="package-card" data-category="beach" data-price="999" data-duration="5" data-rating="4.5">
+                    <div class="package-image">
+                        <img src="/placeholder.svg?height=250&width=400" alt="Caribbean Cruise">
+                        <div class="package-overlay">
+                            <button class="quick-view-btn" data-package="caribbean">Quick View</button>
+                        </div>
+                    </div>
+                    <div class="package-content">
+                        <div class="package-header">
+                            <h3>Caribbean Cruise</h3>
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <span>4.5</span>
+                            </div>
+                        </div>
+                        <p class="package-description">5 days luxury cruise visiting multiple Caribbean islands</p>
+                        <div class="package-features">
+                            <span><i class="fas fa-ship"></i> Cruise</span>
+                            <span><i class="fas fa-cocktail"></i> All Drinks</span>
+                            <span><i class="fas fa-swimming-pool"></i> Pool Access</span>
+                        </div>
+                        <div class="package-footer">
+                            <div class="price">
+                                <span class="price-from">From</span>
+                                <span class="price-amount">$999</span>
+                                <span class="price-per">per person</span>
+                            </div>
+                            <button class="book-btn" data-package="caribbean">Book Now</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Package 6 -->
+                <div class="package-card" data-category="city" data-price="1799" data-duration="8" data-rating="4.8">
+                    <div class="package-image">
+                        <img src="/placeholder.svg?height=250&width=400" alt="European Grand Tour">
+                        <div class="package-overlay">
+                            <button class="quick-view-btn" data-package="europe">Quick View</button>
+                        </div>
+                    </div>
+                    <div class="package-content">
+                        <div class="package-header">
+                            <h3>European Grand Tour</h3>
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <span>4.8</span>
+                            </div>
+                        </div>
+                        <p class="package-description">8 days exploring Paris, Rome, and Barcelona</p>
+                        <div class="package-features">
+                            <span><i class="fas fa-train"></i> High-speed Rail</span>
+                            <span><i class="fas fa-landmark"></i> Museums</span>
+                            <span><i class="fas fa-utensils"></i> Food Tours</span>
+                        </div>
+                        <div class="package-footer">
+                            <div class="price">
+                                <span class="price-from">From</span>
+                                <span class="price-amount">$1,799</span>
+                                <span class="price-per">per person</span>
+                            </div>
+                            <button class="book-btn" data-package="europe">Book Now</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick View Modal -->
+    <div class="modal" id="quickViewModal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-body" id="modalBody">
+                <!-- Dynamic content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div class="modal" id="bookingModal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="booking-form">
+                <h2>Book Your Package</h2>
+                <form id="bookingForm">
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <input type="tel" id="phone" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="checkIn">Check-in Date</label>
+                            <input type="date" id="checkIn" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="guests">Number of Guests</label>
+                            <select id="guests" required>
+                                <option value="1">1 Guest</option>
+                                <option value="2">2 Guests</option>
+                                <option value="3">3 Guests</option>
+                                <option value="4">4 Guests</option>
+                                <option value="5+">5+ Guests</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="specialRequests">Special Requests</label>
+                        <textarea id="specialRequests" rows="3"></textarea>
+                    </div>
+                    <div class="booking-summary">
+                        <div class="summary-item">
+                            <span>Package:</span>
+                            <span id="selectedPackage">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Total Price:</span>
+                            <span id="totalPrice">$0</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-btn">Confirm Booking</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>TravelWorld</h3>
+                    <p>Your gateway to amazing adventures around the world.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="homepage.html">Home</a></li>
+                        <li><a href="packages.html">Packages</a></li>
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contact Info</h4>
+                    <p><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
+                    <p><i class="fas fa-envelope"></i> info@travelworld.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 TravelWorld. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/paquetes.js"></script>
+</body>
+</html>
