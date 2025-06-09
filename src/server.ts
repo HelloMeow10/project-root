@@ -7,6 +7,7 @@ import { initDatabase } from './config/db';
 import productRoutes from './routes/productRoutes';
 import authRoutes from './routes/authRoutes';
 import { errorHandler } from './middlewares/errorHandler';
+import path from 'path';
 
 dotenv.config(); // Carga variables de entorno desde .env:contentReference[oaicite:8]{index=8}
 
@@ -18,9 +19,19 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
+// Servir archivos estáticos de la carpeta css
+app.use('/css', express.static(path.join(__dirname, '../css')));
+// Servir archivos estáticos de la carpeta html
+app.use(express.static(path.join(__dirname, '../html')));
+// Servir archivos estáticos de la carpeta js
+app.use('/js', express.static(path.join(__dirname, '../js')));
+
 // Rutas
 app.use('/api/products', productRoutes);
 app.use('/api/auth', authRoutes);
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../html/inicio.html'));
+});
 
 // Middleware de manejo de errores (al final de todos)
 app.use(errorHandler);

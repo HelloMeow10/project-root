@@ -127,6 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeModals()
   initializeNavigation()
   initializeAnimations()
+  cargarProductos()
 })
 
 // Filter functionality
@@ -414,3 +415,56 @@ window.addEventListener("scroll", () => {
     header.style.boxShadow = "none"
   }
 })
+
+async function cargarProductos() {
+  try {
+    const res = await fetch('http://localhost:3000/api/products');
+    const productos = await res.json();
+    const grid = document.getElementById('packagesGrid');
+    grid.innerHTML = ''; // Limpia el grid
+
+    productos.forEach(producto => {
+      const card = document.createElement('div');
+      card.className = 'package-card';
+      card.setAttribute('data-category', 'beach'); // Puedes mapear categorías si tienes
+      card.setAttribute('data-price', producto.precio);
+      card.setAttribute('data-duration', '7'); // Si tienes duración, usa producto.duracion
+      card.setAttribute('data-rating', '4.5'); // Si tienes rating, usa producto.rating
+
+      card.innerHTML = `
+        <div class="package-image">
+          <img src="/placeholder.svg?height=250&width=400" alt="${producto.nombre}">
+          <div class="package-badge">Nuevo</div>
+          <div class="package-overlay">
+            <button class="quick-view-btn" data-package="${producto.id}">Vista rápida</button>
+          </div>
+        </div>
+        <div class="package-content">
+          <div class="package-header">
+            <h3>${producto.nombre}</h3>
+            <div class="rating">
+              <i class="fas fa-star"></i>
+              <span>4.5</span>
+            </div>
+          </div>
+          <p class="package-description">${producto.descripcion}</p>
+          <div class="package-features">
+            <span><i class="fas fa-plane"></i> Incluye vuelos</span>
+            <span><i class="fas fa-bed"></i> Hotel</span>
+          </div>
+          <div class="package-footer">
+            <div class="price">
+              <span class="price-from">Desde</span>
+              <span class="price-amount">$${producto.precio}</span>
+              <span class="price-per">por persona</span>
+            </div>
+            <button class="book-btn" data-package="${producto.id}">Comprar</button>
+          </div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  } catch (error) {
+    console.error('Error al cargar productos:', error);
+  }
+}
