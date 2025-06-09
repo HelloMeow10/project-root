@@ -15,7 +15,7 @@
             <div class="nav-container">
                 <div class="nav-logo">
                     <i class="fas fa-globe-americas"></i>
-                    <span><a href="inicio.html">MUSIMUNDO/Travel</a></span>
+                    <span id="span-a-href"><a href="inicio.html">MUSIMUNDO/Travel</a></span>
                 </div>
                 
                 </ul>
@@ -284,10 +284,10 @@
         <div class="modal-content">
             <span class="close-modal">&times;</span>
             <div class="booking-form">
-                <h2>Book Your Package</h2>
+                <h2>Compra tu paquete</h2>
                 <form id="bookingForm">
                     <div class="form-group">
-                        <label for="fullName">Full Name</label>
+                        <label for="fullName">Nombre Completo</label>
                         <input type="text" id="fullName" required>
                     </div>
                     <div class="form-group">
@@ -295,40 +295,40 @@
                         <input type="email" id="email" required>
                     </div>
                     <div class="form-group">
-                        <label for="phone">Phone</label>
+                        <label for="phone">Teléfono</label>
                         <input type="tel" id="phone" required>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="checkIn">Check-in Date</label>
+                            <label for="checkIn">Fecha de Check-in</label>
                             <input type="date" id="checkIn" required>
                         </div>
                         <div class="form-group">
-                            <label for="guests">Number of Guests</label>
+                            <label for="guests">úmero de Huéspedes</label>
                             <select id="guests" required>
-                                <option value="1">1 Guest</option>
-                                <option value="2">2 Guests</option>
-                                <option value="3">3 Guests</option>
-                                <option value="4">4 Guests</option>
-                                <option value="5+">5+ Guests</option>
+                                <option value="1">1 Huéspede</option>
+                                <option value="2">2 Huéspedes</option>
+                                <option value="3">3 Huéspedes</option>
+                                <option value="4">4 Huéspedes</option>
+                                <option value="5+">5+ Huéspedes</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="specialRequests">Special Requests</label>
+                        <label for="specialRequests">Solicitudes Especiales</label>
                         <textarea id="specialRequests" rows="3"></textarea>
                     </div>
                     <div class="booking-summary">
                         <div class="summary-item">
-                            <span>Package:</span>
+                            <span>Paquete:</span>
                             <span id="selectedPackage">-</span>
                         </div>
                         <div class="summary-item">
-                            <span>Total Price:</span>
+                            <span>Total Precio:</span>
                             <span id="totalPrice">$0</span>
                         </div>
                     </div>
-                    <button type="submit" class="submit-btn">Confirm Booking</button>
+                    <button type="submit" class="submit-btn">Confirmar Reserva</button>
                 </form>
             </div>
         </div>
