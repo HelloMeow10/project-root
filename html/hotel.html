@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Hotels - All-Inclusive Tourism</title>
+    <link rel="stylesheet" href="../css/hotel.css">
+</head>
+<body>
+    <!-- Animated background -->
+    <div class="bg-animation" id="bgAnimation"></div>
+
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <img src="/placeholder.svg?height=120&width=120" alt="Hotel booking" class="header-image">
+                <div class="header-text">
+                    <h1>🏨 Luxury Hotels</h1>
+                    <p>Find the perfect accommodation for your dream vacation</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-section scroll-reveal">
+            <div class="filter-header">
+                <img src="/placeholder.svg?height=40&width=40" alt="Filter" class="filter-icon">
+                <h2 style="color: #4a5568; font-size: 1.8rem; margin: 0;">Filter Hotels</h2>
+            </div>
+            <form class="filter-form" id="filterForm">
+                <div class="form-group">
+                    <label for="destination">🌴 Destination</label>
+                    <select id="destination" name="destination">
+                        <option value="all">All Destinations</option>
+                        <option value="CUN">Cancun, Mexico</option>
+                        <option value="PUJ">Punta Cana, Dominican Republic</option>
+                        <option value="NAS">Nassau, Bahamas</option>
+                        <option value="MBJ">Montego Bay, Jamaica</option>
+                        <option value="AUA">Aruba</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="checkin">📅 Check-in Date</label>
+                    <input type="date" id="checkin" name="checkin" required>
+                </div>
+                <div class="form-group">
+                    <label for="checkout">🔄 Check-out Date</label>
+                    <input type="date" id="checkout" name="checkout" required>
+                </div>
+                <div class="form-group">
+                    <label for="guests">👥 Guests</label>
+                    <select id="guests" name="guests">
+                        <option value="1">1 Guest</option>
+                        <option value="2">2 Guests</option>
+                        <option value="3">3 Guests</option>
+                        <option value="4">4 Guests</option>
+                        <option value="5">5+ Guests</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="rating">⭐ Minimum Rating</label>
+                    <select id="rating" name="rating">
+                        <option value="0">Any Rating</option>
+                        <option value="3">3+ Stars</option>
+                        <option value="4">4+ Stars</option>
+                        <option value="5">5 Stars</option>
+                    </select>
+                </div>
+                <button type="submit" class="filter-btn" id="filterBtn">
+                    <span id="filterBtnText">🔍 Find Hotels</span>
+                </button>
+            </form>
+        </div>
+
+        <div class="hotels-section scroll-reveal">
+            <div class="hotels-header">
+                <img src="/placeholder.svg?height=50&width=50" alt="Available hotels" class="hotels-icon">
+                <h2 style="color: #4a5568; font-size: 1.8rem; margin: 0;">Available Hotels</h2>
+            </div>
+            <div id="hotelResults" class="hotel-grid">
+                <!-- Hotel results will be populated here -->
+            </div>
+        </div>
+
+        <div class="navigation">
+            <a href="flights.html" class="nav-link">← Book Flights</a>
+            <a href="packages.html" class="nav-link">View Packages</a>
+        </div>
+    </div>
+
+    <div class="cart-section" id="cartSection">
+        <div class="cart-header">
+            <h3 style="color: #4a5568; font-size: 1.2rem;">🛒 Shopping Cart</h3>
+            <button class="cart-toggle" onclick="toggleCart()">Hide</button>
+        </div>
+        <div id="cartItems">
+            <!-- Cart items will be populated here -->
+        </div>
+        <div class="cart-total" id="cartTotal">
+            Total: $0
+        </div>
+    </div>
+
+    <!-- Hotel details modal -->
+    <div class="modal" id="hotelModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="hotelBooking.closeModal()">&times;</span>
+            <div id="modalContent">
+                <!-- Modal content will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="../scripts/hotel.js"></script>
+</body>
+</html>
