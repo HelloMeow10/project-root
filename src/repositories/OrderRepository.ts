@@ -9,8 +9,7 @@ export class OrderRepository {
   async findById(id: number): Promise<Pedido | null> {
     return await prisma.pedido.findUnique({ where: { id } });
   }
-  async create(data: Omit<Pedido, 'id' | 'fecha' | 'total'> & { fecha?: Date }): Promise<Pedido> {
-    // Calcular total o agregar lógica adicional si es necesario
+  async create(data: Omit<Pedido, 'id' | 'fecha' | 'total'> & { fecha?: Date, total: number }): Promise<Pedido> {
     return await prisma.pedido.create({ data });
   }
   // Resto de métodos (update, delete) similares...

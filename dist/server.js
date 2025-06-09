@@ -10,7 +10,7 @@ const morgan_1 = __importDefault(require("morgan"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const db_1 = require("./config/db");
 const productRoutes_1 = __importDefault(require("./routes/productRoutes"));
-const authRoutes_ts_1 = __importDefault(require("./routes/authRoutes.ts"));
+const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const errorHandler_1 = require("./middlewares/errorHandler");
 dotenv_1.default.config(); // Carga variables de entorno desde .env:contentReference[oaicite:8]{index=8}
 const app = (0, express_1.default)();
@@ -21,7 +21,7 @@ app.use(express_1.default.json());
 app.use((0, morgan_1.default)('dev'));
 // Rutas
 app.use('/api/products', productRoutes_1.default);
-app.use('/api/auth', authRoutes_ts_1.default);
+app.use('/api/auth', authRoutes_1.default);
 // Middleware de manejo de errores (al final de todos)
 app.use(errorHandler_1.errorHandler);
 // Conectar a la base de datos y arrancar el servidor

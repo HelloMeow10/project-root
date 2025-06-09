@@ -7,17 +7,17 @@ exports.authMiddleware = authMiddleware;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 function authMiddleware(req, res, next) {
     const authHeader = req.headers.authorization;
-    if (!authHeader)
-        return res.status(401).json({ message: 'Token no proporcionado' });
+    if (!authHeader) {
+        res.status(401).json({ message: 'Token no proporcionado' });
+        return;
+    }
     const token = authHeader.split(' ')[1];
     try {
-        const payload = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
-        // Adjuntar datos del usuario al request (opcional)
-        req.userId = payload.userId;
-        req.userRole = payload.rol;
+        const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
         next();
     }
     catch (err) {
-        return res.status(401).json({ message: 'Token inválido' });
+        res.status(401).json({ message: 'Token inválido' });
     }
 }

@@ -31,8 +31,10 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.9",
+    "@types/morgan": "^1.9.10",
     "@types/node": "^22.15.30",
     "prisma": "^6.9.0",
     "ts-node": "^10.9.2",

@@ -5,7 +5,7 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import { initDatabase } from './config/db';
 import productRoutes from './routes/productRoutes';
-import authRoutes from './routes/authRoutes.ts';
+import authRoutes from './routes/authRoutes';
 import { errorHandler } from './middlewares/errorHandler';
 
 dotenv.config(); // Carga variables de entorno desde .env:contentReference[oaicite:8]{index=8}

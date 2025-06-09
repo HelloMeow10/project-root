@@ -11,7 +11,6 @@ class OrderRepository {
         return await db_1.prisma.pedido.findUnique({ where: { id } });
     }
     async create(data) {
-        // Calcular total o agregar lógica adicional si es necesario
         return await db_1.prisma.pedido.create({ data });
     }
 }
