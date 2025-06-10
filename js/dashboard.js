@@ -701,9 +701,58 @@ class DashboardUI {
 let dashboardUI;
 
 document.addEventListener('DOMContentLoaded', function() {
-    dashboardUI = new DashboardUI();
-    
-    // Example event listeners for data integration
+  const token = localStorage.getItem('token');
+  if (!token) {
+    window.location.href = 'login.html';
+    return;
+  }
+  // Aquí puedes cargar datos del usuario, productos, pedidos, etc.
+  dashboardUI = new DashboardUI();
+
+  // Ejemplo: Cargar productos protegidos usando el token
+  fetch('/api/products', {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    // Renderiza los productos en la tabla (ajusta columnas según tu modelo)
+    DashboardAPI.renderTable(data, [
+      { key: 'nombre', type: 'text' },
+      { key: 'precio', type: 'currency' },
+      { key: 'stock', type: 'text' }
+    ]);
+  })
+  .catch(err => {
+    DashboardAPI.showNotification('Error al cargar productos', 'error');
+  });
+
+  // Ejemplo para cargar pedidos
+  fetch('/api/orders', {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    // Renderiza los pedidos en la tabla correspondiente
+    DashboardAPI.renderTable(data, [
+      { key: 'id', type: 'text' },
+      { key: 'fecha', type: 'date' },
+      { key: 'total', type: 'currency' },
+      { key: 'estado', type: 'status' }
+    ]);
+  })
+  .catch(err => {
+    DashboardAPI.showNotification('Error al cargar pedidos', 'error');
+  });
+
+  // Example event listeners for data integration
     // These events should be handled by your data management layer
     
     document.addEventListener('pageChanged', function(e) {
@@ -738,24 +787,73 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     document.addEventListener('editItem', function(e) {
-        console.log('Edit item:', e.detail.id, 'on page:', e.detail.page);
-        // Implement edit functionality here
-    });
-    
-    document.addEventListener('deleteItem', function(e) {
-        console.log('Delete item:', e.detail.id, 'on page:', e.detail.page);
-        // Implement delete functionality here
-    });
-    
-    document.addEventListener('exportData', function(e) {
-        console.log('Export data for page:', e.detail.page);
-        // Implement export functionality here
-    });
-    
-    document.addEventListener('refreshActivity', function(e) {
-        console.log('Refresh activity requested');
-        // Reload activity data here
-    });
+  const { id, page } = e.detail;
+  // 1. Obtener los datos actuales del producto
+  fetch(`/api/products/${id}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(res => res.json())
+  .then(producto => {
+    // 2. Mostrar modal con formulario de edición
+    const content = `
+      <form id="editProductForm">
+        <label>Nombre: <input type="text" name="nombre" value="${producto.nombre}" required></label><br>
+        <label>Precio: <input type="number" name="precio" value="${producto.precio}" required></label><br>
+        <label>Stock: <input type="number" name="stock" value="${producto.stock}" required></label><br>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+      </form>
+    `;
+    DashboardAPI.showModal('Editar Producto', content);
+
+    // 3. Manejar el submit del formulario
+    document.getElementById('editProductForm').onsubmit = function(ev) {
+      ev.preventDefault();
+      const formData = new FormData(ev.target);
+      const data = {
+        nombre: formData.get('nombre'),
+        precio: parseFloat(formData.get('precio')),
+        stock: parseInt(formData.get('stock'))
+      };
+      fetch(`/api/products/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(res => {
+        if (res.ok) {
+          DashboardAPI.showNotification('Producto actualizado', 'success');
+          DashboardAPI.hideLoading();
+          // Recarga la tabla de productos
+          fetch('/api/products', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(res => res.json())
+          .then(data => {
+            DashboardAPI.renderTable(data, [
+              { key: 'nombre', type: 'text' },
+              { key: 'precio', type: 'currency' },
+              { key: 'stock', type: 'text' }
+            ]);
+            dashboardUI.closeModal();
+          });
+        } else {
+          DashboardAPI.showNotification('Error al actualizar', 'error');
+        }
+      });
+    };
+  });
+});
 });
 
 // Global utility functions for external use

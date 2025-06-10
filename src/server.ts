@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import { initDatabase } from './config/db';
 import productRoutes from './routes/productRoutes';
 import authRoutes from './routes/authRoutes';
+import orderRoutes from './routes/orderRoutes';
 import { errorHandler } from './middlewares/errorHandler';
 import path from 'path';
 
@@ -29,6 +30,7 @@ app.use('/js', express.static(path.join(__dirname, '../js')));
 // Rutas
 app.use('/api/products', productRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/orders', orderRoutes);
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../html/inicio.html'));
 });

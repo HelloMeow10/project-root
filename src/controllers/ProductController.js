@@ -118,7 +118,7 @@ function updateProduct(req, res, next) {
                     return [4 /*yield*/, productService.actualizarProducto(id, req.body)];
                 case 1:
                     updated = _a.sent();
-                    res.status(200).json(updated);
+                    res.json(updated);
                     return [3 /*break*/, 3];
                 case 2:
                     err_4 = _a.sent();
