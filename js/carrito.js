@@ -336,30 +336,53 @@ class CartUI {
     // Checkout
     handleCheckout() {
         const cartItems = document.querySelectorAll('.cart-item');
-        
         if (cartItems.length === 0) {
             this.showNotification('No hay productos en el carrito', 'error');
             return;
         }
 
-        const checkoutBtn = document.getElementById('checkoutBtn');
-        this.setLoadingState(checkoutBtn, true);
+        // Construye el array de productos a enviar
+        const items = [];
+        cartItems.forEach(item => {
+            items.push({
+                productoId: parseInt(item.dataset.productId),
+                cantidad: parseInt(item.querySelector('.quantity-input').value),
+                // Puedes agregar más campos si lo necesitas
+            });
+        });
 
-        // Show loading overlay
-        this.showLoadingOverlay();
+        const token = localStorage.getItem('token');
+        if (!token) {
+            this.showNotification('Debes iniciar sesión para comprar', 'error');
+            setTimeout(() => window.location.href = 'login.html', 1500);
+            return;
+        }
 
-        // Simulate processing delay
-        setTimeout(() => {
-            this.hideLoadingOverlay();
-            this.setLoadingState(checkoutBtn, false);
-            
-            // In real implementation, this would redirect to checkout page
-            this.showNotification('Redirigiendo al proceso de pago...', 'info');
-            
-            setTimeout(() => {
-                window.location.href = 'checkout.php';
-            }, 1500);
-        }, 2000);
+        // Llama a la API para crear el pedido
+        fetch('/api/orders', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ items })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.id) {
+                this.showNotification('¡Compra realizada con éxito!', 'success');
+                // Limpia el carrito visualmente
+                setTimeout(() => {
+                    // Aquí puedes limpiar el carrito y redirigir si quieres
+                    window.location.href = 'dashboard.html';
+                }, 1500);
+            } else {
+                this.showNotification(data.message || 'Error al procesar la compra', 'error');
+            }
+        })
+        .catch(() => {
+            this.showNotification('Error de red al procesar la compra', 'error');
+        });
     }
 
     // Add Recommended Item

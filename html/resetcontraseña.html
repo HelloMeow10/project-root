@@ -152,5 +152,35 @@
 
     <script src="../js/login.js"></script>
     <script src="../js/olvidecontraseña.js"></script>
+    <script>
+document.getElementById('resetPasswordForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const token = document.getElementById('resetToken').value;
+    const password = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmNewPassword').value;
+
+    if (password !== confirmPassword) {
+        document.getElementById('confirmNewPasswordError').textContent = 'Las contraseñas no coinciden';
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/auth/reset-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            alert('Contraseña restablecida correctamente. Ahora puedes iniciar sesión.');
+            window.location.href = 'login.html';
+        } else {
+            alert(data.message || 'Error al restablecer la contraseña');
+        }
+    } catch (err) {
+        alert('Error de red');
+    }
+});
+</script>
 </body>
 </html>
