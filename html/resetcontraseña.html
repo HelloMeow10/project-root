@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restablecer Contraseña | Dashboard Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/login.css">
+    <link rel="stylesheet" href="../css/olvidecontraseña.css">
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="background-animation">
+        <div class="floating-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+            <div class="shape shape-4"></div>
+            <div class="shape shape-5"></div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="auth-container">
+        <!-- Left Panel - Branding -->
+        <div class="branding-panel">
+            <div class="branding-content">
+                <div class="logo">
+                    <i class="fas fa-key"></i>
+                    <h1>Nueva Contraseña</h1>
+                </div>
+                <div class="welcome-text">
+                    <h2>Casi terminamos</h2>
+                    <p>Crea una nueva contraseña segura para proteger tu cuenta.</p>
+                </div>
+                <div class="security-features">
+                    <div class="feature">
+                        <i class="fas fa-lock"></i>
+                        <span>Encriptación segura</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Protección avanzada</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-user-check"></i>
+                        <span>Verificación completa</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Reset Form -->
+        <div class="form-panel">
+            <div class="form-container">
+                <div class="form-header">
+                    <h2>Restablecer Contraseña</h2>
+                    <p>Crea una nueva contraseña segura para tu cuenta</p>
+                </div>
+
+                <form id="resetPasswordForm" class="auth-form" method="POST" action="reset-password.php">
+                    <!-- Token will be populated by PHP -->
+                    <input type="hidden" id="resetToken" name="token" value="">
+                    
+                    <div class="form-group">
+                        <label for="newPassword">Nueva Contraseña</label>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input 
+                                type="password" 
+                                id="newPassword" 
+                                name="password" 
+                                placeholder="Mínimo 8 caracteres"
+                                required
+                                autocomplete="new-password"
+                            >
+                            <button type="button" class="toggle-password" data-target="newPassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="password-strength" id="passwordStrength">
+                            <div class="strength-bar">
+                                <div class="strength-fill"></div>
+                            </div>
+                            <span class="strength-text">Ingresa una contraseña</span>
+                        </div>
+                        <span class="error-message" id="newPasswordError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmNewPassword">Confirmar Nueva Contraseña</label>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input 
+                                type="password" 
+                                id="confirmNewPassword" 
+                                name="confirmPassword" 
+                                placeholder="Repite tu nueva contraseña"
+                                required
+                                autocomplete="new-password"
+                            >
+                            <button type="button" class="toggle-password" data-target="confirmNewPassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <span class="error-message" id="confirmNewPasswordError"></span>
+                    </div>
+
+                    <div class="password-requirements">
+                        <h4>Tu contraseña debe contener:</h4>
+                        <ul class="requirements-list">
+                            <li id="req-length">
+                                <i class="fas fa-times"></i>
+                                Al menos 8 caracteres
+                            </li>
+                            <li id="req-uppercase">
+                                <i class="fas fa-times"></i>
+                                Una letra mayúscula
+                            </li>
+                            <li id="req-lowercase">
+                                <i class="fas fa-times"></i>
+                                Una letra minúscula
+                            </li>
+                            <li id="req-number">
+                                <i class="fas fa-times"></i>
+                                Un número
+                            </li>
+                        </ul>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full" id="resetPasswordButton">
+                        <span class="btn-text">
+                            <i class="fas fa-key"></i>
+                            Restablecer Contraseña
+                        </span>
+                        <span class="btn-loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            Restableciendo...
+                        </span>
+                    </button>
+
+                    <div class="form-footer">
+                        <p><a href="login.html" class="switch-link">Volver al login</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <script src="../js/login.js"></script>
+    <script src="../js/olvidecontraseña.js"></script>
+</body>
+</html>
