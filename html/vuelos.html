@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Flights - All-Inclusive Tourism</title>
+    <title>Reserva vuelos - MUSIMUNDO</title>
     <link rel="stylesheet" href="../css/vuelos.css">
 </head>
 <body>
@@ -13,27 +13,12 @@
     <div class="container">
         <div class="header">
             <div class="header-content">
-                
                 <div class="header-text">
-                    <h1>¡Reserva Tu Vuelo!</h1>
+                    <h1>Reserva tu vuelo</h1>
                     <p>Encuentra el vuelo perfecto para tus vacaciones todo incluido</p>
                 </div>
             </div>
         </div>
-        <div class="cart-dropdown">
-    <button id="cartToggle" class="cart-btn">
-        <i class="fas fa-shopping-cart"></i>
-        
-        <span id="cartCount">Carrito</span>
-    </button>
-    <div id="cartMenu" class="cart-menu">
-        <div id="cartItems"></div>
-        <div class="cart-total">
-            Total: <span id="cartTotal">$0</span>
-        </div>
-        <button id="checkoutBtn">Finalizar compra</button>
-    </div>
-</div>
 
         <div class="search-section scroll-reveal">
             <div class="search-header">
@@ -42,19 +27,19 @@
             </div>
             <form class="search-form" id="searchForm">
                 <div class="form-group">
-                    <label for="from"> Desde</label>
+                    <label for="from">Desde</label>
                     <select id="from" name="from">
-                        <option value="NYC">New York (NYC)</option>
-                        <option value="LAX">Los Angeles (LAX)</option>
+                        <option value="NYC">Nueva York (NYC)</option>
+                        <option value="LAX">Los Ángeles (LAX)</option>
                         <option value="CHI">Chicago (CHI)</option>
                         <option value="MIA">Miami (MIA)</option>
                         <option value="LAS">Las Vegas (LAS)</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="to">🏝️ To</label>
+                    <label for="to">A</label>
                     <select id="to" name="to">
-                        <option value="CUN">Cancun (CUN)</option>
+                        <option value="CUN">Cancún (CUN)</option>
                         <option value="PUJ">Punta Cana (PUJ)</option>
                         <option value="NAS">Nassau (NAS)</option>
                         <option value="MBJ">Montego Bay (MBJ)</option>
@@ -62,15 +47,15 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="departure">Dia de salida</label>
+                    <label for="departure">📅 Fecha de Salida</label>
                     <input type="date" id="departure" name="departure" required>
                 </div>
                 <div class="form-group">
-                    <label for="return">Fecha de regreso</label>
+                    <label for="return">🔄 Fecha de Regreso</label>
                     <input type="date" id="return" name="return" required>
                 </div>
                 <div class="form-group">
-                    <label for="passengers">Pasajeros</label>
+                    <label for="passengers">👥 Pasajeros</label>
                     <select id="passengers" name="passengers">
                         <option value="1">1 Pasajero</option>
                         <option value="2">2 Pasajeros</option>
@@ -88,7 +73,7 @@
         <div class="flights-section scroll-reveal">
             <div class="flights-header">
                 <img src="../imagenes/plane.png" alt="Available flights" class="flights-icon">
-                <h2 style="color: #4a5568; font-size: 1.8rem; margin: 0;">Available Flights</h2>
+                <h2 style="color: #4a5568; font-size: 1.8rem; margin: 0;">Vuelos Disponibles</h2>
             </div>
             <div id="flightResults">
                 <!-- Flight results will be populated here -->
@@ -96,23 +81,12 @@
         </div>
 
         <div class="navigation">
-            <a href="packages.html" class="nav-link">← Volver a Paquetes</a>
-            <a href="hotels.html" class="nav-link">Reservar Hoteles →</a>
+            <a href="paquetes.html" class="nav-link">← Comprar paquetes</a>
+            <a href="hotel.html" class="nav-link">Reservar Hoteles →</a>
         </div>
     </div>
 
-    <!--<div class="cart-section" id="cartSection">
-        <div class="cart-header">
-            <h3 style="color: #4a5568; font-size: 1.2rem;">🛒 Shopping Cart</h3>
-            <button class="cart-toggle" onclick="toggleCart()">Hide</button>
-        </div>
-        <div id="cartItems">
-             Cart items will be populated here 
-        </div>
-        <div class="cart-total" id="cartTotal">
-            Total: $0
-        </div>
-    </div>-->
+    
 
     <script src="../js/vuelos.js"></script>
 </body>

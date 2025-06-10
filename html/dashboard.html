@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Administrativo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Header -->
+        <header class="header">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Buscar..." id="searchInput">
+            </div>
+            <div class="user-menu">
+                <button class="notification-btn" id="notificationBtn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="notificationBadge">0</span>
+                </button>
+                <div class="user-info" id="userInfo">
+                    <span id="userName">Admin Usuario</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <div class="logo">
+                <h2><i class="fas fa-chart-line"></i> Dashboard</h2>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-page="dashboard">
+                        <i class="fas fa-home"></i>
+                        <span>Inicio</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="users">
+                        <i class="fas fa-users"></i>
+                        <span>Usuarios</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="products">
+                        <i class="fas fa-box"></i>
+                        <span>Productos</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="orders">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Pedidos</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="analytics">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Analíticas</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="settings">
+                        <i class="fas fa-cog"></i>
+                        <span>Configuración</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="page active">
+                <div class="page-title">
+                    <h1>Dashboard</h1>
+                    <div class="breadcrumb">Inicio / Dashboard</div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card users">
+                        <div class="stat-info">
+                            <h3 id="total-users" class="counter">0</h3>
+                            <p>Total Usuarios</p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card sales">
+                        <div class="stat-info">
+                            <h3 id="total-sales" class="counter">$0</h3>
+                            <p>Ventas Totales</p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card orders">
+                        <div class="stat-info">
+                            <h3 id="total-orders" class="counter">0</h3>
+                            <p>Pedidos</p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card revenue">
+                        <div class="stat-info">
+                            <h3 id="monthly-revenue" class="counter">$0</h3>
+                            <p>Ingresos del Mes</p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Grid -->
+                <div class="content-grid">
+                    <!-- Chart -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Ventas por Mes</h3>
+                            <select id="chart-period" class="form-control">
+                                <option value="6">Últimos 6 meses</option>
+                                <option value="12">Último año</option>
+                            </select>
+                        </div>
+                        <div class="card-content">
+                            <div class="chart-container">
+                                <canvas id="salesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Actividad Reciente</h3>
+                            <button class="btn btn-sm btn-primary" id="refreshActivity">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                        <div class="card-content">
+                            <div id="activity-list" class="activity-list">
+                                <!-- Activity items will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Datos Recientes</h3>
+                        <div class="card-actions">
+                            <button class="btn btn-sm btn-secondary" id="exportBtn">
+                                <i class="fas fa-download"></i> Exportar
+                            </button>
+                            <button class="btn btn-sm btn-primary" id="addNewBtn">
+                                <i class="fas fa-plus"></i> Agregar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="table-controls">
+                            <div class="table-search">
+                                <input type="text" placeholder="Buscar en tabla..." id="tableSearch" class="form-control">
+                            </div>
+                            <div class="table-filters">
+                                <select id="statusFilter" class="form-control">
+                                    <option value="">Todos los estados</option>
+                                    <option value="active">Activo</option>
+                                    <option value="inactive">Inactivo</option>
+                                    <option value="pending">Pendiente</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table id="dataTable" class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="id">ID <i class="fas fa-sort"></i></th>
+                                        <th data-sort="name">Nombre <i class="fas fa-sort"></i></th>
+                                        <th data-sort="email">Email <i class="fas fa-sort"></i></th>
+                                        <th data-sort="status">Estado <i class="fas fa-sort"></i></th>
+                                        <th data-sort="date">Fecha <i class="fas fa-sort"></i></th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody">
+                                    <!-- Data will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-pagination">
+                            <div class="pagination-info">
+                                <span id="paginationInfo">Mostrando 0 de 0 registros</span>
+                            </div>
+                            <div class="pagination-controls">
+                                <button class="btn btn-sm" id="prevPage" disabled>
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span id="pageNumbers" class="page-numbers"></span>
+                                <button class="btn btn-sm" id="nextPage" disabled>
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Page -->
+            <div id="users-page" class="page">
+                <div class="page-title">
+                    <h1>Gestión de Usuarios</h1>
+                    <div class="breadcrumb">Inicio / Usuarios</div>
+                </div>
+                <div class="page-content">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Products Page -->
+            <div id="products-page" class="page">
+                <div class="page-title">
+                    <h1>Gestión de Productos</h1>
+                    <div class="breadcrumb">Inicio / Productos</div>
+                </div>
+                <div class="page-content">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Orders Page -->
+            <div id="orders-page" class="page">
+                <div class="page-title">
+                    <h1>Gestión de Pedidos</h1>
+                    <div class="breadcrumb">Inicio / Pedidos</div>
+                </div>
+                <div class="page-content">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Analytics Page -->
+            <div id="analytics-page" class="page">
+                <div class="page-title">
+                    <h1>Analíticas</h1>
+                    <div class="breadcrumb">Inicio / Analíticas</div>
+                </div>
+                <div class="page-content">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div id="settings-page" class="page">
+                <div class="page-title">
+                    <h1>Configuración</h1>
+                    <div class="breadcrumb">Inicio / Configuración</div>
+                </div>
+                <div class="page-content">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Template -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Modal</h3>
+                <button class="close-btn" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Modal content will be loaded here -->
+            </div>
+            <div class="modal-footer" id="modalFooter">
+                <!-- Modal buttons will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Cargando...</p>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <script src="../js/dashboard.js"></script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-// Hotel booking functionality
+// Hotel booking functionality - Visual only (no cart functionality)
 class HotelBooking {
   constructor() {
     this.sampleHotels = [
@@ -105,7 +105,6 @@ class HotelBooking {
       },
     ]
 
-    this.cart = JSON.parse(localStorage.getItem("tourismCart")) || []
     this.currentHotel = null
     this.init()
   }
@@ -115,7 +114,6 @@ class HotelBooking {
     this.setupEventListeners()
     this.setupDateValidation()
     this.displayHotels(this.sampleHotels)
-    this.updateCart()
     this.revealOnScroll()
   }
 
@@ -167,6 +165,14 @@ class HotelBooking {
     // Load events
     window.addEventListener("load", () => {
       this.revealOnScroll()
+    })
+
+    // Close modal when clicking outside
+    window.addEventListener("click", (e) => {
+      const modal = document.getElementById("hotelModal")
+      if (e.target === modal) {
+        this.closeModal()
+      }
     })
   }
 
@@ -272,7 +278,7 @@ class HotelBooking {
                             View Details
                         </button>
                     </div>
-                    <button class="add-to-cart-btn" onclick="hotelBooking.addToCart('${hotel.id}')">
+                    <button class="add-to-cart-btn">
                         Add to Cart
                     </button>
                 </div>
@@ -344,7 +350,7 @@ class HotelBooking {
                         <div class="modal-hotel-price">
                             $${hotel.price} <span class="hotel-price-night">/ night</span>
                         </div>
-                        <button class="modal-add-to-cart-btn" onclick="hotelBooking.addToCart('${hotel.id}', true)">
+                        <button class="modal-add-to-cart-btn">
                             Add to Cart
                         </button>
                     </div>
@@ -368,119 +374,6 @@ class HotelBooking {
     modal.classList.remove("show")
     document.body.style.overflow = "auto"
   }
-
-  // Cart management
-  updateCart() {
-    const cartItems = document.getElementById("cartItems")
-    const cartTotal = document.getElementById("cartTotal")
-
-    if (this.cart.length === 0) {
-      cartItems.innerHTML = `
-                <div style="text-align: center; padding: 2rem;">
-                    <img src="/placeholder.svg?height=80&width=80" alt="Empty cart" style="opacity: 0.5; margin-bottom: 1rem;">
-                    <p style="color: #718096;">Your cart is empty</p>
-                </div>
-            `
-      cartTotal.textContent = "Total: $0"
-      return
-    }
-
-    cartItems.innerHTML = this.cart
-      .map(
-        (item, index) => `
-            <div class="cart-item" style="animation-delay: ${index * 0.1}s">
-                <div class="cart-item-header">
-                    <strong>${item.type === "flight" ? "✈️" : "🏨"} ${item.name}</strong>
-                    <button class="remove-btn" onclick="hotelBooking.removeFromCart('${item.id}')">Remove</button>
-                </div>
-                <div style="font-size: 0.9rem; color: #718096; margin: 0.5rem 0;">
-                    ${item.details}
-                </div>
-                <div style="font-weight: 700; color: #667eea; margin-top: 0.5rem; font-size: 1.1rem;">
-                    $${item.price}
-                </div>
-            </div>
-        `,
-      )
-      .join("")
-
-    const total = this.cart.reduce((sum, item) => sum + item.price, 0)
-    cartTotal.textContent = `Total: $${total}`
-  }
-
-  addToCart(hotelId, fromModal = false) {
-    const hotel = this.sampleHotels.find((h) => h.id === hotelId)
-    if (!hotel) return
-
-    const cartItem = {
-      id: hotel.id,
-      type: "hotel",
-      name: hotel.name,
-      details: `${hotel.location} | ${this.getStarRating(hotel.rating)}`,
-      price: hotel.price,
-    }
-
-    // Check if item already exists
-    const existingIndex = this.cart.findIndex((item) => item.id === hotel.id)
-    if (existingIndex === -1) {
-      this.cart.push(cartItem)
-      localStorage.setItem("tourismCart", JSON.stringify(this.cart))
-      this.updateCart()
-
-      // Animate button success
-      const btn = event.target
-      const originalText = btn.innerHTML
-      btn.innerHTML = "✓ Added to Cart!"
-      btn.classList.add("success-animation")
-      btn.style.background = "linear-gradient(135deg, #38a169, #2f855a)"
-
-      setTimeout(() => {
-        btn.innerHTML = originalText
-        btn.classList.remove("success-animation")
-        btn.style.background = fromModal
-          ? "linear-gradient(135deg, #48bb78, #38a169)"
-          : "linear-gradient(135deg, #48bb78, #38a169)"
-      }, 2000)
-
-      if (fromModal) {
-        setTimeout(() => {
-          this.closeModal()
-        }, 1500)
-      }
-    } else {
-      // Shake animation for duplicate
-      const btn = event.target
-      btn.style.animation = "shake 0.5s ease-in-out"
-      btn.innerHTML = "Already in Cart!"
-      setTimeout(() => {
-        btn.style.animation = ""
-        btn.innerHTML = fromModal ? "Add to Cart" : "Add to Cart"
-      }, 1500)
-    }
-  }
-
-  removeFromCart(itemId) {
-    this.cart = this.cart.filter((item) => item.id !== itemId)
-    localStorage.setItem("tourismCart", JSON.stringify(this.cart))
-    this.updateCart()
-  }
-
-  toggleCart() {
-    const cartSection = document.getElementById("cartSection")
-    const toggleBtn = document.querySelector(".cart-toggle")
-
-    if (cartSection.style.display === "none") {
-      cartSection.style.display = "block"
-      cartSection.style.animation = "slideInFromRight 0.5s ease-out"
-      toggleBtn.textContent = "Hide"
-    } else {
-      cartSection.style.animation = "slideOutToRight 0.5s ease-out"
-      setTimeout(() => {
-        cartSection.style.display = "none"
-      }, 500)
-      toggleBtn.textContent = "Show Cart"
-    }
-  }
 }
 
 // Initialize the hotel booking system
@@ -489,8 +382,3 @@ let hotelBooking
 document.addEventListener("DOMContentLoaded", () => {
   hotelBooking = new HotelBooking()
 })
-
-// Global function for cart toggle (called from HTML)
-function toggleCart() {
-  hotelBooking.toggleCart()
-}
