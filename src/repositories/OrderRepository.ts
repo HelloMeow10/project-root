@@ -1,16 +1,46 @@
 // src/repositories/OrderRepository.ts
-import { prisma } from '../config/db';
-import { Pedido } from '../models/pedido';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export class OrderRepository {
-  async findAll(): Promise<Pedido[]> {
-    return await prisma.pedido.findMany();
+  async getAll() {
+    return prisma.pedido.findMany({
+      include: {
+        producto: true,
+        usuario: true,
+        emails: true
+      }
+    });
   }
-  async findById(id: number): Promise<Pedido | null> {
-    return await prisma.pedido.findUnique({ where: { id } });
+
+  async getById(id: number) {
+    return prisma.pedido.findUnique({
+      where: { id },
+      include: {
+        producto: true,
+        usuario: true,
+        emails: true
+      }
+    });
   }
-  async create(data: Omit<Pedido, 'id' | 'fecha' | 'total'> & { fecha?: Date, total: number }): Promise<Pedido> {
-    return await prisma.pedido.create({ data });
+
+  async create(data: any) {
+    return prisma.pedido.create({
+      data
+    });
   }
-  // Resto de métodos (update, delete) similares...
+
+  async update(id: number, data: any) {
+    return prisma.pedido.update({
+      where: { id },
+      data
+    });
+  }
+
+  async delete(id: number) {
+    return prisma.pedido.delete({
+      where: { id }
+    });
+  }
 }

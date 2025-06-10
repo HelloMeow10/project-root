@@ -548,6 +548,58 @@ document.addEventListener('DOMContentLoaded', function() {
 - Add more social providers
 - Customize animations and transitions
     `);
+
+  const loginForm = document.getElementById('loginForm');
+  if (loginForm) {
+    loginForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const email = loginForm.email.value;
+      const password = loginForm.password.value;
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          // Guarda el token y redirige al dashboard
+          localStorage.setItem('token', data.token);
+          window.location.href = 'dashboard.html';
+        } else {
+          alert(data.message || 'Error al iniciar sesión');
+        }
+      } catch (err) {
+        alert('Error de red');
+      }
+    });
+  }
+
+  const registerForm = document.getElementById('registerForm');
+  if (registerForm) {
+    registerForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const nombre = registerForm.firstName.value + ' ' + registerForm.lastName.value;
+      const email = registerForm.email.value;
+      const password = registerForm.password.value;
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre, email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert('Registro exitoso. Ahora puedes iniciar sesión.');
+          window.location.href = 'login.html';
+        } else {
+          alert(data.message || 'Error al registrarse');
+        }
+      } catch (err) {
+        alert('Error de red');
+      }
+    });
+  }
 });
 
 // Global API for external use
