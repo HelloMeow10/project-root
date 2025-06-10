@@ -1,0 +1,359 @@
+/* Forgot Password Specific Styles */
+
+/* Recovery Steps */
+.recovery-steps {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius-sm);
+    backdrop-filter: blur(10px);
+    transition: var(--transition);
+    animation: slideInLeft 0.8s ease calc(0.6s + var(--delay, 0s)) both;
+}
+
+.step:nth-child(1) { --delay: 0s; }
+.step:nth-child(2) { --delay: 0.1s; }
+.step:nth-child(3) { --delay: 0.2s; }
+
+.step:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateX(5px);
+}
+
+.step-number {
+    width: 30px;
+    height: 30px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.step-content h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.step-content p {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin: 0;
+}
+
+/* Security Features (for reset page) */
+.security-features {
+    display: grid;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.security-features .feature {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius-sm);
+    backdrop-filter: blur(10px);
+    transition: var(--transition);
+    animation: slideInLeft 0.8s ease calc(0.4s + var(--delay, 0s)) both;
+}
+
+.security-features .feature:nth-child(1) { --delay: 0s; }
+.security-features .feature:nth-child(2) { --delay: 0.1s; }
+.security-features .feature:nth-child(3) { --delay: 0.2s; }
+
+.security-features .feature:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateX(5px);
+}
+
+.security-features .feature i {
+    font-size: 1.25rem;
+    opacity: 0.9;
+}
+
+.security-features .feature span {
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* Back Button */
+.back-button {
+    margin-bottom: 1rem;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: var(--transition-fast);
+}
+
+.back-link:hover {
+    color: var(--primary-color);
+    transform: translateX(-3px);
+}
+
+/* Password Requirements */
+.password-requirements {
+    background: var(--bg-secondary);
+    padding: 1.5rem;
+    border-radius: var(--border-radius-sm);
+    margin: 1rem 0;
+    border: 1px solid var(--border-color);
+}
+
+.password-requirements h4 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.requirements-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.requirements-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    transition: var(--transition-fast);
+}
+
+.requirements-list li i {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: var(--error-color);
+    transition: var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.requirements-list li.valid {
+    color: var(--success-color);
+}
+
+.requirements-list li.valid i {
+    color: var(--success-color);
+}
+
+/* Enhanced Password Strength Indicator */
+.password-strength {
+    margin-top: 0.75rem;
+}
+
+.strength-bar {
+    height: 6px;
+    background: var(--border-color);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.strength-fill {
+    height: 100%;
+    width: 0%;
+    transition: var(--transition);
+    border-radius: 3px;
+}
+
+.strength-fill.weak {
+    width: 25%;
+    background: var(--error-color);
+}
+
+.strength-fill.fair {
+    width: 50%;
+    background: var(--warning-color);
+}
+
+.strength-fill.good {
+    width: 75%;
+    background: var(--info-color);
+}
+
+.strength-fill.strong {
+    width: 100%;
+    background: var(--success-color);
+}
+
+.strength-text {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Form Enhancements */
+.form-header {
+    animation: fadeInUp 0.8s ease 0.3s both;
+}
+
+.form-group {
+    animation: fadeInUp 0.6s ease calc(0.1s * var(--index, 0)) both;
+}
+
+/* Button Loading States */
+.btn.loading .btn-text {
+    opacity: 0;
+}
+
+.btn.loading .btn-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn:not(.loading) .btn-loading {
+    display: none;
+}
+
+/* Enhanced Notifications */
+.notification {
+    animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.notification.success {
+    background: linear-gradient(135deg, var(--success-color) 0%, #38a169 100%);
+}
+
+.notification.error {
+    background: linear-gradient(135deg, var(--error-color) 0%, #e53e3e 100%);
+}
+
+.notification.info {
+    background: linear-gradient(135deg, var(--info-color) 0%, #3182ce 100%);
+}
+
+/* Loading Overlay Enhancement */
+.loading-overlay {
+    backdrop-filter: blur(8px);
+}
+
+.loading-overlay.show {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .recovery-steps,
+    .security-features {
+        gap: 1rem;
+    }
+    
+    .step,
+    .security-features .feature {
+        padding: 0.75rem;
+    }
+    
+    .step-number {
+        width: 25px;
+        height: 25px;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .recovery-steps,
+    .security-features {
+        grid-template-columns: 1fr;
+    }
+    
+    .password-requirements {
+        padding: 1rem;
+        margin: 0.75rem 0;
+    }
+    
+    .requirements-list {
+        gap: 0.5rem;
+    }
+    
+    .requirements-list li {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .step-content h4 {
+        font-size: 0.9rem;
+    }
+    
+    .step-content p {
+        font-size: 0.8rem;
+    }
+    
+    .security-features .feature span {
+        font-size: 0.85rem;
+    }
+    
+    .password-requirements h4 {
+        font-size: 0.85rem;
+    }
+}
+
+/* Focus and Accessibility Enhancements */
+.back-link:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.requirements-list li {
+    padding: 0.25rem;
+    border-radius: 4px;
+}
+
+.requirements-list li.valid {
+    background: rgba(72, 187, 120, 0.1);
+}
+
+/* Animation Delays for Staggered Effects */
+.form-group:nth-child(1) { --index: 0; }
+.form-group:nth-child(2) { --index: 1; }
+.form-group:nth-child(3) { --index: 2; }
+.form-group:nth-child(4) { --index: 3; }
+
+/* Dark Mode Adjustments */
+@media (prefers-color-scheme: dark) {
+    .password-requirements {
+        background: var(--bg-secondary);
+        border-color: var(--border-color);
+    }
+    
+    .requirements-list li.valid {
+        background: rgba(72, 187, 120, 0.15);
+    }
+}
