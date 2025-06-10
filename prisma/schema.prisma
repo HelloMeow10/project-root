@@ -36,3 +36,13 @@ model Usuario {
   rol      String   // ej. "CLIENTE", "JEFE_VENTAS", etc.
   pedidos  Pedido[]
 }
+
+model Email {
+  id        Int      @id @default(autoincrement())
+  to        String
+  subject   String
+  body      String
+  sentAt    DateTime @default(now())
+  pedidoId  Int?
+  pedido    Pedido?  @relation(fields: [pedidoId], references: [id])
+}
