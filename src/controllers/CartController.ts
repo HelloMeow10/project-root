@@ -11,12 +11,18 @@ export async function addToCart(req: Request<{}, {}, CartRequestBody>, res: Resp
   const userId = (req as any).user.id;
 
   try {
-    const cartItem = await prisma.cart.create({
+    const cartItem = await prisma.carrito.create({
       data: {
-        userId,
-        productId,
-        quantity,
+        id_cliente: userId,
+        // Asegúrate de que los campos coincidan con tu modelo CarritoItem
+        items: {
+          create: [{
+            id_producto: productId,
+            cantidad: quantity,
+          }]
+        }
       },
+      include: { items: true }
     });
     res.status(201).json(cartItem);
   } catch (err) {
