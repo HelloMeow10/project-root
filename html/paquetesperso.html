@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paquete personalizado</title>
+    <link rel="stylesheet" href="../css/paquetesperso.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <i class="fas fa-globe-americas"></i>
+                  <span id="span-a-href"><a href="inicio.html">MUSIMUNDO/Travel</a></span>
+                </div>
+                <ul class="nav-menu">
+              
+                    <li><a href="paquetes.html">Paquetes</a></li>
+              
+                    
+                </ul>
+                <div class="nav-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Crea tu viaje perfecto</h1>
+            <p class="hero-subtitle">Diseña un paquete turístico personalizado según tus preferencias</p>
+            <div class="progress-indicator">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-steps">
+                    <div class="step active" data-step="1">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Destino</span>
+                    </div>
+                    <div class="step" data-step="2">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Fechas</span>
+                    </div>
+                    <div class="step" data-step="3">
+                        <i class="fas fa-bed"></i>
+                        <span>Alojamiento</span>
+                    </div>
+                    <div class="step" data-step="4">
+                        <i class="fas fa-car"></i>
+                        <span>Transporte</span>
+                    </div>
+                    <div class="step" data-step="5">
+                        <i class="fas fa-star"></i>
+                        <span>Actividades</span>
+                    </div>
+                    <div class="step" data-step="6">
+                        <i class="fas fa-check"></i>
+                        <span>Revisión</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="package-builder">
+                <!-- Step 1: Destination Selection -->
+                <div class="step-content active" id="step1">
+                    <div class="step-header">
+                        <h2>Elige tu destino</h2>
+                        <p>¿A dónde te gustaría ir?</p>
+                    </div>
+                    <div class="destination-search">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="destinationSearch" placeholder="Search destinations...">
+                        </div>
+                        <div class="destination-suggestions" id="destinationSuggestions"></div>
+                    </div>
+                    <div class="popular-destinations">
+                        <h3>Destinos populares</h3>
+                        <div class="destinations-grid" id="destinationsGrid">
+                            <!-- Destinations will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Date Selection -->
+                <div class="step-content" id="step2">
+                    <div class="step-header">
+                        <h2>Selecciona tus fechas de viaje</h2>
+                        <p>¿Cuándo te gustaría viajar?</p>
+                    </div>
+                    <div class="date-selection">
+                        <div class="date-inputs">
+                            <div class="date-group">
+                                <label for="checkIn">Fecha de entrada</label>
+                                <input type="date" id="checkIn" class="date-input">
+                            </div>
+                            <div class="date-group">
+                                <label for="checkOut">Fecha de salida</label>
+                                <input type="date" id="checkOut" class="date-input">
+                            </div>
+                            <div class="date-group">
+                                <label for="travelers">úmero de viajeros</label>
+                                <select id="travelers" class="travelers-select">
+                                    <option value="1">1 viajero</option>
+                                    <option value="2">2 viajeros</option>
+                                    <option value="3">3 viajeros</option>
+                                    <option value="4">4 viajeros</option>
+                                    <option value="5+">5+ viajeros</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="duration-display">
+                            <div class="duration-card">
+                                <i class="fas fa-clock"></i>
+                                <div class="duration-info">
+                                    <span class="duration-number" id="durationDays">0</span>
+                                    <span class="duration-text">Días</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Accommodation -->
+                <div class="step-content" id="step3">
+                    <div class="step-header">
+                        <h2>Elige tu alojamiento</h2>
+                        <p>Selecciona el tipo de alojamiento que se adapte a tu estilo</p>
+                    </div>
+                    <div class="accommodation-options" id="accommodationOptions">
+                        <!-- Accommodation options will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Step 4: Transportation -->
+                <div class="step-content" id="step4">
+                    <div class="step-header">
+                        <h2>Opciones de transporte</h2>
+                        <p>¿Cómo te gustaría moverte?</p>
+                    </div>
+                    <div class="transport-categories">
+                        <div class="transport-category">
+                            <h3><i class="fas fa-plane"></i> Vuelos</h3>
+                            <div class="transport-options" id="flightOptions">
+                                <!-- Flight options will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="transport-category">
+                            <h3><i class="fas fa-car"></i> Alquiler de coches</h3>
+                            <div class="car-rental-section">
+                                <div class="rental-toggle">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="carRentalToggle">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                    <span>Incluir alquiler de coches</span>
+                                </div>
+                                <div class="car-options" id="carOptions">
+                                    <!-- Car rental options will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="transport-category">
+                            <h3><i class="fas fa-bus"></i> Transporte local</h3>
+                            <div class="transport-options" id="localTransportOptions">
+                                <!-- Local transport options will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 5: Activities -->
+                <div class="step-content" id="step5">
+                    <div class="step-header">
+                        <h2>Selecciona actividades y experiencias</h2>
+                        <p>¿Qué te gustaría hacer durante tu viaje?</p>
+                    </div>
+                    <div class="activity-categories">
+                        <div class="category-filters">
+                            <button class="category-btn active" data-category="all">Todas las actividades</button>
+                            <button class="category-btn" data-category="adventure">Aventura</button>
+                            <button class="category-btn" data-category="culture">Cultura</button>
+                            <button class="category-btn" data-category="food">Comida y bebida</button>
+                            <button class="category-btn" data-category="nature">Naturaleza</button>
+                            <button class="category-btn" data-category="relaxation">Relajación</button>
+                        </div>
+                        <div class="activities-grid" id="activitiesGrid">
+                            <!-- Activities will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 6: Review & Summary -->
+                <div class="step-content" id="step6">
+                    <div class="step-header">
+                        <h2>Revisa tu paquete personalizado</h2>
+                        <p>Revisa todas tus selecciones antes de finalizar</p>
+                    </div>
+                    <div class="package-summary">
+                        <div class="summary-sections">
+                            <div class="summary-section">
+                                <h3><i class="fas fa-map-marker-alt"></i> Destino</h3>
+                                <div class="summary-content" id="summaryDestination">
+                                    <p>No destinos seleccionados</p>
+                                </div>      
+                            </div>
+                            <div class="summary-section">
+                                <h3><i class="fas fa-calendar-alt"></i> Fechas de viaje</h3>
+                                <div class="summary-content" id="summaryDates">
+                                    <p>No fechas seleccionadas</p>
+                                </div>
+                            </div>
+                            <div class="summary-section">
+                                <h3><i class="fas fa-bed"></i> Alojamiento</h3>
+                                <div class="summary-content" id="summaryAccommodation">
+                                    <p>No alojamiento seleccionado</p>
+                                </div>
+                            </div>
+                            <div class="summary-section">
+                                <h3><i class="fas fa-car"></i> Transporte</h3>
+                                <div class="summary-content" id="summaryTransport">
+                                    <p>No transporte seleccionado</p>
+                                </div>
+                            </div>
+                            <div class="summary-section">
+                                <h3><i class="fas fa-star"></i> Actividades</h3>
+                                <div class="summary-content" id="summaryActivities">
+                                    <p>No actividades seleccionadas</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="price-summary">
+                            <div class="price-breakdown">
+                                <div class="price-item">
+                                    <span>Alojamiento</span>
+                                    <span id="priceAccommodation">$0</span>
+                                </div>
+                                <div class="price-item">
+                                    <span>Transporte</span>
+                                    <span id="priceTransport">$0</span>
+                                </div>
+                                <div class="price-item">
+                                    <span>Actividades</span>
+                                    <span id="priceActivities">$0</span>
+                                </div>
+                                <div class="price-item">
+                                    <span>Alquiler de coches</span>
+                                    <span id="priceCarRental">$0</span>
+                                </div>
+                                <div class="price-total">
+                                    <span>Total</span>
+                                    <span id="totalPrice">$0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="step-navigation">
+                    <button class="nav-btn prev-btn" id="prevBtn" disabled>
+                        <i class="fas fa-arrow-left"></i>
+                        Anterior
+                    </button>
+                    <button class="nav-btn next-btn" id="nextBtn">
+                        Siguiente
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <button class="nav-btn save-btn" id="saveBtn" style="display: none;">
+                        <i class="fas fa-save"></i>
+                        Guardar Paquete
+                    </button>
+                </div>
+            </div>
+
+            <!-- Floating Summary -->
+            <div class="floating-summary" id="floatingSummary">
+                <div class="summary-header">
+                    <h4>Tu paquete</h4>
+                    <button class="toggle-summary" id="toggleSummary">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                </div>
+                <div class="summary-body">
+                    <div class="selected-items" id="selectedItems">
+                        <p>Comienza a construir tu paquete...</p>
+                    </div>
+                    <div class="summary-price">
+                        <span>Total: <strong id="floatingPrice">$0</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Cargando opciones...</p>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal" id="successModal">
+        <div class="modal-content success-content">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2>¡Paquete Guardado Exitosamente!</h2>
+            <p>Tu paquete de turismo personalizado ha sido creado. Ahora puedes proceder a la reserva o hacer más modificaciones.</p>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="editPackageBtn">Editar Paquete</button>
+                <button class="btn-primary" id="proceedBookingBtn">Proceder a la Reserva</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/paquetesperso.js"></script>
+</body>
+</html>
