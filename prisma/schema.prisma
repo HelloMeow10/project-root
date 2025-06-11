@@ -28,7 +28,7 @@ model Rol {
   id_rol      Int               @id @default(autoincrement())
   nombre      String            @unique
   descripcion String?
-  usuarios    UsuarioInterno[]  npx prisma migrate dev --name adaptacion  npx prisma migrate dev --name adaptacion
+  usuarios    UsuarioInterno[]
 }
 
 // Usuarios internos (empleados)
