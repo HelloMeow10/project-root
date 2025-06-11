@@ -99,6 +99,26 @@ class DashboardUI {
 
         // Window resize
         window.addEventListener('resize', () => this.handleResize());
+
+        document.getElementById('tabUsuariosInternos').onclick = async () => {
+          document.getElementById('usuariosInternosTable').style.display = '';
+          document.getElementById('clientesTable').style.display = 'none';
+          document.getElementById('tabUsuariosInternos').classList.add('active');
+          document.getElementById('tabClientes').classList.remove('active');
+          const res = await fetch('/api/users/internos');
+          const data = await res.json();
+          dashboardUI.renderUsuariosInternosTable(data);
+        };
+
+        document.getElementById('tabClientes').onclick = async () => {
+          document.getElementById('usuariosInternosTable').style.display = 'none';
+          document.getElementById('clientesTable').style.display = '';
+          document.getElementById('tabUsuariosInternos').classList.remove('active');
+          document.getElementById('tabClientes').classList.add('active');
+          const res = await fetch('/api/users/clientes');
+          const data = await res.json();
+          dashboardUI.renderClientesTable(data);
+        };
     }
 
     // Navigation Methods
@@ -161,7 +181,7 @@ class DashboardUI {
     }
 
     // Search Methods
-    handleGlobalSearch(query) {
+    handleGlobalSearch(query = '') {
         // Emit search event for external handling
         document.dispatchEvent(new CustomEvent('globalSearch', { 
             detail: { query, page: this.currentPage } 
@@ -695,205 +715,52 @@ class DashboardUI {
             userNameElement.textContent = userName;
         }
     }
+
+    renderUsuariosInternosTable(data) {
+        const tbody = document.getElementById('usuariosInternosTableBody');
+        tbody.innerHTML = '';
+        data.forEach(u => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${u.id}</td>
+              <td>${u.nombre}</td>
+              <td>${u.apellido || ''}</td>
+              <td>${u.email}</td>
+              <td>${u.telefono || ''}</td>
+              <td>${u.activo ? 'Sí' : 'No'}</td>
+              <td>${u.id_rol || ''}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    renderClientesTable(data) {
+        const tbody = document.getElementById('clientesTableBody');
+        tbody.innerHTML = '';
+        data.forEach(u => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${u.id}</td>
+              <td>${u.nombre}</td>
+              <td>${u.apellido || ''}</td>
+              <td>${u.email}</td>
+              <td>${u.telefono || ''}</td>
+              <td>${u.activo ? 'Sí' : 'No'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
 }
 
 // Initialize Dashboard UI when DOM is loaded
 let dashboardUI;
 
-document.addEventListener('DOMContentLoaded', function() {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    window.location.href = 'login.html';
-    return;
-  }
-  // Aquí puedes cargar datos del usuario, productos, pedidos, etc.
+document.addEventListener('DOMContentLoaded', async function() {
   dashboardUI = new DashboardUI();
-
-  // Ejemplo: Cargar productos protegidos usando el token
-  fetch('/api/products', {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  })
-  .then(res => res.json())
-  .then(data => {
-    // Renderiza los productos en la tabla (ajusta columnas según tu modelo)
-    DashboardAPI.renderTable(data, [
-      { key: 'nombre', type: 'text' },
-      { key: 'precio', type: 'currency' },
-      { key: 'stock', type: 'text' }
-    ]);
-  })
-  .catch(err => {
-    DashboardAPI.showNotification('Error al cargar productos', 'error');
-  });
-
-  // Ejemplo para cargar pedidos
-  fetch('/api/orders', {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  })
-  .then(res => res.json())
-  .then(data => {
-    // Renderiza los pedidos en la tabla correspondiente
-    DashboardAPI.renderTable(data, [
-      { key: 'id', type: 'text' },
-      { key: 'fecha', type: 'date' },
-      { key: 'total', type: 'currency' },
-      { key: 'estado', type: 'status' }
-    ]);
-  })
-  .catch(err => {
-    DashboardAPI.showNotification('Error al cargar pedidos', 'error');
-  });
-
-  // Cargar usuarios y renderizarlos en una tabla
-function cargarUsuarios() {
-  const token = localStorage.getItem('token');
-  fetch('/api/users', {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  })
-  .then(res => res.json())
-  .then(usuarios => {
-    renderUsuariosTable(usuarios);
-  })
-  .catch(() => {
-    DashboardAPI.showNotification('Error al cargar usuarios', 'error');
-  });
-}
-
-function renderUsuariosTable(data) {
-  const tbody = document.getElementById('usuariosTableBody');
-  if (!tbody) return;
-  tbody.innerHTML = '';
-  data.forEach(row => {
-    const tr = document.createElement('tr');
-    ['id', 'nombre', 'email', 'rol'].forEach(key => {
-      const td = document.createElement('td');
-      td.textContent = row[key];
-      tr.appendChild(td);
-    });
-    tbody.appendChild(tr);
-  });
-}
-
-// Llama a cargarUsuarios cuando navegas a la sección usuarios
-document.addEventListener('pageChanged', function(e) {
-  if (e.detail.page === 'usuarios') {
-    cargarUsuarios();
-  }
-});
-
-  // Example event listeners for data integration
-    // These events should be handled by your data management layer
-    
-    document.addEventListener('pageChanged', function(e) {
-        console.log('Page changed to:', e.detail.page);
-        // Load data for the specific page here
-        // Example: loadPageData(e.detail.page);
-    });
-    
-    document.addEventListener('globalSearch', function(e) {
-        console.log('Global search:', e.detail.query, 'on page:', e.detail.page);
-        // Implement global search logic here
-    });
-    
-    document.addEventListener('tableSearch', function(e) {
-        console.log('Table search:', e.detail.query);
-        // Implement table search logic here
-    });
-    
-    document.addEventListener('tableSort', function(e) {
-        console.log('Sort by:', e.detail.column, 'direction:', e.detail.direction);
-        // Implement sorting logic here
-    });
-    
-    document.addEventListener('statusFilter', function(e) {
-        console.log('Filter by status:', e.detail.status);
-        // Implement status filtering logic here
-    });
-    
-    document.addEventListener('chartPeriodChanged', function(e) {
-        console.log('Chart period changed to:', e.detail.period);
-        // Load chart data for the selected period
-    });
-    
-    document.addEventListener('editItem', function(e) {
-  const { id, page } = e.detail;
-  // 1. Obtener los datos actuales del producto
-  fetch(`/api/products/${id}`, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  })
-  .then(res => res.json())
-  .then(producto => {
-    // 2. Mostrar modal con formulario de edición
-    const content = `
-      <form id="editProductForm">
-        <label>Nombre: <input type="text" name="nombre" value="${producto.nombre}" required></label><br>
-        <label>Precio: <input type="number" name="precio" value="${producto.precio}" required></label><br>
-        <label>Stock: <input type="number" name="stock" value="${producto.stock}" required></label><br>
-        <button type="submit" class="btn btn-primary">Guardar</button>
-      </form>
-    `;
-    DashboardAPI.showModal('Editar Producto', content);
-
-    // 3. Manejar el submit del formulario
-    document.getElementById('editProductForm').onsubmit = function(ev) {
-      ev.preventDefault();
-      const formData = new FormData(ev.target);
-      const data = {
-        nombre: formData.get('nombre'),
-        precio: parseFloat(formData.get('precio')),
-        stock: parseInt(formData.get('stock'))
-      };
-      fetch(`/api/products/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      })
-      .then(res => {
-        if (res.ok) {
-          DashboardAPI.showNotification('Producto actualizado', 'success');
-          DashboardAPI.hideLoading();
-          // Recarga la tabla de productos
-          fetch('/api/products', {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          })
-          .then(res => res.json())
-          .then(data => {
-            DashboardAPI.renderTable(data, [
-              { key: 'nombre', type: 'text' },
-              { key: 'precio', type: 'currency' },
-              { key: 'stock', type: 'text' }
-            ]);
-            dashboardUI.closeModal();
-          });
-        } else {
-          DashboardAPI.showNotification('Error al actualizar', 'error');
-        }
-      });
-    };
-  });
-});
+  // Carga inicial
+  const res = await fetch('/api/users/internos');
+  const data = await res.json();
+  dashboardUI.renderUsuariosInternosTable(data);
 });
 
 // Global utility functions for external use

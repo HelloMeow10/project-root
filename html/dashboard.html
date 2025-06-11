@@ -231,17 +231,41 @@
                     <div class="breadcrumb">Inicio / Usuarios</div>
                 </div>
                 <div class="page-content">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Email</th>
-                                <th>Rol</th>
-                            </tr>
-                        </thead>
-                        <tbody id="usuariosTableBody"></tbody>
-                    </table>
+                    <div class="tabs">
+                        <button id="tabUsuariosInternos" class="active">Usuarios Internos</button>
+                        <button id="tabClientes">Clientes</button>
+                    </div>
+                    <div id="usuariosInternosTable">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Apellido</th>
+                                    <th>Email</th>
+                                    <th>Teléfono</th>
+                                    <th>Activo</th>
+                                    <th>Rol</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usuariosInternosTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="clientesTable" style="display:none;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Apellido</th>
+                                    <th>Email</th>
+                                    <th>Teléfono</th>
+                                    <th>Activo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clientesTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
