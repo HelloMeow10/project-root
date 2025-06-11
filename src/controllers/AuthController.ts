@@ -6,9 +6,9 @@ const authService = new AuthService();
 
 export async function login(req: Request, res: Response, next: NextFunction) {
   try {
-    const { email, contrasena } = req.body; // <-- usa 'contrasena'
-    const token = await authService.loginCliente(email, contrasena);
-    res.status(200).json({ token });
+    const { email, contrasena } = req.body;
+    const { token, tipo } = await authService.login(email, contrasena);
+    res.status(200).json({ token, tipo });
   } catch (err) {
     next(err);
   }

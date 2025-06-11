@@ -576,17 +576,21 @@ document.addEventListener('DOMContentLoaded', function() {
     loginForm.addEventListener('submit', async function(e) {
       e.preventDefault();
       const email = loginForm.email.value;
-      const contrasena = loginForm.password.value; // <-- CAMBIO: password -> contrasena
+      const contrasena = loginForm.password.value;
       try {
         const res = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, contrasena }) // <-- CAMBIO
+          body: JSON.stringify({ email, contrasena })
         });
         const data = await res.json();
         if (res.ok) {
           localStorage.setItem('token', data.token);
-          window.location.href = 'dashboard.html';
+          if (data.tipo === 'admin') {
+            window.location.href = 'dashboard.html';
+          } else {
+            window.location.href = 'inicio.html';
+          }
         } else {
           alert(data.message || 'Error al iniciar sesión');
         }
@@ -642,3 +646,6 @@ window.AuthAPI = {
         if (authUI) authUI.clearAllErrors();
     }
 };
+
+const bcrypt = require('bcryptjs');
+bcrypt.hashSync('admin123', 10);

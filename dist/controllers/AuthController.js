@@ -6,9 +6,9 @@ const AuthService_1 = require("../services/AuthService");
 const authService = new AuthService_1.AuthService();
 async function login(req, res, next) {
     try {
-        const { email, contrasena } = req.body; // <-- usa 'contrasena'
-        const token = await authService.loginCliente(email, contrasena);
-        res.status(200).json({ token });
+        const { email, contrasena } = req.body;
+        const { token, tipo } = await authService.login(email, contrasena);
+        res.status(200).json({ token, tipo });
     }
     catch (err) {
         next(err);

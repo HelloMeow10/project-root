@@ -1,17 +1,35 @@
 // src/routes/productRoutes.ts
 import { Router } from 'express';
-import { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct } from '../controllers/ProductController';
-import { authMiddleware } from '../middlewares/authMiddleware';
+import { PrismaClient } from '@prisma/client';
 
 const router = Router();
+const prisma = new PrismaClient();
 
-// Rutas públicas (ejemplo: cualquiera puede ver productos)
-router.get('/', getAllProducts);
-router.get('/:id', getProductById);
-
-// Rutas protegidas por JWT (solo usuarios autenticados pueden crear, actualizar, eliminar)
-router.post('/', authMiddleware, createProduct);
-router.put('/:id', authMiddleware, updateProduct);
-router.delete('/:id', authMiddleware, deleteProduct);
+// Endpoint para obtener todos los paquetes turísticos
+router.get('/paquetes', async (req, res) => {
+  try {
+    const paquetes = await prisma.producto.findMany({
+      where: {
+        tipo: { nombre: 'paquete' },
+        activo: true
+      },
+      include: {
+        paqueteDetallesAsPaquete: {
+          include: {
+            producto: {
+              include: {
+                hospedaje: true,
+                pasaje: true
+              }
+            }
+          }
+        }
+      }
+    });
+    res.json(paquetes);
+  } catch (err) {
+    res.status(500).json({ error: 'Error al obtener paquetes' });
+  }
+});
 
 export default router;

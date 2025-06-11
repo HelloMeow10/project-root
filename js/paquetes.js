@@ -468,3 +468,52 @@ async function cargarProductos() {
     console.error('Error al cargar productos:', error);
   }
 }
+
+async function fetchPaquetes() {
+  const res = await fetch('/api/products/paquetes'); // <-- products, no productos
+  return await res.json();
+}
+
+function renderPaquetes(paquetes) {
+  const grid = document.getElementById('packagesGrid');
+  grid.innerHTML = '';
+  paquetes.forEach(pkg => {
+    // Extrae vuelo y hotel del detalle
+    const vuelo = pkg.paqueteDetallesAsPaquete.find(d => d.producto.pasaje)?.producto.pasaje;
+    const hotel = pkg.paqueteDetallesAsPaquete.find(d => d.producto.hospedaje)?.producto.hospedaje;
+    const vueloDesc = vuelo ? `${vuelo.origen} → ${vuelo.destino}` : 'Vuelo incluido';
+    const hotelDesc = hotel ? `${hotel.ubicacion || ''}` : 'Hotel incluido';
+
+    const card = document.createElement('div');
+    card.className = 'package-card';
+    card.innerHTML = `
+      <div class="package-content">
+        <div class="package-header">
+          <h3>${pkg.nombre}</h3>
+        </div>
+        <p class="package-description">
+          Vuelo: ${vueloDesc}<br>
+          Hotel: ${hotelDesc}
+        </p>
+        <div class="package-features">
+          <span><i class="fas fa-plane"></i> Vuelo incluido</span>
+          <span><i class="fas fa-bed"></i> Hotel incluido</span>
+        </div>
+        <div class="package-footer">
+          <div class="price">
+            <span class="price-from">Desde</span>
+            <span class="price-amount">$${pkg.precio}</span>
+            <span class="price-per">por persona</span>
+          </div>
+          <button class="book-btn" data-package="${pkg.id_producto}">Comprar</button>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const paquetes = await fetchPaquetes();
+  renderPaquetes(paquetes);
+});

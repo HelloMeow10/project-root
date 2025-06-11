@@ -18,15 +18,30 @@ class AuthService {
         return newUser;
     }
     // Login de cliente
-    async loginCliente(email, contrasena) {
-        const user = await db_1.prisma.cliente.findUnique({ where: { email } });
-        if (!user)
-            throw new Error('Usuario no encontrado');
-        const isMatch = await bcryptjs_1.default.compare(contrasena, user.contrasena);
-        if (!isMatch)
-            throw new Error('Credenciales inválidas');
-        const token = jsonwebtoken_1.default.sign({ userId: user.id_cliente, tipo: 'cliente' }, process.env.JWT_SECRET, { expiresIn: '2h' });
-        return token;
+    async login(email, contrasena) {
+        // 1. Buscar en Cliente
+        const cliente = await db_1.prisma.cliente.findUnique({ where: { email } });
+        if (cliente) {
+            const isMatch = await bcryptjs_1.default.compare(contrasena, cliente.contrasena);
+            if (!isMatch)
+                throw new Error('Credenciales inválidas');
+            const token = jsonwebtoken_1.default.sign({ userId: cliente.id_cliente, tipo: 'cliente' }, process.env.JWT_SECRET, { expiresIn: '2h' });
+            return { token, tipo: 'cliente' };
+        }
+        // 2. Buscar en UsuarioInterno
+        const admin = await db_1.prisma.usuarioInterno.findUnique({ where: { email } });
+        if (admin) {
+            const isMatch = await bcryptjs_1.default.compare(contrasena, admin.contrasena);
+            if (!isMatch)
+                throw new Error('Credenciales inválidas');
+            // Solo permite acceso si es ADMIN
+            const rol = await db_1.prisma.rol.findUnique({ where: { id_rol: admin.id_rol } });
+            if (!rol || rol.nombre !== 'ADMIN')
+                throw new Error('Acceso denegado');
+            const token = jsonwebtoken_1.default.sign({ userId: admin.id_usuario, tipo: 'admin' }, process.env.JWT_SECRET, { expiresIn: '2h' });
+            return { token, tipo: 'admin' };
+        }
+        throw new Error('Usuario no encontrado');
     }
 }
 exports.AuthService = AuthService;
