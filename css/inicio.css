@@ -185,6 +185,26 @@ section {
   background-image: url("https://www.transparenttextures.com/patterns/church.png");
   clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%);
 }
+#loginBoton {
+    padding: 0.4rem 1rem;
+    font-size: 0.95rem;
+    background: var(--red);
+    color: var(--white);
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-bottom: 4.5em;
+    margin-top: -1.5em;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+#loginBoton:hover {
+    background: #fd1010; /* tono más claro */
+    transform: scale(1.05); /* efecto de agrandamiento */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* efecto "levantado" */
+}
 
 .level-1 {
   display: grid;
