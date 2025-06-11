@@ -7,6 +7,7 @@ import { initDatabase } from './config/db';
 import productRoutes from './routes/productRoutes';
 import authRoutes from './routes/authRoutes';
 import orderRoutes from './routes/orderRoutes';
+import userRoutes from './routes/userRoutes';
 import { errorHandler } from './middlewares/errorHandler';
 import path from 'path';
 
@@ -31,6 +32,7 @@ app.use('/js', express.static(path.join(__dirname, '../js')));
 app.use('/api/products', productRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/users', userRoutes);
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../html/inicio.html'));
 });

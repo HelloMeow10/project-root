@@ -1,46 +1,37 @@
 // src/repositories/OrderRepository.ts
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../config/db';
 
 export class OrderRepository {
   async getAll() {
     return prisma.pedido.findMany({
       include: {
-        producto: true,
-        usuario: true,
-        emails: true
+        cliente: true,
+        items: true,
+        pagos: true
       }
     });
   }
 
-  async getById(id: number) {
+  async getById(id_pedido: number) {
     return prisma.pedido.findUnique({
-      where: { id },
+      where: { id_pedido },
       include: {
-        producto: true,
-        usuario: true,
-        emails: true
+        cliente: true,
+        items: true,
+        pagos: true
       }
     });
   }
 
   async create(data: any) {
-    return prisma.pedido.create({
-      data
-    });
+    return prisma.pedido.create({ data });
   }
 
-  async update(id: number, data: any) {
-    return prisma.pedido.update({
-      where: { id },
-      data
-    });
+  async update(id_pedido: number, data: any) {
+    return prisma.pedido.update({ where: { id_pedido }, data });
   }
 
-  async delete(id: number) {
-    return prisma.pedido.delete({
-      where: { id }
-    });
+  async delete(id_pedido: number) {
+    return prisma.pedido.delete({ where: { id_pedido } });
   }
 }

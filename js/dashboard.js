@@ -752,6 +752,46 @@ document.addEventListener('DOMContentLoaded', function() {
     DashboardAPI.showNotification('Error al cargar pedidos', 'error');
   });
 
+  // Cargar usuarios y renderizarlos en una tabla
+function cargarUsuarios() {
+  const token = localStorage.getItem('token');
+  fetch('/api/users', {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(res => res.json())
+  .then(usuarios => {
+    renderUsuariosTable(usuarios);
+  })
+  .catch(() => {
+    DashboardAPI.showNotification('Error al cargar usuarios', 'error');
+  });
+}
+
+function renderUsuariosTable(data) {
+  const tbody = document.getElementById('usuariosTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  data.forEach(row => {
+    const tr = document.createElement('tr');
+    ['id', 'nombre', 'email', 'rol'].forEach(key => {
+      const td = document.createElement('td');
+      td.textContent = row[key];
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+// Llama a cargarUsuarios cuando navegas a la sección usuarios
+document.addEventListener('pageChanged', function(e) {
+  if (e.detail.page === 'usuarios') {
+    cargarUsuarios();
+  }
+});
+
   // Example event listeners for data integration
     // These events should be handled by your data management layer
     
@@ -858,7 +898,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Global utility functions for external use
 window.DashboardAPI = {
-    // Update statistics
+  renderTable: function(data, columns) {
+    const tbody = document.getElementById('tableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    data.forEach(row => {
+      const tr = document.createElement('tr');
+      columns.forEach(col => {
+        const td = document.createElement('td');
+        td.textContent = row[col.key];
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  },
+  // Update statistics
     updateStats: function(stats) {
         if (dashboardUI) {
             dashboardUI.updateStats(stats);

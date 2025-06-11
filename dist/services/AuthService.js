@@ -9,24 +9,23 @@ const db_1 = require("../config/db");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 class AuthService {
-    // Registra un nuevo usuario (cliente o jefe de ventas)
-    async register(userData) {
-        const hashed = await bcryptjs_1.default.hash(userData.password, 10);
-        const newUser = await db_1.prisma.usuario.create({
-            data: Object.assign(Object.assign({}, userData), { password: hashed, rol: 'CLIENTE' })
+    // Registro de cliente
+    async registerCliente(userData) {
+        const hashed = await bcryptjs_1.default.hash(userData.contrasena, 10);
+        const newUser = await db_1.prisma.cliente.create({
+            data: Object.assign(Object.assign({}, userData), { contrasena: hashed })
         });
         return newUser;
     }
-    // Inicia sesión: verifica credenciales y genera JWT
-    async login(email, password) {
-        const user = await db_1.prisma.usuario.findUnique({ where: { email } });
+    // Login de cliente
+    async loginCliente(email, contrasena) {
+        const user = await db_1.prisma.cliente.findUnique({ where: { email } });
         if (!user)
             throw new Error('Usuario no encontrado');
-        const isMatch = await bcryptjs_1.default.compare(password, user.password);
+        const isMatch = await bcryptjs_1.default.compare(contrasena, user.contrasena);
         if (!isMatch)
             throw new Error('Credenciales inválidas');
-        // Generar token JWT firmada con el ID y rol del usuario
-        const token = jsonwebtoken_1.default.sign({ userId: user.id, rol: user.rol }, process.env.JWT_SECRET, { expiresIn: '2h' });
+        const token = jsonwebtoken_1.default.sign({ userId: user.id_cliente, tipo: 'cliente' }, process.env.JWT_SECRET, { expiresIn: '2h' });
         return token;
     }
 }

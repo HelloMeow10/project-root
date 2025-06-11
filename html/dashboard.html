@@ -44,7 +44,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link" data-page="users">
+                    <a href="#" class="nav-link" data-page="usuarios">
                         <i class="fas fa-users"></i>
                         <span>Usuarios</span>
                     </a>
@@ -222,13 +222,23 @@
             </div>
 
             <!-- Users Page -->
-            <div id="users-page" class="page">
+            <div id="usuarios-page" class="page">
                 <div class="page-title">
                     <h1>Gestión de Usuarios</h1>
                     <div class="breadcrumb">Inicio / Usuarios</div>
                 </div>
                 <div class="page-content">
-                    <!-- Content will be loaded dynamically -->
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Rol</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usuariosTableBody"></tbody>
+                    </table>
                 </div>
             </div>
 
