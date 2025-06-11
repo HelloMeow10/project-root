@@ -27,6 +27,9 @@
                 <div class="user-info" id="userInfo">
                     <span id="userName">Admin Usuario</span>
                     <i class="fas fa-chevron-down"></i>
+                    <button id="logoutBtn" title="Cerrar sesión" style="background:none;border:none;cursor:pointer;">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
                 </div>
             </div>
         </header>
@@ -44,7 +47,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link" data-page="users">
+                    <a href="#" class="nav-link" data-page="usuarios">
                         <i class="fas fa-users"></i>
                         <span>Usuarios</span>
                     </a>
@@ -222,13 +225,47 @@
             </div>
 
             <!-- Users Page -->
-            <div id="users-page" class="page">
+            <div id="usuarios-page" class="page">
                 <div class="page-title">
                     <h1>Gestión de Usuarios</h1>
                     <div class="breadcrumb">Inicio / Usuarios</div>
                 </div>
                 <div class="page-content">
-                    <!-- Content will be loaded dynamically -->
+                    <div class="tabs">
+                        <button id="tabUsuariosInternos" class="active">Usuarios Internos</button>
+                        <button id="tabClientes">Clientes</button>
+                    </div>
+                    <div id="usuariosInternosTable">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Apellido</th>
+                                    <th>Email</th>
+                                    <th>Teléfono</th>
+                                    <th>Activo</th>
+                                    <th>Rol</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usuariosInternosTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="clientesTable" style="display:none;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Apellido</th>
+                                    <th>Email</th>
+                                    <th>Teléfono</th>
+                                    <th>Activo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clientesTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 

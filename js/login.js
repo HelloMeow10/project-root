@@ -510,6 +510,28 @@ class AuthUI {
             overlay.classList.remove('show');
         }
     }
+
+    async login(email, password) {
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                localStorage.setItem('token', data.token); // Store JWT token
+                alert('Login exitoso');
+                window.location.href = '/html/inicio.html'; // Redirect to homepage
+            } else {
+                alert(data.message || 'Error en el inicio de sesión');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error en el servidor');
+        }
+    }
 }
 
 // Initialize Auth UI when DOM is loaded
@@ -554,16 +576,15 @@ document.addEventListener('DOMContentLoaded', function() {
     loginForm.addEventListener('submit', async function(e) {
       e.preventDefault();
       const email = loginForm.email.value;
-      const password = loginForm.password.value;
+      const contrasena = loginForm.password.value; // <-- CAMBIO: password -> contrasena
       try {
         const res = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ email, contrasena }) // <-- CAMBIO
         });
         const data = await res.json();
         if (res.ok) {
-          // Guarda el token y redirige al dashboard
           localStorage.setItem('token', data.token);
           window.location.href = 'dashboard.html';
         } else {
@@ -579,14 +600,15 @@ document.addEventListener('DOMContentLoaded', function() {
   if (registerForm) {
     registerForm.addEventListener('submit', async function(e) {
       e.preventDefault();
-      const nombre = registerForm.firstName.value + ' ' + registerForm.lastName.value;
+      const nombre = registerForm.firstName.value;
+      const apellido = registerForm.lastName.value;
       const email = registerForm.email.value;
-      const password = registerForm.password.value;
+      const contrasena = registerForm.password.value;
       try {
         const res = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nombre, email, password })
+          body: JSON.stringify({ nombre, apellido, email, contrasena })
         });
         const data = await res.json();
         if (res.ok) {
