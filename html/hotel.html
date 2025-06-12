@@ -5,8 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reserva Hoteles - MUSIMUNDO </title>
     <link rel="stylesheet" href="../css/hotel.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <i class="fas fa-globe-americas"></i>
+                    <span id="span-a-href">MUSIMUNDO/Travel</span>
+                </div>
+                <div class="nav-menu">
+                    <li><a href="paquetes.html">Paquetes</a></li>
+                    <li><a href="vuelos.html">Vuelos</a></li>
+                    <li><a href="hotel.html">Hoteles</a></li>
+                    <li><a href="autos.html">Autos</a></li>
+                </div>
+                <div class="nav-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
     <!-- Animated background -->
     <div class="bg-animation" id="bgAnimation"></div>
 
@@ -76,12 +99,7 @@
             <div id="hotelResults" class="hotel-grid"></div>
         </div>
 
-        <div class="navigation">
-            <a href="vuelos.html" class="nav-link">← Reservar Vuelos</a>
-            <a href="paquetes.html" class="nav-link">Ver Paquetes</a>
-            <a href="autos.html" class="nav-link">Ver Autos</a>
-        </div>
-    </div>
+        
 
 
     <!-- Hotel details modal -->
