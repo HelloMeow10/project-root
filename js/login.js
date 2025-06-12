@@ -38,9 +38,6 @@ class AuthUI {
         const loginForm = document.getElementById('loginForm');
         const registerForm = document.getElementById('registerForm');
 
-        if (loginForm) {
-            loginForm.addEventListener('submit', (e) => this.handleFormSubmit(e, 'login'));
-        }
 
         if (registerForm) {
             registerForm.addEventListener('submit', (e) => this.handleFormSubmit(e, 'register'));
@@ -510,6 +507,28 @@ class AuthUI {
             overlay.classList.remove('show');
         }
     }
+
+    async login(email, password) {
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                localStorage.setItem('token', data.token); // Store JWT token
+                alert('Login exitoso');
+                window.location.href = '/html/inicio.html'; // Redirect to homepage
+            } else {
+                alert(data.message || 'Error en el inicio de sesión');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error en el servidor');
+        }
+    }
 }
 
 // Initialize Auth UI when DOM is loaded
@@ -550,27 +569,49 @@ document.addEventListener('DOMContentLoaded', function() {
     `);
 
   const loginForm = document.getElementById('loginForm');
-  if (loginForm) {
+  const loginButton = document.getElementById('loginButton');
+  if (loginForm && loginButton) {
     loginForm.addEventListener('submit', async function(e) {
       e.preventDefault();
+
+      // Mostrar spinner y deshabilitar botón
+      loginButton.disabled = true;
+      loginButton.querySelector('.btn-text').style.display = 'none';
+      loginButton.querySelector('.btn-loading').style.display = 'inline-flex';
+
       const email = loginForm.email.value;
-      const password = loginForm.password.value;
+      const contrasena = loginForm.password.value;
       try {
         const res = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ email, contrasena })
         });
         const data = await res.json();
         if (res.ok) {
-          // Guarda el token y redirige al dashboard
           localStorage.setItem('token', data.token);
-          window.location.href = 'dashboard.html';
+          localStorage.setItem('tipo', data.tipo);
+          authUI.showNotification('¡Inicio de sesión exitoso!', 'success');
+          setTimeout(() => {
+            if (data.tipo === 'admin') {
+              window.location.href = 'dashboard.html';
+            } else {
+              window.location.href = 'inicio.html';
+            }
+          }, 1200);
         } else {
-          alert(data.message || 'Error al iniciar sesión');
+          authUI.showNotification(data.message || 'Error al iniciar sesión', 'error');
+          // Restaurar botón
+          loginButton.disabled = false;
+          loginButton.querySelector('.btn-text').style.display = 'inline';
+          loginButton.querySelector('.btn-loading').style.display = 'none';
         }
       } catch (err) {
-        alert('Error de red');
+        authUI.showNotification('Error de red', 'error');
+        // Restaurar botón
+        loginButton.disabled = false;
+        loginButton.querySelector('.btn-text').style.display = 'inline';
+        loginButton.querySelector('.btn-loading').style.display = 'none';
       }
     });
   }
@@ -579,14 +620,15 @@ document.addEventListener('DOMContentLoaded', function() {
   if (registerForm) {
     registerForm.addEventListener('submit', async function(e) {
       e.preventDefault();
-      const nombre = registerForm.firstName.value + ' ' + registerForm.lastName.value;
+      const nombre = registerForm.firstName.value;
+      const apellido = registerForm.lastName.value;
       const email = registerForm.email.value;
-      const password = registerForm.password.value;
+      const contrasena = registerForm.password.value;
       try {
         const res = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ nombre, email, password })
+          body: JSON.stringify({ nombre, apellido, email, contrasena })
         });
         const data = await res.json();
         if (res.ok) {
@@ -620,3 +662,6 @@ window.AuthAPI = {
         if (authUI) authUI.clearAllErrors();
     }
 };
+
+const bcrypt = require('bcryptjs');
+bcrypt.hashSync('admin123', 10);

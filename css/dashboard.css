@@ -227,6 +227,7 @@ body {
     padding: 2rem;
     overflow-y: auto;
     background: #f5f7fa;
+    display: none;
 }
 
 .page {

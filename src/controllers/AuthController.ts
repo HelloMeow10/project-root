@@ -6,9 +6,9 @@ const authService = new AuthService();
 
 export async function login(req: Request, res: Response, next: NextFunction) {
   try {
-    const { email, password } = req.body;
-    const token = await authService.login(email, password);
-    res.status(200).json({ token });
+    const { email, contrasena } = req.body;
+    const { token, tipo } = await authService.login(email, contrasena);
+    res.status(200).json({ token, tipo });
   } catch (err) {
     next(err);
   }
@@ -16,7 +16,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
 
 export async function register(req: Request, res: Response, next: NextFunction) {
   try {
-    const user = await authService.register(req.body);
+    const user = await authService.registerCliente(req.body);
     res.status(201).json(user);
   } catch (err) {
     next(err);

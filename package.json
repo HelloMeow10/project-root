@@ -27,7 +27,8 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "stripe": "^18.2.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -36,6 +37,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/morgan": "^1.9.10",
     "@types/node": "^22.15.30",
+    "@types/stripe": "^8.0.416",
     "prisma": "^6.9.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"

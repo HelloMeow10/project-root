@@ -145,7 +145,12 @@
             </li>
            
             <li>
-            <a href="login.html" id="loginBoton">Iniciar sesion</a>
+              
+            <li id="userMenuContainer">
+              <!-- Aquí se inyectará el menú dinámico -->
+            </li>
+
+            <img src="../imagenes/user.png" id="userIcon"  alt="">
               <h3>Compra tu nueva experiencia</h3> 
               <ul>
                 <li><a href="paquetes.html">Paquetes completos</a></li>
@@ -154,6 +159,7 @@
               </ul>
               <p><small>...</small></p>
             </li>
+            
             <li>
               <h3>Recursos</h3>
               <ul>
@@ -178,5 +184,43 @@
     
       <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="../js/inicio.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+  const userMenuContainer = document.getElementById('userMenuContainer');
+  const token = localStorage.getItem('token');
+  const tipo = localStorage.getItem('tipo');
+
+  if (token && tipo) {
+    // Opcional: decodifica el token para obtener el nombre (si lo incluyes en el payload)
+    let nombre = 'Usuario';
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      nombre = payload.nombre || 'Usuario';
+    } catch {}
+
+    let menuHtml = `
+      <span>Bienvenido, <strong>${nombre}</strong></span>
+      <button id="logoutBtn" style="margin-left:10px;">Cerrar sesión</button>
+    `;
+
+    // Si es admin, muestra acceso al dashboard
+    if (tipo === 'admin') {
+      menuHtml += `<a href="dashboard.html" id="dashboardBtn" style="margin-left:10px;">Dashboard</a>`;
+    }
+
+    userMenuContainer.innerHTML = menuHtml;
+
+    // Cerrar sesión
+    document.getElementById('logoutBtn').onclick = function() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('tipo');
+      window.location.href = 'inicio.html';
+    };
+  } else {
+    // Si no está logueado, muestra el botón de iniciar sesión
+    userMenuContainer.innerHTML = `<a href="login.html" id="loginBoton">Iniciar sesión</a>`;
+  }
+});
+</script>
 </body>
 </html>

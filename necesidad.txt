@@ -1,0 +1,58 @@
+INSERT INTO "TipoProducto" (nombre, descripcion) VALUES
+('paquete', 'Paquete turístico'),
+('vuelo', 'Pasaje aéreo'),
+('hotel', 'Hospedaje')
+ON CONFLICT (nombre) DO NOTHING;
+
+INSERT INTO "Producto" (nombre, descripcion, id_tipo, precio, stock, activo)
+VALUES (
+  'Vuelo a Bariloche', 'Vuelo Buenos Aires (AEP) a Bariloche (BRC) por Aerolineas Argentinas',
+  (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'vuelo'),
+  180.00, 100, true
+)
+RETURNING id_producto;
+
+
+INSERT INTO "Pasaje" (id_producto, origen, destino, clase, asientos_disponibles)
+VALUES (
+  1, 'Buenos Aires (AEP)', 'San Carlos de Bariloche (BRC)', 'Turista', 100
+);
+
+INSERT INTO "Producto" (nombre, descripcion, id_tipo, precio, stock, activo)
+VALUES (
+  'Hostel Los Arrayanes', 'Hostel 2 estrellas en Bariloche',
+  (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'hotel'),
+  75.00, 50, true
+)
+RETURNING id_producto;
+
+INSERT INTO "Hospedaje" (id_producto, ubicacion, capacidad)
+VALUES (
+  2, 'San Carlos de Bariloche', 2
+);
+
+
+INSERT INTO "Producto" (nombre, descripcion, id_tipo, precio, stock, activo)
+VALUES (
+  'Escapada Económica a Bariloche', 'Incluye vuelo y hotel', 
+  (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'paquete'),
+  255.00, 20, true
+)
+RETURNING id_producto;
+
+
+
+-- Relaciona el paquete con el vuelo
+INSERT INTO "PaqueteDetalle" (id_paquete, id_producto, cantidad)
+VALUES (3, 1, 1);
+
+-- Relaciona el paquete con el hotel
+INSERT INTO "PaqueteDetalle" (id_paquete, id_producto, cantidad)
+VALUES (3, 2, 1);
+
+
+
+
+admin@musimundo.com admin123
+
+a@gmail.com Hola1234

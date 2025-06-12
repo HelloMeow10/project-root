@@ -1,120 +1,58 @@
 // Hotel booking functionality - Visual only (no cart functionality)
 class HotelBooking {
   constructor() {
-    this.sampleHotels = [
-      {
-        id: "HT001",
-        name: "Paradise Beach Resort & Spa",
-        location: "Cancun, Mexico",
-        locationCode: "CUN",
-        rating: 5,
-        price: 299,
-        description:
-          "Luxurious beachfront resort with stunning ocean views, multiple pools, and world-class dining options.",
-        amenities: ["Pool", "Spa", "Restaurant", "Beach Access", "Free WiFi", "Fitness Center"],
-        images: [
-          "/placeholder.svg?height=300&width=500",
-          "/placeholder.svg?height=100&width=150",
-          "/placeholder.svg?height=100&width=150",
-          "/placeholder.svg?height=100&width=150",
-        ],
-      },
-      {
-        id: "HT002",
-        name: "Tropical Oasis Hotel",
-        location: "Punta Cana, Dominican Republic",
-        locationCode: "PUJ",
-        rating: 4,
-        price: 199,
-        description:
-          "All-inclusive resort surrounded by tropical gardens with direct access to a pristine white sand beach.",
-        amenities: ["All-Inclusive", "Pool", "Restaurant", "Beach Access", "Free WiFi"],
-        images: [
-          "/placeholder.svg?height=300&width=500",
-          "/placeholder.svg?height=100&width=150",
-          "/placeholder.svg?height=100&width=150",
-          "/placeholder.svg?height=100&width=150",
-        ],
-      },
-      {
-        id: "HT003",
-        name: "Royal Palm Luxury Hotel",
-        location: "Nassau, Bahamas",
-        locationCode: "NAS",
-        rating: 5,
-        price: 349,
-        description:
-          "Elegant luxury hotel offering exceptional service, gourmet dining, and breathtaking views of the Caribbean.",
-        amenities: ["Pool", "Spa", "Fine Dining", "Beach Access", "Free WiFi", "Butler Service"],
-        images: [
-          "/placeholder.svg?height=300&width=500",
-          "/placeholder.svg?height=100&width=150",
-          "/placeholder.svg?height=100&width=150",
-          "/placeholder.svg?height=100&width=150",
-        ],
-      },
-      {
-        id: "HT004",
-        name: "Sunset Bay Resort",
-        location: "Montego Bay, Jamaica",
-        locationCode: "MBJ",
-        rating: 4,
-        price: 229,
-        description:
-          "Family-friendly resort with water park, kids club, and activities for all ages on a beautiful private beach.",
-        amenities: ["Water Park", "Kids Club", "All-Inclusive", "Pool", "Beach Access"],
-        images: [
-          "/placeholder.svg?height=300&width=500",
-          "/placeholder.svg?height=100&width=150",
-          "/placeholder.svg?height=100&width=150",
-          "/placeholder.svg?height=100&width=150",
-        ],
-      },
-      {
-        id: "HT005",
-        name: "Azure Waters Boutique Hotel",
-        location: "Aruba",
-        locationCode: "AUA",
-        rating: 4,
-        price: 259,
-        description: "Intimate boutique hotel with personalized service, stylish rooms, and a serene atmosphere.",
-        amenities: ["Pool", "Restaurant", "Beach Access", "Free WiFi", "Spa"],
-        images: [
-          "/placeholder.svg?height=300&width=500",
-          "/placeholder.svg?height=100&width=150",
-          "/placeholder.svg?height=100&width=150",
-          "/placeholder.svg?height=100&width=150",
-        ],
-      },
-      {
-        id: "HT006",
-        name: "Grand Palms Resort",
-        location: "Cancun, Mexico",
-        locationCode: "CUN",
-        rating: 5,
-        price: 329,
-        description:
-          "Opulent resort featuring swim-up suites, gourmet restaurants, and a world-class spa in the heart of Cancun.",
-        amenities: ["Swim-up Suites", "Spa", "Fine Dining", "Beach Access", "Free WiFi", "Fitness Center"],
-        images: [
-          "/placeholder.svg?height=300&width=500",
-          "/placeholder.svg?height=100&width=150",
-          "/placeholder.svg?height=100&width=150",
-          "/placeholder.svg?height=100&width=150",
-        ],
-      },
-    ]
-
     this.currentHotel = null
+    this.hoteles = [] // <-- inicializa aquí
     this.init()
   }
 
-  init() {
+  async init() {
     this.createParticles()
     this.setupEventListeners()
     this.setupDateValidation()
-    this.displayHotels(this.sampleHotels)
+    await this.cargarHoteles()
     this.revealOnScroll()
+  }
+
+  async cargarHoteles() {
+    try {
+      const res = await fetch('/api/products/hoteles');
+      const hoteles = await res.json();
+      this.hoteles = hoteles; // <-- ¡IMPORTANTE!
+      this.renderHoteles(hoteles);
+    } catch (error) {
+      console.error('Error al cargar hoteles:', error);
+    }
+  }
+
+  renderHoteles(hoteles) {
+    const resultsContainer = document.getElementById("hotelResults");
+    resultsContainer.innerHTML = '';
+
+    if (!hoteles.length) {
+      resultsContainer.innerHTML = `<div style="text-align: center; padding: 3rem;">No hay hoteles disponibles.</div>`;
+      return;
+    }
+
+    hoteles.forEach(hotel => {
+      const card = document.createElement('div');
+      card.className = 'hotel-card';
+      card.innerHTML = `
+        <div class="hotel-content">
+          <h3 class="hotel-name">${hotel.nombre}</h3>
+          <div class="hotel-location">
+            📍 ${hotel.hospedaje?.ubicacion || "Ubicación no disponible"}
+          </div>
+          <div class="hotel-price-container">
+            <div class="hotel-price">
+              $${hotel.precio} <span class="hotel-price-night">/ noche</span>
+            </div>
+            <button class="add-to-cart-btn">Agregar al carrito</button>
+          </div>
+        </div>
+      `;
+      resultsContainer.appendChild(card);
+    });
   }
 
   // Create animated background particles
@@ -212,7 +150,7 @@ class HotelBooking {
       }
 
       // Filter hotels based on criteria
-      let filteredHotels = this.sampleHotels
+      let filteredHotels = this.hoteles || []
 
       if (filterCriteria.destination !== "all") {
         filteredHotels = filteredHotels.filter((hotel) => hotel.locationCode === filterCriteria.destination)
@@ -235,55 +173,28 @@ class HotelBooking {
     const resultsContainer = document.getElementById("hotelResults")
 
     if (hotels.length === 0) {
-      resultsContainer.innerHTML = `
-                <div style="text-align: center; padding: 3rem; grid-column: 1 / -1;">
-                    <img src="/placeholder.svg?height=100&width=100" alt="No hotels" style="opacity: 0.5; margin-bottom: 1rem;">
-                    <p style="color: #718096; font-size: 1.2rem;">No hotels found for your search criteria.</p>
-                </div>
-            `
+      resultsContainer.innerHTML = `<div style="text-align: center; padding: 3rem;">No hay hoteles disponibles.</div>`
       return
     }
 
     resultsContainer.innerHTML = hotels
       .map(
         (hotel, index) => `
-            <div class="hotel-card" style="animation-delay: ${index * 0.1}s">
-                <div class="hotel-image-container">
-                    <img src="${hotel.images[0]}" alt="${hotel.name}" class="hotel-image">
-                    <div class="hotel-rating">
-                        ${this.getStarRating(hotel.rating)}
-                    </div>
-                </div>
-                <div class="hotel-content">
-                    <h3 class="hotel-name">${hotel.name}</h3>
-                    <div class="hotel-location">
-                        📍 ${hotel.location}
-                    </div>
-                    <div class="hotel-amenities">
-                        ${hotel.amenities
-                          .slice(0, 3)
-                          .map((amenity) => `<span class="amenity">${amenity}</span>`)
-                          .join("")}
-                        ${
-                          hotel.amenities.length > 3
-                            ? `<span class="amenity">+${hotel.amenities.length - 3} more</span>`
-                            : ""
-                        }
-                    </div>
-                    <div class="hotel-price-container">
-                        <div class="hotel-price">
-                            $${hotel.price} <span class="hotel-price-night">/ night</span>
-                        </div>
-                        <button class="view-details-btn" onclick="hotelBooking.showHotelDetails('${hotel.id}')">
-                            View Details
-                        </button>
-                    </div>
-                    <button class="add-to-cart-btn">
-                        Add to Cart
-                    </button>
-                </div>
+        <div class="hotel-card" style="animation-delay: ${index * 0.1}s">
+          <div class="hotel-content">
+            <h3 class="hotel-name">${hotel.nombre}</h3>
+            <div class="hotel-location">
+              📍 ${hotel.hospedaje?.ubicacion || "Ubicación no disponible"}
             </div>
-        `,
+            <div class="hotel-price-container">
+              <div class="hotel-price">
+                $${hotel.precio} <span class="hotel-price-night">/ noche</span>
+              </div>
+              <button class="add-to-cart-btn">Agregar al carrito</button>
+            </div>
+          </div>
+        </div>
+      `,
       )
       .join("")
   }

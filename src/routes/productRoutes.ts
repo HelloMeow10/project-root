@@ -1,17 +1,63 @@
 // src/routes/productRoutes.ts
-import { Router } from 'express';
-import { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct } from '../controllers/ProductController';
-import { authMiddleware } from '../middlewares/authMiddleware';
+import { Router } from "express";
+import { PrismaClient } from "@prisma/client";
 
 const router = Router();
+const prisma = new PrismaClient();
 
-// Rutas públicas (ejemplo: cualquiera puede ver productos)
-router.get('/', getAllProducts);
-router.get('/:id', getProductById);
+// Endpoint para obtener todos los paquetes turísticos
+router.get('/paquetes', async (req, res) => {
+  try {
+    const paquetes = await prisma.producto.findMany({
+      where: {
+        tipo: { nombre: 'paquete' },
+        activo: true
+      },
+      include: {
+        paqueteDetallesAsPaquete: {
+          include: {
+            producto: {
+              include: {
+                hospedaje: true,
+                pasaje: true
+              }
+            }
+          }
+        }
+      }
+    });
+    res.json(paquetes);
+  } catch (err) {
+    res.status(500).json({ error: 'Error al obtener paquetes' });
+  }
+});
 
-// Rutas protegidas por JWT (solo usuarios autenticados pueden crear, actualizar, eliminar)
-router.post('/', authMiddleware, createProduct);
-router.put('/:id', authMiddleware, updateProduct);
-router.delete('/:id', authMiddleware, deleteProduct);
+// Endpoint para obtener solo los vuelos
+router.get('/vuelos', async (req, res) => {
+  try {
+    // id_tipo = 2 para vuelos (ajusta si tu id_tipo de vuelos es diferente)
+    const vuelos = await prisma.producto.findMany({
+      where: { id_tipo: 2, activo: true },
+      include: { pasaje: true }
+    });
+    res.json(vuelos);
+  } catch (err) {
+    res.status(500).json({ error: 'Error al obtener vuelos' });
+  }
+});
+
+// Endpoint para obtener solo los hoteles
+router.get('/hoteles', async (req, res) => {
+  try {
+    // id_tipo = 3 para hoteles
+    const hoteles = await prisma.producto.findMany({
+      where: { id_tipo: 3, activo: true },
+      include: { hospedaje: true }
+    });
+    res.json(hoteles);
+  } catch (err) {
+    res.status(500).json({ error: 'Error al obtener hoteles' });
+  }
+});
 
 export default router;
