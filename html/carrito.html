@@ -6,6 +6,9 @@
     <title>Carrito de Compras | Travel Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/carrito.css">
+    <style>
+      main { display: none; }
+    </style>
 </head>
 <body>
     <!-- Header -->
@@ -304,6 +307,41 @@
         </div>
     </div>
 
+    <!-- Access Overlay -->
+    <div id="accessOverlay" style="position:fixed;z-index:9999;inset:0;background:#fff;display:flex;align-items:center;justify-content:center;">
+      <div id="accessMessage" style="font-size:1.2rem;color:#333;">
+        <i class="fas fa-spinner fa-spin"></i> Validando acceso...
+      </div>
+    </div>
+    <script>
+      const overlay = document.getElementById('accessOverlay');
+      const message = document.getElementById('accessMessage');
+      const token = localStorage.getItem('token');
+      let valid = false;
+
+      function showErrorAndRedirect(msg, redirect) {
+        message.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#e74c3c"></i> ${msg}`;
+        setTimeout(() => {
+          window.location.href = redirect;
+        }, 1800);
+      }
+
+      if (!token) {
+        showErrorAndRedirect('Debes iniciar sesión para acceder al carrito.', 'login.html');
+      } else {
+        valid = true;
+      }
+
+      if (valid) {
+        document.addEventListener('DOMContentLoaded', function() {
+          document.querySelector('main').style.display = '';
+          overlay.style.display = 'none';
+        });
+      }
+    </script>
+    
     <script src="../js/carrito.js"></script>
+
+
 </body>
 </html>

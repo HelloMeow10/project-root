@@ -25,7 +25,7 @@ class AuthService {
             const isMatch = await bcryptjs_1.default.compare(contrasena, cliente.contrasena);
             if (!isMatch)
                 throw new Error('Credenciales inválidas');
-            const token = jsonwebtoken_1.default.sign({ userId: cliente.id_cliente, tipo: 'cliente' }, process.env.JWT_SECRET, { expiresIn: '2h' });
+            const token = jsonwebtoken_1.default.sign({ userId: cliente.id_cliente, tipo: 'cliente', nombre: cliente.nombre }, process.env.JWT_SECRET, { expiresIn: '2h' });
             return { token, tipo: 'cliente' };
         }
         // 2. Buscar en UsuarioInterno
@@ -38,7 +38,7 @@ class AuthService {
             const rol = await db_1.prisma.rol.findUnique({ where: { id_rol: admin.id_rol } });
             if (!rol || rol.nombre !== 'ADMIN')
                 throw new Error('Acceso denegado');
-            const token = jsonwebtoken_1.default.sign({ userId: admin.id_usuario, tipo: 'admin' }, process.env.JWT_SECRET, { expiresIn: '2h' });
+            const token = jsonwebtoken_1.default.sign({ userId: admin.id_usuario, tipo: 'admin', nombre: admin.nombre }, process.env.JWT_SECRET, { expiresIn: '2h' });
             return { token, tipo: 'admin' };
         }
         throw new Error('Usuario no encontrado');

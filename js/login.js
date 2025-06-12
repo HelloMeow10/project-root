@@ -38,9 +38,6 @@ class AuthUI {
         const loginForm = document.getElementById('loginForm');
         const registerForm = document.getElementById('registerForm');
 
-        if (loginForm) {
-            loginForm.addEventListener('submit', (e) => this.handleFormSubmit(e, 'login'));
-        }
 
         if (registerForm) {
             registerForm.addEventListener('submit', (e) => this.handleFormSubmit(e, 'register'));
@@ -572,9 +569,16 @@ document.addEventListener('DOMContentLoaded', function() {
     `);
 
   const loginForm = document.getElementById('loginForm');
-  if (loginForm) {
+  const loginButton = document.getElementById('loginButton');
+  if (loginForm && loginButton) {
     loginForm.addEventListener('submit', async function(e) {
       e.preventDefault();
+
+      // Mostrar spinner y deshabilitar botón
+      loginButton.disabled = true;
+      loginButton.querySelector('.btn-text').style.display = 'none';
+      loginButton.querySelector('.btn-loading').style.display = 'inline-flex';
+
       const email = loginForm.email.value;
       const contrasena = loginForm.password.value;
       try {
@@ -586,16 +590,28 @@ document.addEventListener('DOMContentLoaded', function() {
         const data = await res.json();
         if (res.ok) {
           localStorage.setItem('token', data.token);
-          if (data.tipo === 'admin') {
-            window.location.href = 'dashboard.html';
-          } else {
-            window.location.href = 'inicio.html';
-          }
+          localStorage.setItem('tipo', data.tipo);
+          authUI.showNotification('¡Inicio de sesión exitoso!', 'success');
+          setTimeout(() => {
+            if (data.tipo === 'admin') {
+              window.location.href = 'dashboard.html';
+            } else {
+              window.location.href = 'inicio.html';
+            }
+          }, 1200);
         } else {
-          alert(data.message || 'Error al iniciar sesión');
+          authUI.showNotification(data.message || 'Error al iniciar sesión', 'error');
+          // Restaurar botón
+          loginButton.disabled = false;
+          loginButton.querySelector('.btn-text').style.display = 'inline';
+          loginButton.querySelector('.btn-loading').style.display = 'none';
         }
       } catch (err) {
-        alert('Error de red');
+        authUI.showNotification('Error de red', 'error');
+        // Restaurar botón
+        loginButton.disabled = false;
+        loginButton.querySelector('.btn-text').style.display = 'inline';
+        loginButton.querySelector('.btn-loading').style.display = 'none';
       }
     });
   }

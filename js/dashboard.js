@@ -761,6 +761,15 @@ document.addEventListener('DOMContentLoaded', async function() {
   const res = await fetch('/api/users/internos');
   const data = await res.json();
   dashboardUI.renderUsuariosInternosTable(data);
+  
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', function() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('tipo');
+      window.location.href = 'login.html';
+    });
+  }
 });
 
 // Global utility functions for external use

@@ -9,6 +9,11 @@
     <link rel="stylesheet" href="../css/dashboard.css">
 </head>
 <body>
+    <div id="accessOverlay" style="position:fixed;z-index:9999;inset:0;background:#fff;display:flex;align-items:center;justify-content:center;">
+      <div id="accessMessage" style="font-size:1.2rem;color:#333;">
+        <i class="fas fa-spinner fa-spin"></i> Validando acceso...
+      </div>
+    </div>
     <div class="dashboard">
         <!-- Header -->
         <header class="header">
@@ -343,5 +348,43 @@
     <div id="notificationContainer" class="notification-container"></div>
 
     <script src="../js/dashboard.js"></script>
+    <script>
+  const overlay = document.getElementById('accessOverlay');
+  const message = document.getElementById('accessMessage');
+  const token = localStorage.getItem('token');
+  let valid = false;
+
+  function showErrorAndRedirect(msg, redirect) {
+    message.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#e74c3c"></i> ${msg}`;
+    setTimeout(() => {
+      window.location.href = redirect;
+    }, 1800);
+  }
+
+  if (!token) {
+    showErrorAndRedirect('Debes iniciar sesión para acceder al dashboard.', 'login.html');
+  } else {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (payload.tipo !== 'admin') {
+        showErrorAndRedirect('No tienes permisos para acceder al dashboard.', 'inicio.html');
+      } else {
+        valid = true;
+      }
+    } catch (e) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('tipo');
+      showErrorAndRedirect('Sesión inválida. Por favor inicia sesión nuevamente.', 'login.html');
+    }
+  }
+
+  // Si es válido, muestra el dashboard y oculta el overlay
+  if (valid) {
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelector('.dashboard').style.display = '';
+      overlay.style.display = 'none';
+    });
+  }
+</script>
 </body>
 </html>
