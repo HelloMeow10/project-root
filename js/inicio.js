@@ -1,3 +1,4 @@
+// Burger menu logic
 let burger = document.getElementById("burger");
 let overlay = document.querySelector("section");
 let heroImage = document.querySelector(".hero-image");
@@ -13,7 +14,8 @@ let tl = gsap.timeline({
 
 overlay.style.display = "none";
 
-burger.addEventListener("click", (e) => {
+// --- UNIFICA LA LÓGICA AQUÍ ---
+function toggleMenu() {
   showMenu = !showMenu;
   if (showMenu) {
     burger.classList.add("active");
@@ -29,6 +31,17 @@ burger.addEventListener("click", (e) => {
       ease: "expo.out",
       onComplete: () => (overlay.style.display = "none")
     });
+  }
+}
+
+burger.addEventListener("click", toggleMenu);
+
+// --- AGREGA ESTA LÍNEA PARA EL TÍTULO ---
+document.addEventListener('DOMContentLoaded', function() {
+  const navTitle = document.querySelector('nav h1');
+  if (navTitle) {
+    navTitle.style.cursor = "pointer";
+    navTitle.addEventListener('click', toggleMenu);
   }
 });
 
