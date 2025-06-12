@@ -6,9 +6,6 @@
     <title>Carrito de Compras | Travel Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/carrito.css">
-    <style>
-      main { display: none; }
-    </style>
 </head>
 <body>
     <!-- Header -->
@@ -41,242 +38,30 @@
     </header>
 
     <!-- Main Content -->
-    <main class="main">
-        <div class="container">
-            <!-- Cart Header -->
-            <div class="cart-header">
-                <h1>
-                    <i class="fas fa-shopping-cart"></i>
-                    Tu Carrito de Compras
-                </h1>
-                <div class="breadcrumb">
-                    <a href="inicio.html    ">Inicio</a>
-                    <i class="fas fa-chevron-right"></i>
-                    <span>Carrito</span>
-                </div>
-            </div>
-
-            <!-- Cart Content -->
-            <div class="cart-layout">
-                <!-- Cart Items Section -->
-                <div class="cart-items-section">
-                    <!-- Empty Cart State -->
-                    <div id="emptyCart" class="empty-cart">
-                        <div class="empty-cart-icon">
-                            <i class="fas fa-shopping-cart"></i>
-                        </div>
-                        <h2>Tu carrito está vacío</h2>
-                        <p>¡Explora nuestros hoteles y vuelos para comenzar tu aventura!</p>
-                        <div class="empty-cart-actions">
-                            <a href="hotel.html" class="btn btn-primary">
-                                <i class="fas fa-hotel"></i>
-                                Ver Hoteles
-                            </a>
-                            <a href="vuelos.html" class="btn btn-secondary">
-                                <i class="fas fa-plane"></i>
-                                Ver Vuelos
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Cart Items Container -->
-                    <div id="cartItemsContainer" class="cart-items-container" style="display: none;">
-                        <div class="cart-items-header">
-                            <h2>Productos Seleccionados</h2>
-                            <button class="clear-cart-btn" id="clearCartBtn">
-                                <i class="fas fa-trash"></i>
-                                Vaciar Carrito
-                            </button>
-                        </div>
-
-                        <!-- Cart Items List -->
-                        <div class="cart-items-list" id="cartItemsList">
-                            <!-- Items will be populated by PHP/JavaScript -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Cart Summary Section -->
-                <div class="cart-summary-section" id="cartSummarySection" style="display: none;">
-                    <div class="cart-summary">
-                        <h3>Resumen de Compra</h3>
-                        
-                        <!-- Price Breakdown -->
-                        <div class="price-breakdown">
-                            <div class="price-item">
-                                <span>Subtotal Hoteles:</span>
-                                <span id="hotelSubtotal">$0.00</span>
-                            </div>
-                            <div class="price-item">
-                                <span>Subtotal Vuelos:</span>
-                                <span id="flightSubtotal">$0.00</span>
-                            </div>
-                            <div class="price-item">
-                                <span>Descuentos:</span>
-                                <span id="discountAmount" class="discount">-$0.00</span>
-                            </div>
-                            <div class="price-item">
-                                <span>Impuestos:</span>
-                                <span id="taxAmount">$0.00</span>
-                            </div>
-                            <div class="price-separator"></div>
-                            <div class="price-item total">
-                                <span>Total:</span>
-                                <span id="totalAmount">$0.00</span>
-                            </div>
-                        </div>
-
-                        <!-- Promo Code -->
-                        <div class="promo-code-section">
-                            <h4>Código de Descuento</h4>
-                            <form class="promo-form" id="promoForm">
-                                <div class="promo-input-group">
-                                    <input 
-                                        type="text" 
-                                        id="promoCode" 
-                                        name="promoCode"
-                                        placeholder="Ingresa tu código"
-                                        class="promo-input"
-                                    >
-                                    <button type="submit" class="promo-btn">
-                                        <span class="btn-text">Aplicar</span>
-                                        <span class="btn-loading">
-                                            <i class="fas fa-spinner fa-spin"></i>
-                                        </span>
-                                    </button>
-                                </div>
-                                <div class="promo-message" id="promoMessage"></div>
-                            </form>
-                        </div>
-
-                        <!-- Checkout Button -->
-                        <div class="checkout-section">
-                            <button class="checkout-btn" id="checkoutBtn">
-                                <span class="btn-text">
-                                    <i class="fas fa-credit-card"></i>
-                                    Proceder al Pago
-                                </span>
-                                <span class="btn-loading">
-                                    <i class="fas fa-spinner fa-spin"></i>
-                                    Procesando...
-                                </span>
-                            </button>
-                            
-                            <div class="security-badges">
-                                <div class="security-badge">
-                                    <i class="fas fa-shield-alt"></i>
-                                    <span>Pago Seguro</span>
-                                </div>
-                                <div class="security-badge">
-                                    <i class="fas fa-lock"></i>
-                                    <span>SSL Encriptado</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Recommended Products -->
-                    <div class="recommended-section">
-                        <h4>También te puede interesar</h4>
-                        <div class="recommended-items" id="recommendedItems">
-                            <!-- Recommended items will be populated by PHP -->
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <span id="cartCount" style="display:none"></span>
+    <main>
+      <div id="emptyCart" style="display:none;text-align:center;padding:2rem;">Tu carrito está vacío.</div>
+      <div id="cartItemsContainer" style="display:none;">
+        <div id="cartItemsList"></div>
+        <div style="margin-top:2rem;font-size:1.2rem;">
+          <strong>Total:</strong> <span id="totalAmount">$0.00</span>
         </div>
+      </div>
     </main>
 
     <!-- Cart Item Template -->
     <template id="cartItemTemplate">
-        <div class="cart-item" data-item-id="" data-item-type="">
-            <div class="item-image">
-                <img src="/placeholder.svg" alt="" class="item-img">
-                <div class="item-type-badge">
-                    <i class="fas fa-hotel"></i>
-                </div>
-            </div>
-            
-            <div class="item-details">
-                <div class="item-header">
-                    <h3 class="item-title"></h3>
-                    <button class="remove-item-btn" data-item-id="">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                
-                <div class="item-info">
-                    <div class="item-location">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span class="location-text"></span>
-                    </div>
-                    <div class="item-dates">
-                        <i class="fas fa-calendar"></i>
-                        <span class="dates-text"></span>
-                    </div>
-                    <div class="item-guests">
-                        <i class="fas fa-users"></i>
-                        <span class="guests-text"></span>
-                    </div>
-                </div>
-                
-                <div class="item-features">
-                    <!-- Features will be populated dynamically -->
-                </div>
-            </div>
-            
-            <div class="item-pricing">
-                <div class="quantity-controls">
-                    <label>Cantidad:</label>
-                    <div class="quantity-input-group">
-                        <button class="quantity-btn decrease" data-item-id="">
-                            <i class="fas fa-minus"></i>
-                        </button>
-                        <input type="number" class="quantity-input" value="1" min="1" max="10" data-item-id="">
-                        <button class="quantity-btn increase" data-item-id="">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="price-info">
-                    <div class="unit-price">
-                        <span class="price-label">Precio unitario:</span>
-                        <span class="unit-price-amount"></span>
-                    </div>
-                    <div class="total-price">
-                        <span class="price-label">Total:</span>
-                        <span class="total-price-amount"></span>
-                    </div>
-                </div>
-            </div>
+      <div class="cart-item" style="border-bottom:1px solid #ccc;padding:1rem 0;">
+        <div>
+          <span class="item-title"></span>
+          <span class="item-type-badge"></span>
         </div>
-    </template>
-
-    <!-- Recommended Item Template -->
-    <template id="recommendedItemTemplate">
-        <div class="recommended-item" data-item-id="" data-item-type="">
-            <div class="recommended-image">
-                <img src="/placeholder.svg" alt="" class="recommended-img">
-                <div class="recommended-type">
-                    <i class="fas fa-hotel"></i>
-                </div>
-            </div>
-            <div class="recommended-content">
-                <h5 class="recommended-title"></h5>
-                <div class="recommended-location">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <span></span>
-                </div>
-                <div class="recommended-price">
-                    <span class="price"></span>
-                </div>
-                <button class="add-recommended-btn" data-item-id="">
-                    <i class="fas fa-plus"></i>
-                    Agregar
-                </button>
-            </div>
+        <div>
+          <span>Cantidad: <span class="item-qty"></span></span>
+          <span>Precio unitario: <span class="unit-price-amount"></span></span>
+          <span>Total: <span class="total-price-amount"></span></span>
         </div>
+      </div>
     </template>
 
     <!-- Notification Container -->

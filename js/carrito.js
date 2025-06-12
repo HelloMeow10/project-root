@@ -633,7 +633,43 @@ class CartUI {
 let cartUI;
 
 document.addEventListener('DOMContentLoaded', function() {
-    cartUI = new CartUI();
+  let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+  const cartItemsContainer = document.getElementById('cartItemsContainer');
+  const cartItemsList = document.getElementById('cartItemsList');
+  const emptyCart = document.getElementById('emptyCart');
+  let total = 0;
+
+  cartItemsList.innerHTML = '';
+  if (carrito.length === 0) {
+    emptyCart.style.display = 'block';
+    cartItemsContainer.style.display = 'none';
+  } else {
+    emptyCart.style.display = 'none';
+    cartItemsContainer.style.display = 'block';
+
+    carrito.forEach(item => {
+      const template = document.getElementById('cartItemTemplate');
+      const clone = template.content.cloneNode(true);
+
+      clone.querySelector('.item-title').textContent = item.nombre;
+      clone.querySelector('.item-type-badge').textContent = item.tipo === 'hotel' ? '🏨' : '✈️';
+      clone.querySelector('.item-qty').textContent = item.cantidad;
+      clone.querySelector('.unit-price-amount').textContent = `$${item.precio}`;
+      clone.querySelector('.total-price-amount').textContent = `$${(item.precio * item.cantidad).toFixed(2)}`;
+
+      total += item.precio * item.cantidad;
+      cartItemsList.appendChild(clone);
+    });
+  }
+
+  const totalAmount = document.getElementById('totalAmount');
+  if (totalAmount) totalAmount.textContent = `$${total.toFixed(2)}`;
+
+  // Actualiza el contador del carrito
+  const cartCount = document.getElementById('cartCount');
+  if (cartCount) cartCount.textContent = carrito.length;
+
+  cartUI = new CartUI();
     
     console.log(`
 🛒 Shopping Cart UI Initialized!
