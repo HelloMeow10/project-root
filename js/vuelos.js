@@ -241,3 +241,53 @@ let flightBooking
 document.addEventListener("DOMContentLoaded", () => {
   flightBooking = new FlightBooking()
 })
+
+async function cargarVuelos() {
+  try {
+    const res = await fetch('/api/products/vuelos');
+    const vuelos = await res.json();
+    const resultsContainer = document.getElementById("flightResults");
+    resultsContainer.innerHTML = '';
+
+    if (vuelos.length === 0) {
+      resultsContainer.innerHTML = `<p>No hay vuelos disponibles.</p>`;
+      return;
+    }
+
+    vuelos.forEach(vuelo => {
+      const card = document.createElement('div');
+      card.className = 'flight-card';
+      card.innerHTML = `
+        <div class="flight-header">
+          <div class="airline-info">
+            <div class="airline">${vuelo.pasaje?.origen || ''} → ${vuelo.pasaje?.destino || ''}</div>
+          </div>
+          <div class="price">$${vuelo.precio}</div>
+        </div>
+        <div class="flight-details">
+          <div class="detail-item">
+            <div class="detail-label">Aerolínea</div>
+            <div class="detail-value">${vuelo.nombre}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Clase</div>
+            <div class="detail-value">${vuelo.pasaje?.clase || '-'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Asientos</div>
+            <div class="detail-value">${vuelo.pasaje?.asientos_disponibles || '-'}</div>
+          </div>
+        </div>
+        <button class="add-to-cart-btn">Agregar al carrito</button>
+      `;
+      resultsContainer.appendChild(card);
+    });
+  } catch (error) {
+    console.error('Error al cargar vuelos:', error);
+  }
+}
+
+// Llama a cargarVuelos cuando cargue la página
+document.addEventListener("DOMContentLoaded", () => {
+  cargarVuelos();
+});
