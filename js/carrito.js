@@ -704,6 +704,48 @@ document.addEventListener('DOMContentLoaded', function() {
 - apply-promo.php → Apply discount codes
 - checkout.php → Process checkout
     `);
+
+  // Botón de confirmar compra
+  const confirmarBtn = document.getElementById('confirmarCompraBtn');
+  if (confirmarBtn) {
+    confirmarBtn.addEventListener('click', async function() {
+      const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+      if (carrito.length === 0) {
+        alert('El carrito está vacío.');
+        return;
+      }
+
+      // Construye el array de items para la API
+      const items = carrito.map(item => ({
+        id_producto: parseInt(item.id),
+        cantidad: item.cantidad,
+        tipo: item.tipo
+      }));
+
+      // Envía a la API (ajusta la URL según tu backend)
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/pedidos', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ items })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert('¡Compra confirmada!');
+          localStorage.removeItem('carrito');
+          window.location.reload();
+        } else {
+          alert(data.message || 'Error al confirmar la compra');
+        }
+      } catch (err) {
+        alert('Error de red al confirmar la compra');
+      }
+    });
+  }
 });
 
 // Global API for external use
