@@ -96,7 +96,28 @@
                 <img src="../imagenes/plane.png" alt="Available flights" class="flights-icon">
                 <h2 style="color: #4a5568; font-size: 1.8rem; margin: 0;">Vuelos Disponibles</h2>
             </div>
-            <div id="flightResults"></div>
+            <div id="flightResults">
+                <!-- Ejemplo de tarjeta de vuelo -->
+<div class="flight-card">
+  <div class="flight-info">
+    <h3 class="flight-destination">Cancún</h3>
+    <p class="flight-details">Salida: Nueva York (JFK) - 10:00 AM</p>
+    <p class="flight-details">Llegada: Cancún (CUN) - 1:00 PM</p>
+    <p class="flight-price">Precio: $350</p>
+  </div>
+  <!-- Ejemplo de botón dentro de cada tarjeta de vuelo -->
+  <button 
+    class="add-to-cart-btn"
+    data-id="123"
+    data-tipo="vuelo"
+    data-nombre="Vuelo a Cancún"
+    data-precio="350"
+  >
+    Comprar
+  </button>
+</div>
+
+            </div>
         </div>
 
         <div class="navigation">
