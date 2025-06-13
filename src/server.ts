@@ -8,6 +8,7 @@ import productRoutes from './routes/productRoutes';
 import authRoutes from './routes/authRoutes';
 import orderRoutes from './routes/orderRoutes';
 import userRoutes from './routes/userRoutes';
+import cartRoutes from './routes/cartRoutes';
 import { errorHandler } from './middlewares/errorHandler';
 import path from 'path';
 
@@ -35,6 +36,7 @@ app.use('/api', productRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/cart', cartRoutes);
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../html/inicio.html'));
 });

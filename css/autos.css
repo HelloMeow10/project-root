@@ -544,6 +544,17 @@ body {
 .total-cost h4 {
   color: var(--red);
   font-size: 1.2rem;
+  
+}
+#span-a-href a{
+  color: var(--red);
+  text-decoration: none;
+  font-weight: 600;
+}
+.fas.fa.shopping-cart {
+  color: var(--red);
+  margin-right: 0.5rem;
+  text-decoration: none;
 }
 
 .form-actions {
@@ -583,15 +594,6 @@ body {
 .btn-confirm:hover {
   background: var(--pill);
   color: var(--red);
-}
-#span-a-href a {
-  color: var(--red);
-  text-decoration: none;
-}
-.fas.fa-shopping-cart {
-  color: var(--red);
-  font-size: 1.5rem;
-  margin-right: 0.5rem;
 }
 
 /* Footer */

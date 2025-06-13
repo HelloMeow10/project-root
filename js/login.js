@@ -662,6 +662,3 @@ window.AuthAPI = {
         if (authUI) authUI.clearAllErrors();
     }
 };
-
-const bcrypt = require('bcryptjs');
-bcrypt.hashSync('admin123', 10);

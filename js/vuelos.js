@@ -1,83 +1,59 @@
 // Flight booking functionality - Visual only (no cart functionality)
 class FlightBooking {
   constructor() {
-    this.sampleFlights = [
-      {
-        id: "FL001",
-        airline: "Paradise Airways",
-        logo: "../imagenes/cute-tropical-3ber1fipqhlyc3uf.jpg",
-        from: "NYC",
-        to: "CUN",
-        departure: "08:00",
-        arrival: "12:30",
-        duration: "4h 30m",
-        price: 450,
-        stops: "Direct",
-      },
-      {
-        id: "FL002",
-        airline: "Tropical Express",
-        logo: "../imagenes/cute-tropical-3ber1fipqhlyc3uf.jpg",
-        from: "NYC",
-        to: "CUN",
-        departure: "14:15",
-        arrival: "19:45",
-        duration: "5h 30m",
-        price: 380,
-        stops: "1 Stop",
-      },
-      {
-        id: "FL003",
-        airline: "Island Hopper",
-        logo: "/placeholder.svg?height=50&width=50",
-        from: "LAX",
-        to: "PUJ",
-        departure: "10:30",
-        arrival: "18:20",
-        duration: "7h 50m",
-        price: 520,
-        stops: "1 Stop",
-      },
-      {
-        id: "FL004",
-        airline: "Caribbean Connect",
-        logo: "/placeholder.svg?height=50&width=50",
-        from: "MIA",
-        to: "NAS",
-        departure: "09:45",
-        arrival: "11:15",
-        duration: "1h 30m",
-        price: 280,
-        stops: "Direct",
-      },
-      {
-        id: "FL005",
-        airline: "Vacation Wings",
-        logo: "/placeholder.svg?height=50&width=50",
-        from: "CHI",
-        to: "MBJ",
-        departure: "16:00",
-        arrival: "21:30",
-        duration: "5h 30m",
-        price: 490,
-        stops: "Direct",
-      },
-    ]
-
-    this.init()
+    this.flightListContainer = document.querySelector("#flightResults") || document.body;
   }
 
-  init() {
-    this.createParticles()
-    this.setupEventListeners()
-    this.setupDateValidation()
-    this.displayFlights(this.sampleFlights)
-    this.revealOnScroll()
+  async init() {
+    await this.cargarVuelos();
+    this.createParticles();
+    this.revealOnScroll();
+  }
+
+  // Cargar vuelos desde la API y mostrarlos
+  async cargarVuelos() {
+    try {
+      const res = await fetch('/api/products/vuelos');
+      if (!res.ok) throw new Error('No se pudieron cargar los vuelos');
+      const vuelos = await res.json();
+      this.renderVuelos(vuelos);
+    } catch (err) {
+      this.flightListContainer.innerHTML = `<p style="color:red;">Error al cargar vuelos</p>`;
+    }
+  }
+
+  // Renderizar vuelos en el DOM
+  renderVuelos(vuelos) {
+    if (!Array.isArray(vuelos) || vuelos.length === 0) {
+      this.flightListContainer.innerHTML = '<p>No hay vuelos disponibles.</p>';
+      return;
+    }
+    this.flightListContainer.innerHTML = vuelos.map(vuelo => `
+      <div class="flight-card">
+        <div class="flight-info">
+          <h3 class="flight-destination">${vuelo.pasaje?.destino || 'Destino'}</h3>
+          <p class="flight-details">Salida: ${vuelo.pasaje?.origen || 'Origen'}${vuelo.pasaje?.fecha_salida ? ' - ' + new Date(vuelo.pasaje.fecha_salida).toLocaleString() : ''}</p>
+          <p class="flight-details">Llegada: ${vuelo.pasaje?.destino || 'Destino'}${vuelo.pasaje?.fecha_regreso ? ' - ' + new Date(vuelo.pasaje.fecha_regreso).toLocaleString() : ''}</p>
+          <p class="flight-details">Clase: ${vuelo.pasaje?.clase || 'Turista'}</p>
+          <p class="flight-price">Precio: $${vuelo.precio}</p>
+        </div>
+        <button 
+          class="add-to-cart-btn"
+          data-id="${vuelo.id_producto}"
+          data-tipo="vuelo"
+          data-nombre="${vuelo.nombre}"
+          data-precio="${vuelo.precio}"
+        >
+          Comprar
+        </button>
+      </div>
+    `).join('');
   }
 
   // Create animated background particles
   createParticles() {
     const bgAnimation = document.getElementById("bgAnimation")
+    if (!bgAnimation) return;
     const particleCount = 20
 
     for (let i = 0; i < particleCount; i++) {
@@ -96,234 +72,91 @@ class FlightBooking {
   // Scroll reveal animation
   revealOnScroll() {
     const reveals = document.querySelectorAll(".scroll-reveal")
-
     reveals.forEach((element) => {
       const windowHeight = window.innerHeight
       const elementTop = element.getBoundingClientRect().top
       const elementVisible = 150
-
       if (elementTop < windowHeight - elementVisible) {
         element.classList.add("revealed")
       }
     })
   }
+}
 
-  // Setup event listeners
-  setupEventListeners() {
-    // Search form
-    document.getElementById("searchForm").addEventListener("submit", (e) => {
-      this.handleSearch(e)
-    })
-
-    // Scroll events
-    window.addEventListener("scroll", () => {
-      this.revealOnScroll()
-    })
-
-    // Load events
-    window.addEventListener("load", () => {
-      this.revealOnScroll()
-    })
+// Notificación visual (como en login/dashboard)
+function showNotification(message, type = 'info', duration = 3500) {
+  let container = document.getElementById('notificationContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'notificationContainer';
+    container.className = 'notification-container';
+    document.body.appendChild(container);
   }
-
-  // Setup date validation
-  setupDateValidation() {
-    const today = new Date().toISOString().split("T")[0]
-    const departureInput = document.getElementById("departure")
-    const returnInput = document.getElementById("return")
-
-    departureInput.min = today
-    returnInput.min = today
-
-    departureInput.addEventListener("change", function () {
-      returnInput.min = this.value
-    })
-  }
-
-  // Handle search functionality
-  handleSearch(e) {
-    e.preventDefault()
-
-    const searchBtn = document.getElementById("searchBtn")
-    const searchBtnText = document.getElementById("searchBtnText")
-
-    // Show loading animation
-    searchBtnText.innerHTML = '<span class="loading"></span> Searching...'
-    searchBtn.disabled = true
-
+  const notification = document.createElement('div');
+  notification.className = `notification ${type}`;
+  notification.innerHTML = `
+    <i class="fas fa-${getNotificationIcon(type)}"></i>
+    <span>${message}</span>
+    <button class="notification-close" aria-label="Cerrar mensaje">
+      <i class="fas fa-times"></i>
+    </button>
+  `;
+  container.appendChild(notification);
+  setTimeout(() => closeNotification(notification), duration);
+  notification.querySelector('.notification-close').onclick = () => closeNotification(notification);
+}
+function closeNotification(notification) {
+  if (notification && notification.parentNode) {
+    notification.style.animation = 'slideOutRight 0.3s ease';
     setTimeout(() => {
-      const formData = new FormData(e.target)
-      const searchCriteria = {
-        from: formData.get("from"),
-        to: formData.get("to"),
-        departure: formData.get("departure"),
-        return: formData.get("return"),
-        passengers: formData.get("passengers"),
-      }
-
-      // Filter flights based on search criteria
-      const filteredFlights = this.sampleFlights.filter(
-        (flight) => flight.from === searchCriteria.from && flight.to === searchCriteria.to,
-      )
-
-      this.displayFlights(filteredFlights)
-
-      // Reset button
-      searchBtnText.textContent = "🔍 Search Flights"
-      searchBtn.disabled = false
-    }, 1500)
-  }
-
-  // Display flights
-  displayFlights(flights) {
-    const resultsContainer = document.getElementById("flightResults")
-
-    if (flights.length === 0) {
-      resultsContainer.innerHTML = `
-                <div style="text-align: center; padding: 3rem;">
-                    <img src="/placeholder.svg?height=100&width=100" alt="No flights" style="opacity: 0.5; margin-bottom: 1rem;">
-                    <p style="color: #718096; font-size: 1.2rem;">No flights found for your search criteria.</p>
-                </div>
-            `
-      return
-    }
-
-    resultsContainer.innerHTML = flights
-      .map(
-        (flight, index) => `
-            <div class="flight-card" style="animation-delay: ${index * 0.1}s">
-                <div class="flight-header">
-                    <div class="airline-info">
-                        <img src="${flight.logo}" alt="${flight.airline}" class="airline-logo">
-                        <div class="airline">${flight.airline}</div>
-                    </div>
-                    <div class="price">$${flight.price}</div>
-                </div>
-                <div class="flight-details">
-                    <div class="detail-item">
-                        <div class="detail-label">From</div>
-                        <div class="detail-value">${flight.from}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">To</div>
-                        <div class="detail-value">${flight.to}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Departure</div>
-                        <div class="detail-value">${flight.departure}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Arrival</div>
-                        <div class="detail-value">${flight.arrival}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Duration</div>
-                        <div class="detail-value">${flight.duration}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Stops</div>
-                        <div class="detail-value">${flight.stops}</div>
-                    </div>
-                </div>
-                <button class="add-to-cart-btn">
-                    Add to Cart
-                </button>
-            </div>
-        `,
-      )
-      .join("")
+      if (notification.parentNode) notification.remove();
+    }, 300);
   }
 }
-
-// Initialize the flight booking system
-let flightBooking
-
-document.addEventListener("DOMContentLoaded", () => {
-  flightBooking = new FlightBooking()
-})
-
-async function cargarVuelos() {
-  try {
-    const res = await fetch('/api/products/vuelos');
-    const vuelos = await res.json();
-    const resultsContainer = document.getElementById("flightResults");
-    resultsContainer.innerHTML = '';
-
-    if (vuelos.length === 0) {
-      resultsContainer.innerHTML = `<p>No hay vuelos disponibles.</p>`;
-      return;
-    }
-
-    vuelos.forEach(vuelo => {
-      const card = document.createElement('div');
-      card.className = 'flight-card';
-      card.innerHTML = `
-        <div class="flight-header">
-          <div class="airline-info">
-            <div class="airline">${vuelo.pasaje?.origen || ''} → ${vuelo.pasaje?.destino || ''}</div>
-          </div>
-          <div class="price">$${vuelo.precio}</div>
-        </div>
-        <div class="flight-details">
-          <div class="detail-item">
-            <div class="detail-label">Aerolínea</div>
-            <div class="detail-value">${vuelo.nombre}</div>
-          </div>
-          <div class="detail-item">
-            <div class="detail-label">Clase</div>
-            <div class="detail-value">${vuelo.pasaje?.clase || '-'}</div>
-          </div>
-          <div class="detail-item">
-            <div class="detail-label">Asientos</div>
-            <div class="detail-value">${vuelo.pasaje?.asientos_disponibles || '-'}</div>
-          </div>
-        </div>
-        <button 
-          class="add-to-cart-btn"
-          data-id="${vuelo.id_producto}"
-          data-tipo="vuelo"
-          data-nombre="${vuelo.nombre}"
-          data-precio="${vuelo.precio}"
-        >Agregar al carrito</button>
-      `;
-      resultsContainer.appendChild(card);
-    });
-  } catch (error) {
-    console.error('Error al cargar vuelos:', error);
-  }
+function getNotificationIcon(type) {
+  const icons = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  };
+  return icons[type] || 'info-circle';
 }
 
-// Llama a cargarVuelos cuando cargue la página
+// Inicializar
+let flightBooking;
 document.addEventListener("DOMContentLoaded", () => {
-  cargarVuelos();
+  flightBooking = new FlightBooking();
+  flightBooking.init();
 });
 
-// Evento global para agregar al carrito
-document.addEventListener('click', function(e) {
+// Evento global para agregar al carrito (visual, sin alert)
+document.addEventListener('click', async function(e) {
   const btn = e.target.closest('.add-to-cart-btn');
   if (!btn) return;
-
   const id = btn.getAttribute('data-id');
-  const tipo = btn.getAttribute('data-tipo');
-  const nombre = btn.getAttribute('data-nombre');
-  const precio = parseFloat(btn.getAttribute('data-precio'));
-  if (!id || !tipo || !nombre || isNaN(precio)) {
-    alert('Error al agregar al carrito');
+  const token = localStorage.getItem('token');
+  if (!token) {
+    showNotification('Debes iniciar sesión para agregar al carrito', 'error');
+    setTimeout(() => window.location.href = 'login.html', 1800);
     return;
   }
-  const producto = { id, tipo, nombre, precio, cantidad: 1 };
-
-  let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-  const existente = carrito.find(item => item.id == id && item.tipo == tipo);
-  if (existente) {
-    existente.cantidad += 1;
-  } else {
-    carrito.push(producto);
+  try {
+    const res = await fetch('/api/cart', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ productId: Number(id), cantidad: 1 })
+    });
+    if (res.ok) {
+      showNotification('Vuelo agregado al carrito', 'success');
+    } else {
+      const data = await res.json();
+      showNotification(data.message || 'Error al agregar al carrito', 'error');
+    }
+  } catch (err) {
+    showNotification('Error de red', 'error');
   }
-  localStorage.setItem('carrito', JSON.stringify(carrito));
-
-  const cartCount = document.getElementById('cartCount');
-  if (cartCount) cartCount.textContent = carrito.length;
-
-  alert('Vuelo agregado al carrito');
 });

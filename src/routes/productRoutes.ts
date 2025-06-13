@@ -1,6 +1,9 @@
 // src/routes/productRoutes.ts
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import { deleteProduct } from '../controllers/ProductController';
+import { authMiddleware } from '../middlewares/authMiddleware';
+import { adminOnly } from '../middlewares/adminOnly';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -113,5 +116,8 @@ router.post('/pedidos', async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Error al crear el pedido' });
   }
 });
+
+// Endpoint para eliminar productos
+router.delete('/:id', authMiddleware, adminOnly, deleteProduct);
 
 export default router;
