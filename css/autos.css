@@ -544,6 +544,7 @@ body {
 .total-cost h4 {
   color: var(--red);
   font-size: 1.2rem;
+  
 }
 
 .form-actions {
