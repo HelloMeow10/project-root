@@ -14,10 +14,9 @@
             <div class="nav-container">
                 <div class="nav-logo">
                     <i class="fas fa-globe-americas"></i>
-                    <span id="span-a-href"><a href="inicio.html">MUSIMUNDO/Travel</a></span>
+                    <span id="span-a-href">MUSIMUNDO/Travel</span>
                 </div>
                 <div class="nav-menu">
-                    <li><a href="inicio.html">Inicio</a></li>
                     <li><a href="paquetes.html">Paquetes</a></li>
                     <li><a href="vuelos.html">Vuelos</a></li>
                     <li><a href="hotel.html">Hoteles</a></li>
@@ -41,11 +40,10 @@
                     <h1>Reserva tu vuelo</h1>
                     <p>Encuentra el vuelo perfecto para tus vacaciones todo incluido</p>
                 </div>
-            <div class="cart-header">
-                <h1>
-                    <a href="carrito.html"><i class="fas fa-shopping-cart"></i></a>
-                    
-                </h1>
+             <a class="cart-btn" title="Ver carrito" href="carrito.html">
+    <img src="../imagenes/vecteezy_shopping-cart-icon-shopping-basket-on-transparent_19787018.png" id="cartIcon" alt="Cart Icon">
+    <i class="fas fa-shopping-cart"></i>
+    <span id="cartCount">0</span>
 </a>
             </div>
         </div>
@@ -98,10 +96,35 @@
                 <img src="../imagenes/plane.png" alt="Available flights" class="flights-icon">
                 <h2 style="color: #4a5568; font-size: 1.8rem; margin: 0;">Vuelos Disponibles</h2>
             </div>
-            <div id="flightResults"></div>
+            <div id="flightResults">
+                <!-- Ejemplo de tarjeta de vuelo -->
+<div class="flight-card">
+  <div class="flight-info">
+    <h3 class="flight-destination">Cancún</h3>
+    <p class="flight-details">Salida: Nueva York (JFK) - 10:00 AM</p>
+    <p class="flight-details">Llegada: Cancún (CUN) - 1:00 PM</p>
+    <p class="flight-price">Precio: $350</p>
+  </div>
+  <!-- Ejemplo de botón dentro de cada tarjeta de vuelo -->
+  <button 
+    class="add-to-cart-btn"
+    data-id="123"
+    data-tipo="vuelo"
+    data-nombre="Vuelo a Cancún"
+    data-precio="350"
+  >
+    Comprar
+  </button>
+</div>
+
+            </div>
         </div>
 
-        
+        <div class="navigation">
+            <a href="paquetes.html" class="nav-link">← Comprar paquetes</a>
+            <a href="hotel.html" class="nav-link">Reservar Hoteles →</a>
+            <a href="autos.html" class="nav-link">Ver Autos →</a>
+        </div>
     </div>
 
     

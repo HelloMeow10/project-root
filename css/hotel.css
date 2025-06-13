@@ -571,9 +571,6 @@ body {
   color: var(--pill);
   font-weight: normal;
 }
-.fas.fa-shopping-cart {
-  color: var(--red);
-}
 
 .view-details-btn {
   background: transparent;
@@ -590,10 +587,6 @@ body {
   background: var(--pill);
   color: var(--black);
   transform: translateY(-2px);
-}
-#span-a-href a{
-  color: var(--red);
-  TEXT-DECORATION: none;
 }
 
 .add-to-cart-btn {
