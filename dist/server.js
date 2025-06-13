@@ -13,6 +13,7 @@ const productRoutes_1 = __importDefault(require("./routes/productRoutes"));
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const orderRoutes_1 = __importDefault(require("./routes/orderRoutes"));
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
+const cartRoutes_1 = __importDefault(require("./routes/cartRoutes"));
 const errorHandler_1 = require("./middlewares/errorHandler");
 const path_1 = __importDefault(require("path"));
 dotenv_1.default.config(); // Carga variables de entorno desde .env:contentReference[oaicite:8]{index=8}
@@ -35,6 +36,7 @@ app.use('/api', productRoutes_1.default);
 app.use('/api/auth', authRoutes_1.default);
 app.use('/api/orders', orderRoutes_1.default);
 app.use('/api/users', userRoutes_1.default);
+app.use('/api/cart', cartRoutes_1.default);
 app.get('/', (req, res) => {
     res.sendFile(path_1.default.join(__dirname, '../html/inicio.html'));
 });

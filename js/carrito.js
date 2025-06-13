@@ -41,7 +41,41 @@ class CartUI {
         // Clear cart button
         const clearCartBtn = document.getElementById('clearCartBtn');
         if (clearCartBtn) {
-            clearCartBtn.addEventListener('click', () => this.handleClearCart());
+          clearCartBtn.addEventListener('click', async function() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            if (!confirm('¿Estás seguro de que deseas vaciar el carrito?')) return;
+            // Mostrar overlay opcionalmente aquí si quieres feedback visual
+            try {
+              const res = await fetch('/api/cart', {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              // OCULTAR EL OVERLAY SIEMPRE
+              const accessOverlay = document.getElementById('accessOverlay');
+              if (accessOverlay) accessOverlay.style.display = 'none';
+
+              if (res.ok) {
+                document.getElementById('cartItemsList').innerHTML = '';
+                document.getElementById('emptyCart').style.display = 'block';
+                document.getElementById('cartItemsContainer').style.display = 'none';
+                document.getElementById('totalAmount').textContent = '$0.00';
+                if (window.CartAPI && window.CartAPI.showNotification) {
+                  window.CartAPI.showNotification('Carrito vaciado exitosamente', 'success');
+                }
+              } else {
+                if (window.CartAPI && window.CartAPI.showNotification) {
+                  window.CartAPI.showNotification('Error al vaciar el carrito', 'error');
+                }
+              }
+            } catch {
+              const accessOverlay = document.getElementById('accessOverlay');
+              if (accessOverlay) accessOverlay.style.display = 'none';
+              if (window.CartAPI && window.CartAPI.showNotification) {
+                window.CartAPI.showNotification('Error de red', 'error');
+              }
+            }
+          });
         }
 
         // Promo code form
@@ -632,119 +666,144 @@ class CartUI {
 // Initialize Cart UI when DOM is loaded
 let cartUI;
 
-document.addEventListener('DOMContentLoaded', function() {
-  let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-  const cartItemsContainer = document.getElementById('cartItemsContainer');
-  const cartItemsList = document.getElementById('cartItemsList');
-  const emptyCart = document.getElementById('emptyCart');
-  let total = 0;
-
-  cartItemsList.innerHTML = '';
-  if (carrito.length === 0) {
-    emptyCart.style.display = 'block';
-    cartItemsContainer.style.display = 'none';
-  } else {
-    emptyCart.style.display = 'none';
-    cartItemsContainer.style.display = 'block';
-
-    carrito.forEach(item => {
-      const template = document.getElementById('cartItemTemplate');
-      const clone = template.content.cloneNode(true);
-
-      clone.querySelector('.item-title').textContent = item.nombre;
-      clone.querySelector('.item-type-badge').textContent = item.tipo === 'hotel' ? '🏨' : '✈️';
-      clone.querySelector('.item-qty').textContent = item.cantidad;
-      clone.querySelector('.unit-price-amount').textContent = `$${item.precio}`;
-      clone.querySelector('.total-price-amount').textContent = `$${(item.precio * item.cantidad).toFixed(2)}`;
-
-      total += item.precio * item.cantidad;
-      cartItemsList.appendChild(clone);
-    });
+document.addEventListener('DOMContentLoaded', async function() {
+  // Oculta el overlay siempre que se termine la carga (éxito o error)
+  function hideAccessOverlay() {
+    const accessOverlay = document.getElementById('accessOverlay');
+    if (accessOverlay) accessOverlay.style.display = 'none';
   }
 
-  const totalAmount = document.getElementById('totalAmount');
-  if (totalAmount) totalAmount.textContent = `$${total.toFixed(2)}`;
+  const token = localStorage.getItem('token');
+  if (!token) {
+    hideAccessOverlay();
+    window.location.href = 'login.html';
+    return;
+  }
+  try {
+    const res = await fetch('/api/cart', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    // Si la respuesta no es ok, igual ocultamos el overlay
+    if (!res.ok) {
+      hideAccessOverlay();
+      window.location.href = 'login.html';
+      return;
+    }
+    const items = await res.json();
+    const cartItemsList = document.getElementById('cartItemsList');
+    let total = 0;
+    cartItemsList.innerHTML = '';
+    if (items.length === 0) {
+      document.getElementById('emptyCart').style.display = 'block';
+      document.getElementById('cartItemsContainer').style.display = 'none';
+    } else {
+      document.getElementById('emptyCart').style.display = 'none';
+      document.getElementById('cartItemsContainer').style.display = 'block';
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.innerHTML = `
+          <div>
+            <span class="item-title">${item.producto.nombre}</span>
+            <span class="item-type-badge">${item.producto.tipo?.nombre || ''}</span>
+          </div>
+          <div>
+            <span>Cantidad: <span class="item-qty">${item.cantidad}</span></span>
+            <span>Precio unitario: <span class="unit-price-amount">$${item.producto.precio}</span></span>
+            <span>Total: <span class="total-price-amount">$${(item.producto.precio * item.cantidad).toFixed(2)}</span></span>
+          </div>
+        `;
+        total += Number(item.producto.precio) * item.cantidad;
+        cartItemsList.appendChild(div);
+      });
+      document.getElementById('totalAmount').textContent = `$${total.toFixed(2)}`;
+    }
+    hideAccessOverlay();
+  } catch (err) {
+    hideAccessOverlay();
+    // Puedes mostrar un mensaje de error aquí si quieres
+  }
 
-  // Actualiza el contador del carrito
-  const cartCount = document.getElementById('cartCount');
-  if (cartCount) cartCount.textContent = carrito.length;
-
-  cartUI = new CartUI();
-    
-    console.log(`
-🛒 Shopping Cart UI Initialized!
-
-📋 Visual Features Active:
-=========================
-✅ Quantity controls with validation
-✅ Real-time price calculations
-✅ Item removal with confirmation
-✅ Cart clearing functionality
-✅ Promo code input handling
-✅ Checkout process simulation
-✅ Recommended items interaction
-✅ Loading states for all actions
-✅ Responsive notifications
-✅ Modal confirmations
-✅ Keyboard shortcuts
-✅ Smooth animations
-
-🎯 Data Processing:
-==================
-- All cart data comes from PHP
-- Forms submit naturally to backend
-- No data simulation or storage
-- Visual feedback only
-
-🔧 Integration Points:
-=====================
-- cart.php → Load cart items
-- update-quantity.php → Update item quantities
-- remove-item.php → Remove items
-- apply-promo.php → Apply discount codes
-- checkout.php → Process checkout
-    `);
-
-  // Botón de confirmar compra
-  const confirmarBtn = document.getElementById('confirmarCompraBtn');
-  if (confirmarBtn) {
-    confirmarBtn.addEventListener('click', async function() {
-      const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-      if (carrito.length === 0) {
-        alert('El carrito está vacío.');
-        return;
-      }
-
-      // Construye el array de items para la API
-      const items = carrito.map(item => ({
-        id_producto: parseInt(item.id),
-        cantidad: item.cantidad,
-        tipo: item.tipo
-      }));
-
-      // Envía a la API (ajusta la URL según tu backend)
+  // Asigna el evento al botón de vaciar carrito
+  const clearCartBtn = document.getElementById('clearCartBtn');
+  if (clearCartBtn) {
+    clearCartBtn.addEventListener('click', async function() {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      if (!confirm('¿Estás seguro de que deseas vaciar el carrito?')) return;
       try {
-        const token = localStorage.getItem('token');
-        const res = await fetch('/api/products/pedidos', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ items })
+        const res = await fetch('/api/cart', {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
         });
-        const data = await res.json();
         if (res.ok) {
-          alert('¡Compra confirmada!');
-          localStorage.removeItem('carrito');
-          window.location.reload();
+          document.getElementById('cartItemsList').innerHTML = '';
+          document.getElementById('emptyCart').style.display = 'block';
+          document.getElementById('cartItemsContainer').style.display = 'none';
+          document.getElementById('totalAmount').textContent = '$0.00';
+          if (window.CartAPI && window.CartAPI.showNotification) {
+            window.CartAPI.showNotification('Carrito vaciado exitosamente', 'success');
+          }
         } else {
-          alert(data.message || 'Error al confirmar la compra');
+          if (window.CartAPI && window.CartAPI.showNotification) {
+            window.CartAPI.showNotification('Error al vaciar el carrito', 'error');
+          }
         }
-      } catch (err) {
-        alert('Error de red al confirmar la compra');
+      } catch {
+        if (window.CartAPI && window.CartAPI.showNotification) {
+          window.CartAPI.showNotification('Error de red', 'error');
+        }
       }
     });
+  }
+});
+
+document.getElementById('confirmarCompraBtn').addEventListener('click', async function() {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    showNotification('Debes iniciar sesión para comprar', 'error');
+    setTimeout(() => window.location.href = 'login.html', 1500);
+    return;
+  }
+  // Obtén los items del carrito desde la API
+  try {
+    const res = await fetch('/api/cart', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const items = await res.json();
+    if (!items.length) {
+      showNotification('No hay productos en el carrito', 'error');
+      return;
+    }
+    // Prepara los datos para el pedido
+    const pedidoItems = items.map(item => ({
+      id_producto: item.producto.id_producto,
+      cantidad: item.cantidad
+    }));
+    // Envía el pedido
+    const pedidoRes = await fetch('/api/products/pedidos', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ items: pedidoItems })
+    });
+    if (pedidoRes.ok) {
+      showNotification('¡Compra realizada con éxito!', 'success');
+      // Vacía el carrito visualmente
+      document.getElementById('cartItemsList').innerHTML = '';
+      document.getElementById('emptyCart').style.display = 'block';
+      document.getElementById('cartItemsContainer').style.display = 'none';
+      document.getElementById('totalAmount').textContent = '$0.00';
+      // Opcional: redirige al dashboard o página de éxito
+      setTimeout(() => window.location.href = 'dashboard.html', 1800);
+    } else {
+      const data = await pedidoRes.json();
+      showNotification(data.message || 'Error al procesar la compra', 'error');
+    }
+  } catch {
+    showNotification('Error de red', 'error');
   }
 });
 

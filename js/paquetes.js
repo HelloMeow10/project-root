@@ -11,114 +11,6 @@ const navToggle = document.querySelector(".nav-toggle")
 const navMenu = document.querySelector(".nav-menu")
 const bookingForm = document.getElementById("bookingForm")
 
-// Package data for quick view and booking
-const packageData = {
-  maldives: {
-    name: "Maldives Paradise",
-    price: 1299,
-    duration: 7,
-    rating: 4.8,
-    description: "7 days of luxury in overwater bungalows with all meals included",
-    features: ["Flights included", "5-Star Resort", "All meals", "Water sports", "Spa access"],
-    images: ["/placeholder.svg?height=300&width=500", "/placeholder.svg?height=300&width=500"],
-    itinerary: [
-      "Day 1: Arrival and welcome dinner",
-      "Day 2-3: Water sports and relaxation",
-      "Day 4-5: Island hopping tours",
-      "Day 6: Spa day and sunset cruise",
-      "Day 7: Departure",
-    ],
-  },
-  swiss: {
-    name: "Swiss Alps Adventure",
-    price: 899,
-    duration: 5,
-    rating: 4.6,
-    description: "5 days exploring the majestic Swiss Alps with guided tours",
-    features: ["Flights included", "Mountain lodge", "Guided hiking", "Cable car rides", "Photography tours"],
-    images: ["/placeholder.svg?height=300&width=500", "/placeholder.svg?height=300&width=500"],
-    itinerary: [
-      "Day 1: Arrival in Zurich",
-      "Day 2: Jungfraujoch excursion",
-      "Day 3: Hiking in Lauterbrunnen",
-      "Day 4: Matterhorn visit",
-      "Day 5: Departure",
-    ],
-  },
-  tokyo: {
-    name: "Tokyo Cultural Experience",
-    price: 1599,
-    duration: 6,
-    rating: 4.9,
-    description: "6 days immersing in Japanese culture and modern city life",
-    features: ["Flights included", "Traditional ryokan", "Temple visits", "Food tours", "Cultural workshops"],
-    images: ["/placeholder.svg?height=300&width=500", "/placeholder.svg?height=300&width=500"],
-    itinerary: [
-      "Day 1: Arrival and Shibuya exploration",
-      "Day 2: Traditional temples and gardens",
-      "Day 3: Food tour in Tsukiji",
-      "Day 4: Mount Fuji day trip",
-      "Day 5: Modern Tokyo and shopping",
-      "Day 6: Departure",
-    ],
-  },
-  safari: {
-    name: "African Safari Adventure",
-    price: 2199,
-    duration: 10,
-    rating: 4.7,
-    description: "10 days wildlife safari across Kenya and Tanzania",
-    features: ["Flights included", "Safari lodge", "Game drives", "Masai village visit", "Photography guide"],
-    images: ["/placeholder.svg?height=300&width=500", "/placeholder.svg?height=300&width=500"],
-    itinerary: [
-      "Day 1-2: Arrival and Nairobi National Park",
-      "Day 3-4: Masai Mara game drives",
-      "Day 5-6: Serengeti National Park",
-      "Day 7-8: Ngorongoro Crater",
-      "Day 9: Cultural village visit",
-      "Day 10: Departure",
-    ],
-  },
-  caribbean: {
-    name: "Caribbean Cruise",
-    price: 999,
-    duration: 5,
-    rating: 4.5,
-    description: "5 days luxury cruise visiting multiple Caribbean islands",
-    features: [
-      "Luxury cruise ship",
-      "All meals included",
-      "Entertainment shows",
-      "Multiple destinations",
-      "Pool access",
-    ],
-    images: ["/placeholder.svg?height=300&width=500", "/placeholder.svg?height=300&width=500"],
-    itinerary: [
-      "Day 1: Departure from Miami",
-      "Day 2: Cozumel, Mexico",
-      "Day 3: Jamaica",
-      "Day 4: Grand Cayman",
-      "Day 5: Return to Miami",
-    ],
-  },
-  europe: {
-    name: "European Grand Tour",
-    price: 1799,
-    duration: 8,
-    rating: 4.8,
-    description: "8 days exploring Paris, Rome, and Barcelona",
-    features: ["High-speed rail", "City center hotels", "Museum passes", "Food tours", "Local guides"],
-    images: ["/placeholder.svg?height=300&width=500", "/placeholder.svg?height=300&width=500"],
-    itinerary: [
-      "Day 1-2: Paris - Eiffel Tower and Louvre",
-      "Day 3-4: Rome - Colosseum and Vatican",
-      "Day 5-6: Barcelona - Sagrada Familia and Park Güell",
-      "Day 7: Travel day",
-      "Day 8: Departure",
-    ],
-  },
-}
-
 // Initialize the page
 document.addEventListener("DOMContentLoaded", () => {
   initializeFilters()
@@ -469,18 +361,65 @@ async function cargarProductos() {
   }
 }
 
+// Paquetes turísticos: carga dinámica y carrito
+
+// Notificación visual (como en login/dashboard)
+function showNotification(message, type = 'info', duration = 3500) {
+  let container = document.getElementById('notificationContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'notificationContainer';
+    container.className = 'notification-container';
+    document.body.appendChild(container);
+  }
+  const notification = document.createElement('div');
+  notification.className = `notification ${type}`;
+  notification.innerHTML = `
+    <i class="fas fa-${getNotificationIcon(type)}"></i>
+    <span>${message}</span>
+    <button class="notification-close" aria-label="Cerrar mensaje">
+      <i class="fas fa-times"></i>
+    </button>
+  `;
+  container.appendChild(notification);
+  setTimeout(() => closeNotification(notification), duration);
+  notification.querySelector('.notification-close').onclick = () => closeNotification(notification);
+}
+function closeNotification(notification) {
+  if (notification && notification.parentNode) {
+    notification.style.animation = 'slideOutRight 0.3s ease';
+    setTimeout(() => {
+      if (notification.parentNode) notification.remove();
+    }, 300);
+  }
+}
+function getNotificationIcon(type) {
+  const icons = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  };
+  return icons[type] || 'info-circle';
+}
+
+// Cargar paquetes desde la API y mostrarlos
 async function fetchPaquetes() {
-  const res = await fetch('/api/products/paquetes'); // <-- products, no productos
+  const res = await fetch('/api/products/paquetes');
   return await res.json();
 }
 
 function renderPaquetes(paquetes) {
   const grid = document.getElementById('packagesGrid');
   grid.innerHTML = '';
+  if (!paquetes.length) {
+    grid.innerHTML = `<div style="text-align: center; padding: 3rem;">No hay paquetes disponibles.</div>`;
+    return;
+  }
   paquetes.forEach(pkg => {
-    // Extrae vuelo y hotel del detalle
-    const vuelo = pkg.paqueteDetallesAsPaquete.find(d => d.producto.pasaje)?.producto.pasaje;
-    const hotel = pkg.paqueteDetallesAsPaquete.find(d => d.producto.hospedaje)?.producto.hospedaje;
+    // Extrae vuelo y hotel del detalle si existen
+    const vuelo = pkg.paqueteDetallesAsPaquete?.find(d => d.producto.pasaje)?.producto.pasaje;
+    const hotel = pkg.paqueteDetallesAsPaquete?.find(d => d.producto.hospedaje)?.producto.hospedaje;
     const vueloDesc = vuelo ? `${vuelo.origen} → ${vuelo.destino}` : 'Vuelo incluido';
     const hotelDesc = hotel ? `${hotel.ubicacion || ''}` : 'Hotel incluido';
 
@@ -516,4 +455,35 @@ function renderPaquetes(paquetes) {
 document.addEventListener('DOMContentLoaded', async () => {
   const paquetes = await fetchPaquetes();
   renderPaquetes(paquetes);
+});
+
+// Evento global para agregar paquete al carrito
+document.addEventListener('click', async function(e) {
+  const btn = e.target.closest('.book-btn');
+  if (!btn) return;
+  const id = btn.getAttribute('data-package');
+  const token = localStorage.getItem('token');
+  if (!token) {
+    showNotification('Debes iniciar sesión para agregar al carrito', 'error');
+    setTimeout(() => window.location.href = 'login.html', 1800);
+    return;
+  }
+  try {
+    const res = await fetch('/api/cart', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ productId: Number(id), cantidad: 1 })
+    });
+    if (res.ok) {
+      showNotification('Paquete agregado al carrito', 'success');
+    } else {
+      const data = await res.json();
+      showNotification(data.message || 'Error al agregar al carrito', 'error');
+    }
+  } catch (err) {
+    showNotification('Error de red', 'error');
+  }
 });

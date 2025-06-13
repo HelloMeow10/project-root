@@ -26,7 +26,9 @@
                         Vuelos
                     </a>
                     <a href="autos.html" class="nav-link">
-                        <i class="fas fa-car
+                        <i class="fas fa-car"></i>
+                        Autos
+                    </a>
                     <a href="carrito.html" class="nav-link active">
                         <i class="fas fa-shopping-cart"></i>
                         Carrito
@@ -38,21 +40,42 @@
     </header>
 
     <!-- Main Content -->
-    <span id="cartCount" style="display:none"></span>
-    <main>
-      <div id="emptyCart" style="display:none;text-align:center;padding:2rem;">Tu carrito está vacío.</div>
-      <div id="cartItemsContainer" style="display:none;">
-        <div id="cartItemsList"></div>
-        <div style="margin-top:2rem;font-size:1.2rem;">
-          <strong>Total:</strong> <span id="totalAmount">$0.00</span>
+    <main class="main container">
+        <div class="cart-header">
+            <h1><i class="fas fa-shopping-cart"></i> Tu Carrito</h1>
         </div>
-        <button id="confirmarCompraBtn" class="btn btn-primary" style="margin-top:2rem;">Confirmar compra</button>
-      </div>
+        <div id="emptyCart" class="empty-cart" style="display:none;">
+            <div class="empty-cart-icon"><i class="fas fa-shopping-basket"></i></div>
+            <h2>Tu carrito está vacío</h2>
+            <p>Agrega productos para comenzar tu compra.</p>
+            <div class="empty-cart-actions">
+                <a href="paquetes.html" class="btn btn-primary"><i class="fas fa-suitcase-rolling"></i> Ver Paquetes</a>
+                <a href="vuelos.html" class="btn btn-secondary"><i class="fas fa-plane"></i> Buscar Vuelos</a>
+                <a href="hotel.html" class="btn btn-secondary"><i class="fas fa-hotel"></i> Buscar Hoteles</a>
+                <a href="autos.html" class="btn btn-secondary"><i class="fas fa-car"></i> Buscar Autos</a>
+            </div>
+        </div>
+        <div id="cartItemsContainer" class="cart-items-container" style="display:none;">
+            <div class="cart-items-header">
+                <h2><i class="fas fa-list"></i> Productos en tu carrito</h2>
+                <button id="clearCartBtn" class="clear-cart-btn"><i class="fas fa-trash"></i> Vaciar carrito</button>
+            </div>
+            <div id="cartItemsList" class="cart-items-list"></div>
+            <div style="margin:2rem 0 1rem 0;font-size:1.2rem;text-align:right;">
+                <strong>Total:</strong> <span id="totalAmount">$0.00</span>
+            </div>
+            <div class="checkout-section">
+                <button id="confirmarCompraBtn" class="checkout-btn btn btn-primary">
+                    <span class="btn-text"><i class="fas fa-credit-card"></i> Confirmar compra</span>
+                    <span class="btn-loading" style="display:none;"><i class="fas fa-spinner fa-spin"></i> Procesando...</span>
+                </button>
+            </div>
+        </div>
     </main>
 
     <!-- Cart Item Template -->
     <template id="cartItemTemplate">
-      <div class="cart-item" style="border-bottom:1px solid #ccc;padding:1rem 0;">
+      <div class="cart-item">
         <div>
           <span class="item-title"></span>
           <span class="item-type-badge"></span>
@@ -101,35 +124,6 @@
         <i class="fas fa-spinner fa-spin"></i> Validando acceso...
       </div>
     </div>
-    <script>
-      const overlay = document.getElementById('accessOverlay');
-      const message = document.getElementById('accessMessage');
-      const token = localStorage.getItem('token');
-      let valid = false;
-
-      function showErrorAndRedirect(msg, redirect) {
-        message.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#e74c3c"></i> ${msg}`;
-        setTimeout(() => {
-          window.location.href = redirect;
-        }, 1800);
-      }
-
-      if (!token) {
-        showErrorAndRedirect('Debes iniciar sesión para acceder al carrito.', 'login.html');
-      } else {
-        valid = true;
-      }
-
-      if (valid) {
-        document.addEventListener('DOMContentLoaded', function() {
-          document.querySelector('main').style.display = '';
-          overlay.style.display = 'none';
-        });
-      }
-    </script>
-    
     <script src="../js/carrito.js"></script>
-
-
 </body>
 </html>

@@ -1,27 +1,44 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getCart = getCart;
 exports.addToCart = addToCart;
+exports.clearCart = clearCart;
 const db_1 = require("../config/db");
+async function getCart(req, res) {
+    const userId = req.user.userId;
+    const carrito = await db_1.prisma.carrito.findFirst({
+        where: { id_cliente: userId },
+        include: {
+            items: {
+                include: { producto: true }
+            }
+        }
+    });
+    res.json((carrito === null || carrito === void 0 ? void 0 : carrito.items) || []);
+}
 async function addToCart(req, res) {
-    const { productId, quantity } = req.body;
-    const userId = req.user.id;
-    try {
-        const cartItem = await db_1.prisma.carrito.create({
-            data: {
-                id_cliente: userId,
-                // Asegúrate de que los campos coincidan con tu modelo CarritoItem
-                items: {
-                    create: [{
-                            id_producto: productId,
-                            cantidad: quantity,
-                        }]
-                }
-            },
-            include: { items: true }
-        });
-        res.status(201).json(cartItem);
+    const userId = req.user.userId;
+    const { productId, cantidad } = req.body;
+    // Busca o crea el carrito del usuario
+    let carrito = await db_1.prisma.carrito.findFirst({ where: { id_cliente: userId } });
+    if (!carrito) {
+        carrito = await db_1.prisma.carrito.create({ data: { id_cliente: userId } });
     }
-    catch (err) {
-        res.status(500).json({ message: 'Error al agregar al carrito' });
-    }
+    // Agrega el producto al carrito
+    const item = await db_1.prisma.carritoItem.create({
+        data: {
+            id_carrito: carrito.id_carrito,
+            id_producto: productId,
+            cantidad: cantidad || 1
+        }
+    });
+    res.status(201).json(item);
+}
+async function clearCart(req, res) {
+    const userId = req.user.userId;
+    const carrito = await db_1.prisma.carrito.findFirst({ where: { id_cliente: userId } });
+    if (!carrito)
+        return res.status(200).json({ message: 'Carrito ya vacío' });
+    await db_1.prisma.carritoItem.deleteMany({ where: { id_carrito: carrito.id_carrito } });
+    res.json({ message: 'Carrito vaciado exitosamente' });
 }
