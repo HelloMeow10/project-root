@@ -359,7 +359,7 @@ class CartUI {
         }
 
         // Llama a la API para crear el pedido
-        fetch('/api/orders', {
+        fetch('/api/products/pedidos', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -725,7 +725,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Envía a la API (ajusta la URL según tu backend)
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('/api/pedidos', {
+        const res = await fetch('/api/products/pedidos', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

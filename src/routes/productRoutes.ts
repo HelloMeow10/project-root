@@ -5,6 +5,8 @@ import { PrismaClient } from "@prisma/client";
 const router = Router();
 const prisma = new PrismaClient();
 
+// Extensión del tipo Request para incluir `user`
+
 // Endpoint para obtener todos los paquetes turísticos
 router.get('/paquetes', async (req: Request, res: Response) => {
   try {
@@ -35,7 +37,6 @@ router.get('/paquetes', async (req: Request, res: Response) => {
 // Endpoint para obtener solo los vuelos
 router.get('/vuelos', async (req: Request, res: Response) => {
   try {
-    // id_tipo = 2 para vuelos (ajusta si tu id_tipo de vuelos es diferente)
     const vuelos = await prisma.producto.findMany({
       where: { id_tipo: 2, activo: true },
       include: { pasaje: true }
@@ -49,7 +50,6 @@ router.get('/vuelos', async (req: Request, res: Response) => {
 // Endpoint para obtener solo los hoteles
 router.get('/hoteles', async (req: Request, res: Response) => {
   try {
-    // id_tipo = 3 para hoteles
     const hoteles = await prisma.producto.findMany({
       where: { id_tipo: 3, activo: true },
       include: { hospedaje: true }
@@ -60,22 +60,27 @@ router.get('/hoteles', async (req: Request, res: Response) => {
   }
 });
 
+// Endpoint para crear pedidos
 router.post('/pedidos', async (req: Request, res: Response) => {
   try {
     const { items } = req.body;
-    const userId = req.user?.id_cliente; // Ajusta según tu auth
+    const userId = (req as any).user?.id_cliente; // <--- CORREGIDO
 
-    if (!userId) return res.status(401).json({ message: 'No autenticado' });
+    if (!userId) {
+      return res.status(401).json({ message: 'No autenticado' });
+    }
 
-    // Calcula el total sumando los precios de los productos
     let total = 0;
     for (const item of items) {
-      const producto = await prisma.producto.findUnique({ where: { id_producto: item.id_producto } });
-      if (!producto) return res.status(400).json({ message: 'Producto no encontrado' });
+      const producto = await prisma.producto.findUnique({
+        where: { id_producto: item.id_producto }
+      });
+      if (!producto) {
+        return res.status(400).json({ message: 'Producto no encontrado' });
+      }
       total += Number(producto.precio) * item.cantidad;
     }
 
-    // Crea el pedido
     const pedido = await prisma.pedido.create({
       data: {
         id_cliente: userId,
@@ -85,16 +90,17 @@ router.post('/pedidos', async (req: Request, res: Response) => {
           create: items.map((item: any) => ({
             id_producto: item.id_producto,
             cantidad: item.cantidad,
-            precio: undefined // Se setea abajo
+            precio: undefined // Se actualiza después
           }))
         }
       },
       include: { items: true }
     });
 
-    // Actualiza el precio de cada item (por si el precio cambia)
     for (const item of pedido.items) {
-      const producto = await prisma.producto.findUnique({ where: { id_producto: item.id_producto } });
+      const producto = await prisma.producto.findUnique({
+        where: { id_producto: item.id_producto }
+      });
       await prisma.pedidoItem.update({
         where: { id_detalle: item.id_detalle },
         data: { precio: producto?.precio || 0 }
@@ -109,7 +115,3 @@ router.post('/pedidos', async (req: Request, res: Response) => {
 });
 
 export default router;
-
-// En tu archivo principal de servidor (por ejemplo, app.ts o server.ts)
-import productRoutes from './routes/productRoutes';
-app.use('/api/products', productRoutes);

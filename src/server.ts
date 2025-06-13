@@ -30,6 +30,8 @@ app.use('/js', express.static(path.join(__dirname, '../js')));
 
 // Rutas
 app.use('/api/products', productRoutes);
+// Si quieres que funcione también en /api/pedidos:
+app.use('/api', productRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/users', userRoutes);
