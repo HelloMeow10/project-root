@@ -2,7 +2,7 @@
 class HotelBooking {
   constructor() {
     this.currentHotel = null
-    this.hoteles = [] // <-- inicializa aquí
+    this.hoteles = []
     this.init()
   }
 
@@ -18,7 +18,7 @@ class HotelBooking {
     try {
       const res = await fetch('/api/products/hoteles');
       const hoteles = await res.json();
-      this.hoteles = hoteles; // <-- ¡IMPORTANTE!
+      this.hoteles = hoteles;
       this.renderHoteles(hoteles);
     } catch (error) {
       console.error('Error al cargar hoteles:', error);
@@ -47,7 +47,13 @@ class HotelBooking {
             <div class="hotel-price">
               $${hotel.precio} <span class="hotel-price-night">/ noche</span>
             </div>
-            <button class="add-to-cart-btn">Agregar al carrito</button>
+            <button 
+              class="add-to-cart-btn"
+              data-id="${hotel.id_producto}"
+              data-tipo="hotel"
+              data-nombre="${hotel.nombre}"
+              data-precio="${hotel.precio}"
+            >Agregar al carrito</button>
           </div>
         </div>
       `;
@@ -293,3 +299,33 @@ let hotelBooking
 document.addEventListener("DOMContentLoaded", () => {
   hotelBooking = new HotelBooking()
 })
+
+// Evento global para agregar al carrito
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.add-to-cart-btn');
+  if (!btn) return;
+
+  const id = btn.getAttribute('data-id');
+  const tipo = btn.getAttribute('data-tipo');
+  const nombre = btn.getAttribute('data-nombre');
+  const precio = parseFloat(btn.getAttribute('data-precio'));
+  if (!id || !tipo || !nombre || isNaN(precio)) {
+    alert('Error al agregar al carrito');
+    return;
+  }
+  const producto = { id, tipo, nombre, precio, cantidad: 1 };
+
+  let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+  const existente = carrito.find(item => item.id == id && item.tipo == tipo);
+  if (existente) {
+    existente.cantidad += 1;
+  } else {
+    carrito.push(producto);
+  }
+  localStorage.setItem('carrito', JSON.stringify(carrito));
+
+  const cartCount = document.getElementById('cartCount');
+  if (cartCount) cartCount.textContent = carrito.length;
+
+  alert('Hotel agregado al carrito');
+});

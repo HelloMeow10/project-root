@@ -278,7 +278,13 @@ async function cargarVuelos() {
             <div class="detail-value">${vuelo.pasaje?.asientos_disponibles || '-'}</div>
           </div>
         </div>
-        <button class="add-to-cart-btn">Agregar al carrito</button>
+        <button 
+          class="add-to-cart-btn"
+          data-id="${vuelo.id_producto}"
+          data-tipo="vuelo"
+          data-nombre="${vuelo.nombre}"
+          data-precio="${vuelo.precio}"
+        >Agregar al carrito</button>
       `;
       resultsContainer.appendChild(card);
     });
@@ -290,4 +296,34 @@ async function cargarVuelos() {
 // Llama a cargarVuelos cuando cargue la página
 document.addEventListener("DOMContentLoaded", () => {
   cargarVuelos();
+});
+
+// Evento global para agregar al carrito
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.add-to-cart-btn');
+  if (!btn) return;
+
+  const id = btn.getAttribute('data-id');
+  const tipo = btn.getAttribute('data-tipo');
+  const nombre = btn.getAttribute('data-nombre');
+  const precio = parseFloat(btn.getAttribute('data-precio'));
+  if (!id || !tipo || !nombre || isNaN(precio)) {
+    alert('Error al agregar al carrito');
+    return;
+  }
+  const producto = { id, tipo, nombre, precio, cantidad: 1 };
+
+  let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+  const existente = carrito.find(item => item.id == id && item.tipo == tipo);
+  if (existente) {
+    existente.cantidad += 1;
+  } else {
+    carrito.push(producto);
+  }
+  localStorage.setItem('carrito', JSON.stringify(carrito));
+
+  const cartCount = document.getElementById('cartCount');
+  if (cartCount) cartCount.textContent = carrito.length;
+
+  alert('Vuelo agregado al carrito');
 });

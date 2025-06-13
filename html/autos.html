@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alquiler de Autos - MUSIMUNDO/TRAVEL</title>
+    <link rel="stylesheet" href="../css/autos.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <i class="fas fa-car"></i>
+                    <span id="span-a-href"><a href="inicio.html">MUSIMUNDO/TRAVEL</a></span>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="inicio.html">Inicio</a></li>
+                    <li><a href="paquetes.html">Paquetes</a></li>
+                    <li><a href="vuelos.html">Vuelos</a></li>
+                    <li><a href="hotel.html">Hoteles</a></li>
+                    <li><a href="autos.html">Autos</a></li>
+                    <li><a href="info.html">Info</a></li>
+                </ul>
+                <div class="nav-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="inicio">
+        <div class="hero-content">
+            <h1>Alquila tu Auto Ideal</h1>
+            <p>Encuentra el vehículo perfecto para tu viaje</p>
+            
+            <!-- Simple Search Form -->
+            <div class="search-container">
+                <form class="search-form" id="searchForm">
+                    <div class="search-group">
+                        <label>
+                            <i class="fas fa-calendar"></i>
+                            Fecha de Inicio
+                        </label>
+                        <input type="date" id="startDate" required>
+                    </div>
+                    <div class="search-group">
+                        <label>
+                            <i class="fas fa-calendar"></i>
+                            Fecha de Fin
+                        </label>
+                        <input type="date" id="endDate" required>
+                    </div>
+                    <button type="submit" class="search-btn">
+                        <i class="fas fa-search"></i>
+                        Buscar Autos
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filters Section -->
+    <section class="filters-section" id="autos">
+        <div class="container">
+            <h2>Filtrar Autos</h2>
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Categoría:</label>
+                    <select id="categoryFilter">
+                        <option value="">Todas las categorías</option>
+                        <option value="economico">Económico</option>
+                        <option value="compacto">Compacto</option>
+                        <option value="suv">SUV</option>
+                        <option value="lujo">Lujo</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Precio máximo por día:</label>
+                    <input type="range" id="priceFilter" min="20" max="200" value="200">
+                    <span id="priceValue">$200</span>
+                </div>
+                <button class="clear-btn" id="clearFilters">Limpiar Filtros</button>
+            </div>
+            <div class="cart-header">
+                <h1>
+                    <a href="carrito.html"><i class="fas fa-shopping-cart"></i></a>
+                    
+                </h1>
+</a>
+            </div>
+            
+        </div>
+        
+    </section>
+    
+
+    <!-- Cars Section -->
+    <section class="cars-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Autos Disponibles</h2>
+                <div class="results-info">
+                    <span id="resultsCount">Cargando...</span>
+                </div>
+            </div>
+            
+            <!-- Loading -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Cargando autos disponibles...</p>
+            </div>
+
+            <!-- Cars Grid -->
+            <div class="cars-grid" id="carsGrid">
+                <!-- Los autos se cargarán aquí -->
+            </div>
+
+            <!-- No Results -->
+            <div class="no-results" id="noResults" style="display: none;">
+                <i class="fas fa-car"></i>
+                <h3>No se encontraron autos</h3>
+                <p>Intenta cambiar los filtros o las fechas</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Booking Modal -->
+    <div class="modal" id="bookingModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Reservar Auto</h3>
+                <button class="close-btn" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="car-summary" id="carSummary">
+                    <!-- Resumen del auto seleccionado -->
+                </div>
+                
+                <form class="booking-form" id="bookingForm">
+                    <div class="form-group">
+                        <label for="customerName">Nombre Completo</label>
+                        <input type="text" id="customerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerEmail">Email</label>
+                        <input type="email" id="customerEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerPhone">Teléfono</label>
+                        <input type="tel" id="customerPhone" required>
+                    </div>
+                    
+                    <div class="total-cost">
+                        <h4>Total a Pagar: <span id="totalAmount">$0</span></h4>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-cancel" id="cancelBooking">Cancelar</button>
+                        <button type="submit" class="btn-confirm">Confirmar Reserva</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>MUSIMUNDO/TRAVEL</h3>
+                    <p>Tu puerta de entrada a aventuras increíbles en todo el mundo.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Enlaces Rápidos</h4>
+                    <ul>
+                        <li><a href="inicio.html">Inicio</a></li>
+                        <li><a href="paquetes.html">Paquetes</a></li>
+                        <li><a href="vuelos.html">Vuelos</a></li>
+                        <li><a href="hotel.html">Hoteles</a></li>
+                        <li><a href="autos.html">Autos</a></li>
+                        <li><a href="info.html">Info</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Información de Contacto</h4>
+                    <p><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
+                    <p><i class="fas fa-envelope"></i> info@musimundo.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 MUSIMUNDO/TRAVEL. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <script src="../js/autos.js"></script>
+</body>
+</html>

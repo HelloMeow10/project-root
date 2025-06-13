@@ -5,7 +5,7 @@ export class UserService {
 
   async obtenerUsuariosInternos() {
     const usuarios = await this.repo.findAllInternos();
-    return usuarios.map(u => ({
+    return usuarios.map((u: any) => ({
       id: u.id_usuario,
       nombre: u.nombre,
       apellido: u.apellido,
@@ -18,7 +18,7 @@ export class UserService {
 
   async obtenerClientes() {
     const clientes = await this.repo.findAllClientes();
-    return clientes.map(u => ({
+    return clientes.map((u: any) => ({
       id: u.id_cliente,
       nombre: u.nombre,
       apellido: u.apellido,
