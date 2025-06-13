@@ -584,6 +584,10 @@ body {
   background: var(--pill);
   color: var(--red);
 }
+#span-a-href a {
+  color: var(--red);
+  text-decoration: none;
+}
 
 /* Footer */
 .footer {

@@ -588,6 +588,10 @@ body {
   color: var(--black);
   transform: translateY(-2px);
 }
+#span-a-href a{
+  color: var(--red);
+  TEXT-DECORATION: none;
+}
 
 .add-to-cart-btn {
   background: linear-gradient(135deg, var(--pill), var(--red));

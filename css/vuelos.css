@@ -282,6 +282,13 @@ body {
   position: relative;
   
 }
+#span-a-href a{
+ 
+  color: var(--red);
+ 
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
 
 .cart-btn img {
   width: 2rem;
