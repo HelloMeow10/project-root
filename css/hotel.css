@@ -571,6 +571,9 @@ body {
   color: var(--pill);
   font-weight: normal;
 }
+.fas.fa-shopping-cart {
+  color: var(--red);
+}
 
 .view-details-btn {
   background: transparent;

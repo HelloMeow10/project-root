@@ -282,6 +282,9 @@ body {
   position: relative;
   
 }
+.fas.fa-shopping-cart{
+  color: var(--red);
+}
 #span-a-href a{
  
   color: var(--red);
