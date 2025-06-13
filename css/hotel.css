@@ -571,6 +571,14 @@ body {
   color: var(--pill);
   font-weight: normal;
 }
+.fas.fa-shopping-cart {
+  color: var(--red);
+  text-decoration: none;
+}
+#span-a-href a {
+  color: var(--red);
+  text-decoration: none;
+}
 
 .view-details-btn {
   background: transparent;
@@ -581,12 +589,18 @@ body {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  
 }
 
 .view-details-btn:hover {
   background: var(--pill);
   color: var(--black);
   transform: translateY(-2px);
+}
+#span-a-href a{
+  color: var(--red);
+text-decoration: none;
+  
 }
 
 .add-to-cart-btn {
@@ -645,9 +659,6 @@ body {
   transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
   position: relative;
   
-}
-#span-a-href{
-  color: var(--red);
 }
 
 .cart-btn img{
