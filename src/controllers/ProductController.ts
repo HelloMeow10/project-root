@@ -43,7 +43,8 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
 
 export async function deleteProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    // ... lógica para eliminar producto ...
+    const id = Number(req.params.id);
+    await productService.eliminarProducto(id);
     res.json({ message: 'Producto eliminado' });
   } catch (err) {
     next(err);

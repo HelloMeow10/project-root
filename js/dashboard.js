@@ -119,6 +119,28 @@ class DashboardUI {
           const data = await res.json();
           dashboardUI.renderClientesTable(data);
         };
+
+        document.getElementById('formAgregarPaquete').onsubmit = async function(e) {
+          e.preventDefault();
+          const nombre = document.getElementById('nombrePaquete').value;
+          const precio = document.getElementById('precioPaquete').value;
+          const token = localStorage.getItem('token');
+          const res = await fetch('/api/products/paquetes', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ nombre, precio })
+          });
+          if (res.ok) {
+            DashboardAPI.showNotification('Paquete añadido', 'success');
+            cargarPaquetes();
+            this.reset();
+          } else {
+            DashboardAPI.showNotification('Error al añadir paquete', 'error');
+          }
+        };
     }
 
     // Navigation Methods
@@ -755,22 +777,61 @@ class DashboardUI {
 // Initialize Dashboard UI when DOM is loaded
 let dashboardUI;
 
-document.addEventListener('DOMContentLoaded', async function() {
-  dashboardUI = new DashboardUI();
-  // Carga inicial
-  const res = await fetch('/api/users/internos');
-  const data = await res.json();
-  dashboardUI.renderUsuariosInternosTable(data);
-  
-  const logoutBtn = document.getElementById('logoutBtn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', function() {
-      localStorage.removeItem('token');
-      localStorage.removeItem('tipo');
-      window.location.href = 'login.html';
+document.addEventListener('DOMContentLoaded', function() {
+  const overlay = document.getElementById('accessOverlay');
+  if (overlay) overlay.style.display = 'none';
+  const dashboard = document.querySelector('.dashboard');
+  if (dashboard) dashboard.style.display = '';
+  const mainContent = document.querySelector('.main-content');
+  if (mainContent) mainContent.style.display = 'block';
+
+  // Listeners para las pestañas
+  document.getElementById('tabProductos').onclick = function() {
+    cargarVistaProductos();
+  };
+  document.getElementById('tabUsuarios').onclick = function() {
+    cargarVistaUsuarios();
+  };
+  document.getElementById('tabPaquetes').onclick = function() {
+    cargarVistaPaquetes();
+  };
+
+  // Muestra la pestaña por defecto
+  document.getElementById('tabProductos').click();
+
+  // Sidebar navigation
+  const navLinks = document.querySelectorAll('.nav-link[data-page]');
+  const pages = document.querySelectorAll('.page');
+
+  navLinks.forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      // Quitar clase active de todos los links y páginas
+      navLinks.forEach(l => l.classList.remove('active'));
+      pages.forEach(p => p.classList.remove('active'));
+
+      // Agregar clase active al link y a la página correspondiente
+      this.classList.add('active');
+      const pageId = this.getAttribute('data-page') + '-page';
+      const page = document.getElementById(pageId);
+      if (page) page.classList.add('active');
     });
-  }
+  });
 });
+
+// Ejemplo de función para cargar productos
+function cargarVistaProductos() {
+  document.getElementById('dashboardContent').innerHTML = '<h2>Productos</h2>';
+  // Aquí puedes cargar la tabla de productos...
+}
+function cargarVistaUsuarios() {
+  document.getElementById('dashboardContent').innerHTML = '<h2>Usuarios</h2>';
+  // Aquí puedes cargar la tabla de usuarios...
+}
+function cargarVistaPaquetes() {
+  document.getElementById('dashboardContent').innerHTML = '<h2>Paquetes</h2>';
+  // Aquí puedes cargar la tabla de paquetes...
+}
 
 // Global utility functions for external use
 window.DashboardAPI = {
@@ -857,4 +918,63 @@ window.DashboardAPI = {
         }
     }
 };
+
+async function eliminarProducto(id) {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+  if (!confirm('¿Seguro que deseas eliminar este producto?')) return;
+  const res = await fetch(`/api/products/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (res.ok) {
+    DashboardAPI.showNotification('Producto eliminado', 'success');
+    // Recarga la lista de productos
+    cargarProductos();
+  } else {
+    DashboardAPI.showNotification('Error al eliminar producto', 'error');
+  }
+}
+
+async function agregarUsuarioInterno(data) {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+  const res = await fetch('/api/users/internos', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(data)
+  });
+  if (res.ok) {
+    DashboardAPI.showNotification('Usuario interno creado', 'success');
+    // Recarga la lista de usuarios
+    cargarUsuariosInternos();
+  } else {
+    DashboardAPI.showNotification('Error al crear usuario', 'error');
+  }
+}
+
+async function cargarPaquetes() {
+  const token = localStorage.getItem('token');
+  const res = await fetch('/api/products/paquetes', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const paquetes = await res.json();
+  const tbody = document.getElementById('tablaPaquetesBody');
+  tbody.innerHTML = '';
+  paquetes.forEach(pkg => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${pkg.nombre}</td>
+      <td>${pkg.precio}</td>
+      <td>
+        <button class="btn-editar" data-id="${pkg.id_producto}"><i class="fas fa-edit"></i></button>
+        <button class="btn-eliminar" data-id="${pkg.id_producto}"><i class="fas fa-trash"></i></button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
 
