@@ -1004,6 +1004,10 @@ body {
     }
 }
 
+body, .dashboard, .main-content {
+  background: #000 !important;
+}
+
 /* Utility Classes */
 .text-center { text-align: center; }
 .text-right { text-align: right; }

@@ -281,7 +281,16 @@
                     <div class="breadcrumb">Inicio / Productos</div>
                 </div>
                 <div class="page-content">
-                    <!-- Content will be loaded dynamically -->
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Nombre</th>
+                          <th>Precio</th>
+                          <th>Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody id="tablaPaquetesBody"></tbody>
+                    </table>
                 </div>
             </div>
 
@@ -316,6 +325,11 @@
                 <div class="page-content">
                     <!-- Content will be loaded dynamically -->
                 </div>
+            </div>
+
+            <!-- Dynamic Content Area -->
+            <div id="dashboardContent" class="dashboard-content">
+                <!-- Default content or loading spinner can go here -->
             </div>
         </main>
     </div>
