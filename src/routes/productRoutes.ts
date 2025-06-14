@@ -120,4 +120,30 @@ router.post('/pedidos', async (req: Request, res: Response) => {
 // Endpoint para eliminar productos
 router.delete('/:id', authMiddleware, adminOnly, deleteProduct);
 
+// Endpoint para obtener solo los autos
+router.get('/autos', async (req: Request, res: Response) => {
+  try {
+    const tipoAuto = await prisma.tipoProducto.findFirst({
+      where: { nombre: { contains: 'auto', mode: 'insensitive' } }
+    });
+    if (!tipoAuto) return res.json([]);
+
+    const autos = await prisma.producto.findMany({
+      where: {
+        id_tipo: tipoAuto.id_tipo,
+        activo: true,
+        stock: { gt: 0 }
+      },
+      include: {
+        alquiler: true,
+        tipo: true // <-- agrega esto para que el producto tenga su tipo
+      }
+    });
+
+    res.json(autos);
+  } catch (err) {
+    res.status(500).json({ error: 'Error al obtener autos' });
+  }
+});
+
 export default router;

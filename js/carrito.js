@@ -43,37 +43,23 @@ class CartUI {
         if (clearCartBtn) {
           clearCartBtn.addEventListener('click', async function() {
             const token = localStorage.getItem('token');
-            if (!token) return;
-            if (!confirm('¿Estás seguro de que deseas vaciar el carrito?')) return;
-            // Mostrar overlay opcionalmente aquí si quieres feedback visual
-            try {
-              const res = await fetch('/api/cart', {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-              });
-              // OCULTAR EL OVERLAY SIEMPRE
-              const accessOverlay = document.getElementById('accessOverlay');
-              if (accessOverlay) accessOverlay.style.display = 'none';
-
-              if (res.ok) {
-                document.getElementById('cartItemsList').innerHTML = '';
-                document.getElementById('emptyCart').style.display = 'block';
-                document.getElementById('cartItemsContainer').style.display = 'none';
-                document.getElementById('totalAmount').textContent = '$0.00';
-                if (window.CartAPI && window.CartAPI.showNotification) {
-                  window.CartAPI.showNotification('Carrito vaciado exitosamente', 'success');
-                }
-              } else {
-                if (window.CartAPI && window.CartAPI.showNotification) {
-                  window.CartAPI.showNotification('Error al vaciar el carrito', 'error');
-                }
+            if (!token) {
+              alert('Debes iniciar sesión para vaciar el carrito');
+              return;
+            }
+            await fetch('/api/cart', {
+              method: 'DELETE',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
               }
-            } catch {
-              const accessOverlay = document.getElementById('accessOverlay');
-              if (accessOverlay) accessOverlay.style.display = 'none';
-              if (window.CartAPI && window.CartAPI.showNotification) {
-                window.CartAPI.showNotification('Error de red', 'error');
-              }
+            });
+            document.getElementById('cartItemsList').innerHTML = '';
+            document.getElementById('emptyCart').style.display = 'block';
+            document.getElementById('cartItemsContainer').style.display = 'none';
+            document.getElementById('totalAmount').textContent = '$0.00';
+            if (window.CartAPI && window.CartAPI.showNotification) {
+              window.CartAPI.showNotification('Carrito vaciado exitosamente', 'success');
             }
           });
         }
@@ -729,30 +715,23 @@ document.addEventListener('DOMContentLoaded', async function() {
   if (clearCartBtn) {
     clearCartBtn.addEventListener('click', async function() {
       const token = localStorage.getItem('token');
-      if (!token) return;
-      if (!confirm('¿Estás seguro de que deseas vaciar el carrito?')) return;
-      try {
-        const res = await fetch('/api/cart', {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) {
-          document.getElementById('cartItemsList').innerHTML = '';
-          document.getElementById('emptyCart').style.display = 'block';
-          document.getElementById('cartItemsContainer').style.display = 'none';
-          document.getElementById('totalAmount').textContent = '$0.00';
-          if (window.CartAPI && window.CartAPI.showNotification) {
-            window.CartAPI.showNotification('Carrito vaciado exitosamente', 'success');
-          }
-        } else {
-          if (window.CartAPI && window.CartAPI.showNotification) {
-            window.CartAPI.showNotification('Error al vaciar el carrito', 'error');
-          }
+      if (!token) {
+        alert('Debes iniciar sesión para vaciar el carrito');
+        return;
+      }
+      await fetch('/api/cart', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      } catch {
-        if (window.CartAPI && window.CartAPI.showNotification) {
-          window.CartAPI.showNotification('Error de red', 'error');
-        }
+      });
+      document.getElementById('cartItemsList').innerHTML = '';
+      document.getElementById('emptyCart').style.display = 'block';
+      document.getElementById('cartItemsContainer').style.display = 'none';
+      document.getElementById('totalAmount').textContent = '$0.00';
+      if (window.CartAPI && window.CartAPI.showNotification) {
+        window.CartAPI.showNotification('Carrito vaciado exitosamente', 'success');
       }
     });
   }

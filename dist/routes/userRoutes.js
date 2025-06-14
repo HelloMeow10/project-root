@@ -2,7 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const UserController_1 = require("../controllers/UserController");
+const authMiddleware_1 = require("../middlewares/authMiddleware");
+const adminOnly_1 = require("../middlewares/adminOnly");
 const router = (0, express_1.Router)();
-router.get('/internos', UserController_1.getAllUsuariosInternos);
-router.get('/clientes', UserController_1.getAllClientes);
+router.get('/internos', authMiddleware_1.authMiddleware, adminOnly_1.adminOnly, UserController_1.getAllUsuariosInternos);
+router.get('/clientes', authMiddleware_1.authMiddleware, adminOnly_1.adminOnly, UserController_1.getAllClientes);
+router.post('/internos', authMiddleware_1.authMiddleware, adminOnly_1.adminOnly, UserController_1.createUsuarioInterno);
 exports.default = router;

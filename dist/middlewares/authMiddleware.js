@@ -21,3 +21,14 @@ function authMiddleware(req, res, next) {
         res.status(401).json({ message: 'Token inválido' });
     }
 }
+// Assuming you have an Express router instance
+const express_1 = require("express");
+const router = (0, express_1.Router)();
+// Your clearCart controller logic here
+function clearCart(req, res) {
+    // Clear cart logic
+    res.json({ message: 'Cart cleared' });
+}
+// Apply the authMiddleware to the delete route
+router.delete('/', authMiddleware, clearCart);
+exports.default = router;
