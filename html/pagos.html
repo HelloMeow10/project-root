@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalizar Compra - All-Inclusive Tourism</title>
+    <link rel="stylesheet" href="../css/pagos.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <i class="fas fa-globe-americas"></i>
+                    <span id="span-a-href"><a href="inicio.html">MUSIMUNDO/Travel</a></span>
+                </div>
+                <div class="nav-menu">
+                    <li><a href="inicio.html">Inicio</a></li>
+                    <li><a href="paquetes.html">Paquetes</a></li>
+                    <li><a href="vuelos.html">Vuelos</a></li>
+                    <li><a href="hotel.html">Hoteles</a></li>
+                    <li><a href="autos.html">Autos</a></li>
+                </div>
+                <div class="nav-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <!-- Animated background -->
+    <div class="bg-animation" id="bgAnimation"></div>
+
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                
+                <div class="header-text">
+                    <h1>Finalizar Compra</h1>
+                    <p>Completa tu reserva de vacaciones todo incluido</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="checkout-container">
+            <!-- Order Summary Section -->
+            <div class="order-summary scroll-reveal">
+                <div class="section-header">
+                    <img src="/placeholder.svg?height=40&width=40" alt="Resumen" class="section-icon">
+                    <h2>Resumen del Pedido</h2>
+                </div>
+                <div id="orderItems" class="order-items">
+                    <!-- Order items will be loaded here -->
+                    <div class="loading-placeholder">
+                        <div class="loading-spinner"></div>
+                        <p>Cargando resumen del pedido...</p>
+                    </div>
+                </div>
+                <div class="order-total" id="orderTotal">
+                    <div class="total-breakdown">
+                        <div class="total-line">
+                            <span>Subtotal:</span>
+                            <span id="subtotalAmount">$0</span>
+                        </div>
+                        <div class="total-line">
+                            <span>Impuestos:</span>
+                            <span id="taxAmount">$0</span>
+                        </div>
+                        <div class="total-line total-final">
+                            <span>Total:</span>
+                            <span id="totalAmount">$0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Personal Information Section -->
+            <div class="personal-info scroll-reveal">
+                <div class="section-header">
+                    <img src="/placeholder.svg?height=40&width=40" alt="Datos personales" class="section-icon">
+                    <h2>Datos Personales</h2>
+                </div>
+                <form class="info-form" id="personalForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">Nombre *</label>
+                            <input type="text" id="firstName" name="firstName" required>
+                            <span class="error-message" id="firstNameError"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Apellido *</label>
+                            <input type="text" id="lastName" name="lastName" required>
+                            <span class="error-message" id="lastNameError"></span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Correo Electrónico *</label>
+                            <input type="email" id="email" name="email" required>
+                            <span class="error-message" id="emailError"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Teléfono *</label>
+                            <input type="tel" id="phone" name="phone" required>
+                            <span class="error-message" id="phoneError"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Dirección *</label>
+                        <input type="text" id="address" name="address" required>
+                        <span class="error-message" id="addressError"></span>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="city">Ciudad *</label>
+                            <input type="text" id="city" name="city" required>
+                            <span class="error-message" id="cityError"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="country">País *</label>
+                            <select id="country" name="country" required>
+                                <option value="">Seleccionar país</option>
+                                <option value="ES">España</option>
+                                <option value="MX">México</option>
+                                <option value="AR">Argentina</option>
+                                <option value="CO">Colombia</option>
+                                <option value="PE">Perú</option>
+                                <option value="CL">Chile</option>
+                                <option value="US">Estados Unidos</option>
+                                <option value="CA">Canadá</option>
+                            </select>
+                            <span class="error-message" id="countryError"></span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Payment Information Section -->
+            <div class="payment-info scroll-reveal">
+                <div class="section-header">
+                    <img src="/placeholder.svg?height=40&width=40" alt="Datos de pago" class="section-icon">
+                    <h2>Datos de Pago</h2>
+                </div>
+                <form class="payment-form" id="paymentForm">
+                    <div class="form-group">
+                        <label for="cardNumber">Número de Tarjeta *</label>
+                        <div class="card-input-container">
+                            <input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                            <div class="card-icons">
+                                <img src="/placeholder.svg?height=24&width=38" alt="Visa" class="card-icon">
+                                <img src="/placeholder.svg?height=24&width=38" alt="Mastercard" class="card-icon">
+                                <img src="/placeholder.svg?height=24&width=38" alt="American Express" class="card-icon">
+                            </div>
+                        </div>
+                        <span class="error-message" id="cardNumberError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="cardName">Nombre en la Tarjeta *</label>
+                        <input type="text" id="cardName" name="cardName" placeholder="Como aparece en la tarjeta" required>
+                        <span class="error-message" id="cardNameError"></span>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="expiryDate">Fecha de Vencimiento *</label>
+                            <input type="text" id="expiryDate" name="expiryDate" placeholder="MM/AA" maxlength="5" required>
+                            <span class="error-message" id="expiryDateError"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="cvv">CVV *</label>
+                            <input type="text" id="cvv" name="cvv" placeholder="123" maxlength="4" required>
+                            <span class="error-message" id="cvvError"></span>
+                        </div>
+                    </div>
+                    <div class="security-info">
+                        <div class="security-icon">🔒</div>
+                        <div class="security-text">
+                            <p><strong>Pago 100% Seguro</strong></p>
+                            <p>Tus datos están protegidos con encriptación SSL de 256 bits</p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Terms and Conditions -->
+            <div class="terms-section scroll-reveal">
+                <div class="terms-checkbox">
+                    <input type="checkbox" id="acceptTerms" name="acceptTerms" required>
+                    <label for="acceptTerms">
+                        Acepto los <a href="#" class="terms-link">términos y condiciones</a> y la <a href="#" class="terms-link">política de privacidad</a>
+                    </label>
+                </div>
+                <div class="newsletter-checkbox">
+                    <input type="checkbox" id="newsletter" name="newsletter">
+                    <label for="newsletter">
+                        Quiero recibir ofertas especiales y promociones por correo electrónico
+                    </label>
+                </div>
+            </div>
+
+            <!-- Complete Purchase Button -->
+            <div class="purchase-section scroll-reveal">
+                <button class="complete-purchase-btn" id="completePurchaseBtn">
+                    <span class="btn-icon"></span>
+                    <span class="btn-text" id="btnText">Completar Compra</span>
+                    <span class="btn-amount" id="btnAmount">$0</span>
+                </button>
+                <div class="payment-methods">
+                    <p>Métodos de pago aceptados:</p>
+                    <div class="payment-icons">
+                        <img src="/placeholder.svg?height=30&width=48" alt="Visa" class="payment-icon">
+                        <img src="/placeholder.svg?height=30&width=48" alt="Mastercard" class="payment-icon">
+                        <img src="/placeholder.svg?height=30&width=48" alt="American Express" class="payment-icon">
+                        <img src="/placeholder.svg?height=30&width=48" alt="PayPal" class="payment-icon">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="navigation">
+            
+            <a href="paquetes.html" class="nav-link">Ver Paquetes</a>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal" id="successModal">
+        <div class="modal-content success-modal">
+            <div class="success-animation">
+                <div class="checkmark">✓</div>
+            </div>
+            <h2>¡Compra Completada!</h2>
+            <p>Tu reserva ha sido confirmada exitosamente.</p>
+            <p>Recibirás un correo de confirmación en breve.</p>
+            <button class="modal-btn" onclick="window.location.href='paquetes.html'">
+                Continuar
+            </button>
+        </div>
+    </div>
+
+    <script src="../js/pagos.js"></script>
+</body>
+</html>
