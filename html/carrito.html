@@ -75,7 +75,7 @@
 
     <!-- Cart Item Template -->
     <template id="cartItemTemplate">
-      <div class="cart-item">
+      <div class="cart-item" data-item-id="">
         <div>
           <span class="item-title"></span>
           <span class="item-type-badge"></span>
@@ -84,6 +84,7 @@
           <span>Cantidad: <span class="item-qty"></span></span>
           <span>Precio unitario: <span class="unit-price-amount"></span></span>
           <span>Total: <span class="total-price-amount"></span></span>
+          <button class="remove-item-btn" data-item-id=""><i class="fas fa-trash"></i></button>
         </div>
       </div>
     </template>
