@@ -744,7 +744,7 @@ document.getElementById('confirmarCompraBtn').addEventListener('click', async fu
     setTimeout(() => window.location.href = 'login.html', 1500);
     return;
   }
-  // Obtén los items del carrito desde la API
+  // Verifica si hay productos en el carrito antes de redirigir
   try {
     const res = await fetch('/api/cart', {
       headers: { 'Authorization': `Bearer ${token}` }
@@ -754,33 +754,8 @@ document.getElementById('confirmarCompraBtn').addEventListener('click', async fu
       showNotification('No hay productos en el carrito', 'error');
       return;
     }
-    // Prepara los datos para el pedido
-    const pedidoItems = items.map(item => ({
-      id_producto: item.producto.id_producto,
-      cantidad: item.cantidad
-    }));
-    // Envía el pedido
-    const pedidoRes = await fetch('/api/products/pedidos', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ items: pedidoItems })
-    });
-    if (pedidoRes.ok) {
-      showNotification('¡Compra realizada con éxito!', 'success');
-      // Vacía el carrito visualmente
-      document.getElementById('cartItemsList').innerHTML = '';
-      document.getElementById('emptyCart').style.display = 'block';
-      document.getElementById('cartItemsContainer').style.display = 'none';
-      document.getElementById('totalAmount').textContent = '$0.00';
-      // Opcional: redirige al dashboard o página de éxito
-      setTimeout(() => window.location.href = 'dashboard.html', 1800);
-    } else {
-      const data = await pedidoRes.json();
-      showNotification(data.message || 'Error al procesar la compra', 'error');
-    }
+    // Redirige a la página de pagos
+    window.location.href = 'pagos.html';
   } catch {
     showNotification('Error de red', 'error');
   }

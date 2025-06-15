@@ -9,6 +9,7 @@ import authRoutes from './routes/authRoutes';
 import orderRoutes from './routes/orderRoutes';
 import userRoutes from './routes/userRoutes';
 import cartRoutes from './routes/cartRoutes';
+import paymentRoutes from './routes/paymentRoutes';
 import { errorHandler } from './middlewares/errorHandler';
 import path from 'path';
 
@@ -37,6 +38,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/payments', paymentRoutes);
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../html/inicio.html'));
 });

@@ -437,7 +437,7 @@ class CheckoutManager {
       (input) => input.value.trim() !== "" && !input.classList.contains("error"),
     )
 
-    // Update purchase button state
+    // Update purchase button status
     const purchaseBtn = document.getElementById("completePurchaseBtn")
     const canPurchase = this.formValidation.personal && this.formValidation.payment && this.formValidation.terms
 
@@ -478,6 +478,33 @@ class CheckoutManager {
     const modal = document.getElementById("successModal")
     modal.classList.remove("show")
     document.body.style.overflow = "auto"
+  }
+}
+
+// Ejemplo de integración Stripe.js (frontend)
+const stripe = Stripe('pk_test_xxx'); // Tu clave pública de Stripe
+
+async function pagar() {
+  // 1. Llama a tu backend para obtener el clientSecret
+  const res = await fetch('/api/payments', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ amount: total, currency: 'usd' })
+  });
+  const { clientSecret } = await res.json();
+
+  // 2. Usa Stripe.js para completar el pago
+  const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+    payment_method: {
+      card: cardElement, // Elemento de Stripe.js
+      billing_details: { name: nombre }
+    }
+  });
+
+  if (error) {
+    // Muestra error al usuario
+  } else if (paymentIntent.status === 'succeeded') {
+    // Llama a /api/orders para registrar el pedido como pagado
   }
 }
 
