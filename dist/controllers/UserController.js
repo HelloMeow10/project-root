@@ -7,6 +7,7 @@ exports.createUsuarioInterno = exports.getAllClientes = exports.getAllUsuariosIn
 const UserService_1 = require("../services/UserService");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const prismaClient_1 = require("../prismaClient");
+const mailer_1 = require("../mailer");
 const userService = new UserService_1.UserService();
 const getAllUsuariosInternos = async (req, res) => {
     try {
@@ -36,6 +37,7 @@ const createUsuarioInterno = async (req, res) => {
         const nuevo = await prismaClient_1.prisma.usuarioInterno.create({
             data: { nombre, apellido, email, contrasena: hashed, telefono, id_rol }
         });
+        await (0, mailer_1.enviarBienvenida)(nuevo.email, nuevo.nombre);
         res.status(201).json(nuevo);
     }
     catch (err) {
