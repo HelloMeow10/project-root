@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { prisma } from '../config/db';
+import { prisma } from '../prismaClient';
 
 export async function getCart(req: Request, res: Response) {
   const userId = (req as any).user.userId;
@@ -37,10 +37,16 @@ export async function addToCart(req: Request, res: Response) {
 }
 
 export async function clearCart(req: Request, res: Response) {
-  const userId = (req as any).user.userId;
-  const carrito = await prisma.carrito.findFirst({ where: { id_cliente: userId } });
-  if (!carrito) return res.status(200).json({ message: 'Carrito ya vacío' });
+  try {
+    const userId = (req as any).user.userId;
+    const carrito = await prisma.carrito.findFirst({ where: { id_cliente: userId } });
+    if (!carrito) return res.status(200).json({ message: 'Carrito ya vacío' });
 
-  await prisma.carritoItem.deleteMany({ where: { id_carrito: carrito.id_carrito } });
-  res.json({ message: 'Carrito vaciado exitosamente' });
+    await prisma.carritoItem.deleteMany({ where: { id_carrito: carrito.id_carrito } });
+
+    res.json({ message: 'Carrito vaciado exitosamente' });
+  } catch (err) {
+    console.error('Error al vaciar carrito:', err);
+    res.status(500).json({ message: 'Error al vaciar carrito', error: err });
+  }
 }
