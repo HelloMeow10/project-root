@@ -29,6 +29,7 @@ app.use('/css', express_1.default.static(path_1.default.join(__dirname, '../css'
 app.use(express_1.default.static(path_1.default.join(__dirname, '../html')));
 // Servir archivos estáticos de la carpeta js
 app.use('/js', express_1.default.static(path_1.default.join(__dirname, '../js')));
+app.use('/imagenes', express_1.default.static(path_1.default.join(__dirname, '../imagenes')));
 // Rutas
 app.use('/api/products', productRoutes_1.default);
 // Si quieres que funcione también en /api/pedidos:

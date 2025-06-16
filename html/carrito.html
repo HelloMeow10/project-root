@@ -75,15 +75,20 @@
 
     <!-- Cart Item Template -->
     <template id="cartItemTemplate">
-      <div class="cart-item">
+      <div class="cart-item" data-item-id="">
         <div>
           <span class="item-title"></span>
           <span class="item-type-badge"></span>
         </div>
         <div>
-          <span>Cantidad: <span class="item-qty"></span></span>
+          <span>Cantidad: 
+            <button class="quantity-btn decrease" data-item-id=""><i class="fas fa-minus"></i></button>
+            <input type="number" class="quantity-input" data-item-id="" value="1" min="1" max="10">
+            <button class="quantity-btn increase" data-item-id=""><i class="fas fa-plus"></i></button>
+          </span>
           <span>Precio unitario: <span class="unit-price-amount"></span></span>
           <span>Total: <span class="total-price-amount"></span></span>
+          <button class="remove-item-btn" data-item-id=""><i class="fas fa-trash"></i></button>
         </div>
       </div>
     </template>
