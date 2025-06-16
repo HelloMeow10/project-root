@@ -7,7 +7,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const morgan_1 = __importDefault(require("morgan"));
-const dotenv_1 = __importDefault(require("dotenv"));
+require("dotenv/config");
 const db_1 = require("./config/db");
 const productRoutes_1 = __importDefault(require("./routes/productRoutes"));
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
@@ -17,7 +17,6 @@ const cartRoutes_1 = __importDefault(require("./routes/cartRoutes"));
 const paymentRoutes_1 = __importDefault(require("./routes/paymentRoutes"));
 const errorHandler_1 = require("./middlewares/errorHandler");
 const path_1 = __importDefault(require("path"));
-dotenv_1.default.config(); // Carga variables de entorno desde .env:contentReference[oaicite:8]{index=8}
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3000;
 // Middlewares globales

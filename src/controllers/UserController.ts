@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { UserService } from '../services/UserService';
 import bcrypt from 'bcrypt';
 import { prisma } from '../prismaClient';
+import { enviarBienvenida } from '../mailer';
 
 const userService = new UserService();
 
@@ -31,6 +32,7 @@ export const createUsuarioInterno = async (req: Request, res: Response) => {
     const nuevo = await prisma.usuarioInterno.create({
       data: { nombre, apellido, email, contrasena: hashed, telefono, id_rol }
     });
+    await enviarBienvenida(nuevo.email, nuevo.nombre);
     res.status(201).json(nuevo);
   } catch (err) {
     res.status(500).json({ error: 'Error al crear usuario interno' });
