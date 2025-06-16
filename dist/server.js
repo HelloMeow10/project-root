@@ -14,6 +14,7 @@ const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const orderRoutes_1 = __importDefault(require("./routes/orderRoutes"));
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const cartRoutes_1 = __importDefault(require("./routes/cartRoutes"));
+const paymentRoutes_1 = __importDefault(require("./routes/paymentRoutes"));
 const errorHandler_1 = require("./middlewares/errorHandler");
 const path_1 = __importDefault(require("path"));
 dotenv_1.default.config(); // Carga variables de entorno desde .env:contentReference[oaicite:8]{index=8}
@@ -29,6 +30,7 @@ app.use('/css', express_1.default.static(path_1.default.join(__dirname, '../css'
 app.use(express_1.default.static(path_1.default.join(__dirname, '../html')));
 // Servir archivos estáticos de la carpeta js
 app.use('/js', express_1.default.static(path_1.default.join(__dirname, '../js')));
+app.use('/imagenes', express_1.default.static(path_1.default.join(__dirname, '../imagenes')));
 // Rutas
 app.use('/api/products', productRoutes_1.default);
 // Si quieres que funcione también en /api/pedidos:
@@ -37,6 +39,7 @@ app.use('/api/auth', authRoutes_1.default);
 app.use('/api/orders', orderRoutes_1.default);
 app.use('/api/users', userRoutes_1.default);
 app.use('/api/cart', cartRoutes_1.default);
+app.use('/api/payments', paymentRoutes_1.default);
 app.get('/', (req, res) => {
     res.sendFile(path_1.default.join(__dirname, '../html/inicio.html'));
 });

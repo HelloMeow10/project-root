@@ -30,6 +30,8 @@ app.use(express.static(path.join(__dirname, '../html')));
 // Servir archivos estáticos de la carpeta js
 app.use('/js', express.static(path.join(__dirname, '../js')));
 
+app.use('/imagenes', express.static(path.join(__dirname, '../imagenes')));
+
 // Rutas
 app.use('/api/products', productRoutes);
 // Si quieres que funcione también en /api/pedidos:
