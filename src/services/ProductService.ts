@@ -4,12 +4,14 @@ import { Producto } from '../models/producto';
 
 function mapPrismaProductoToProducto(prismaProducto: any): Producto {
   return {
-    id: prismaProducto.id_producto,
+    id_producto: prismaProducto.id_producto,
     nombre: prismaProducto.nombre,
-    tipo: prismaProducto.tipo, // <-- AGREGA ESTA LÍNEA
+    tipo: prismaProducto.tipoProducto?.nombre, // Deriva el nombre del tipo si está incluido
     descripcion: prismaProducto.descripcion,
     precio: prismaProducto.precio,
     stock: prismaProducto.stock,
+    activo: prismaProducto.activo,
+    id_tipo: prismaProducto.id_tipo
   };
 }
 
@@ -30,27 +32,17 @@ export class ProductService {
   }
 
   // Crea un producto, validando datos (ejemplo simple)
-  async crearProducto(data: Omit<Producto, 'id'>): Promise<Producto> {
+  async crearProducto(data: Omit<Producto, 'id_producto'>): Promise<Producto> {
     if (data.precio < 0) throw new Error('El precio debe ser positivo');
-    // Mapear tipo string a id_tipo
-    let id_tipo = 1;
-    if (data.tipo === 'vuelo') id_tipo = 2;
-    else if (data.tipo === 'hotel') id_tipo = 3;
-    else if (data.tipo === 'auto') id_tipo = 4;
-    const prismaData = { ...data, id_tipo };
+    if (!data.id_tipo) throw new Error('id_tipo es requerido');
+    // No se debe mapear tipo string a id_tipo aquí, debe venir del frontend o lógica superior
+    const prismaData = { ...data };
     const producto = await this.repo.create(prismaData);
     return mapPrismaProductoToProducto(producto);
   }
 
-  // Actualiza un producto existente
-  async actualizarProducto(id: number, data: Partial<Producto>): Promise<Producto> {
-    const producto = await this.repo.update(id, data);
-    return mapPrismaProductoToProducto(producto);
-  }
-
   // Elimina un producto
-  async eliminarProducto(id: number): Promise<Producto> {
-    const producto = await this.repo.delete(id);
-    return mapPrismaProductoToProducto(producto);
+  async deleteProduct(id: number) {
+    return this.repo.delete(id);
   }
 }

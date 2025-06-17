@@ -25,11 +25,12 @@ export async function getProductById(req: Request, res: Response, next: NextFunc
 
 export async function createProduct(req: Request, res: Response) {
   try {
-    const { nombre, tipo, precio } = req.body;
-    const nuevoProducto = await productService.crearProducto({ nombre, tipo, precio });
+    const { nombre, tipo, precio, activo } = req.body;
+    // Si no se envía activo, por defecto true
+    const nuevoProducto = await productService.crearProducto({ nombre, tipo, precio, activo: activo !== undefined ? activo : true });
     res.status(201).json(nuevoProducto);
   } catch (err) {
-    res.status(500).json({ error: 'Error al crear producto' });
+    res.status(500).json({ message: 'Error al crear producto' });
   }
 }
 
@@ -42,12 +43,12 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
   }
 }
 
-export async function deleteProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function deleteProduct(req: Request, res: Response) {
   try {
     const id = Number(req.params.id);
-    await productService.eliminarProducto(id);
-    res.json({ message: 'Producto eliminado' });
+    await productService.deleteProduct(id); // Usar el método correcto
+    res.status(204).send();
   } catch (err) {
-    next(err);
+    res.status(500).json({ message: 'Error al eliminar producto' });
   }
 }

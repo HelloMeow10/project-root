@@ -19,6 +19,8 @@ model Cliente {
   activo         Boolean   @default(true)
   carritos       Carrito[]
   pedidos        Pedido[]
+  email_verificado Boolean   @default(false)
+  token_verificacion_email String?
 }
 
 model Rol {

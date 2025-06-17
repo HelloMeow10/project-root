@@ -4,13 +4,16 @@ exports.ProductService = void 0;
 // src/services/ProductService.ts
 const ProductRepository_1 = require("../repositories/ProductRepository");
 function mapPrismaProductoToProducto(prismaProducto) {
+    var _a;
     return {
-        id: prismaProducto.id_producto,
+        id_producto: prismaProducto.id_producto,
         nombre: prismaProducto.nombre,
-        tipo: prismaProducto.tipo, // <-- AGREGA ESTA LÍNEA
+        tipo: (_a = prismaProducto.tipoProducto) === null || _a === void 0 ? void 0 : _a.nombre, // Deriva el nombre del tipo si está incluido
         descripcion: prismaProducto.descripcion,
         precio: prismaProducto.precio,
         stock: prismaProducto.stock,
+        activo: prismaProducto.activo,
+        id_tipo: prismaProducto.id_tipo
     };
 }
 class ProductService {
@@ -33,27 +36,16 @@ class ProductService {
     async crearProducto(data) {
         if (data.precio < 0)
             throw new Error('El precio debe ser positivo');
-        // Mapear tipo string a id_tipo
-        let id_tipo = 1;
-        if (data.tipo === 'vuelo')
-            id_tipo = 2;
-        else if (data.tipo === 'hotel')
-            id_tipo = 3;
-        else if (data.tipo === 'auto')
-            id_tipo = 4;
-        const prismaData = Object.assign(Object.assign({}, data), { id_tipo });
+        if (!data.id_tipo)
+            throw new Error('id_tipo es requerido');
+        // No se debe mapear tipo string a id_tipo aquí, debe venir del frontend o lógica superior
+        const prismaData = Object.assign({}, data);
         const producto = await this.repo.create(prismaData);
         return mapPrismaProductoToProducto(producto);
     }
-    // Actualiza un producto existente
-    async actualizarProducto(id, data) {
-        const producto = await this.repo.update(id, data);
-        return mapPrismaProductoToProducto(producto);
-    }
     // Elimina un producto
-    async eliminarProducto(id) {
-        const producto = await this.repo.delete(id);
-        return mapPrismaProductoToProducto(producto);
+    async deleteProduct(id) {
+        return this.repo.delete(id);
     }
 }
 exports.ProductService = ProductService;

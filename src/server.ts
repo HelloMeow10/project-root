@@ -41,6 +41,12 @@ app.use('/api/users', userRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+
+// Servir verificar-email.html para /verificar-email (con o sin query params)
+app.get('/verificar-email', (req, res) => {
+  res.sendFile(path.join(__dirname, '../html/verificar-email.html'));
+});
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../html/inicio.html'));
 });
