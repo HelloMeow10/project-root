@@ -32,6 +32,7 @@ class FlightBooking {
       <div class="flight-card">
         <div class="flight-info">
           <h3 class="flight-destination">${vuelo.pasaje?.destino || 'Destino'}</h3>
+          <p class="flight-details">Aerolínea: <b>${vuelo.pasaje?.aerolinea || 'No especificada'}</b></p>
           <p class="flight-details">Salida: ${vuelo.pasaje?.origen || 'Origen'}${vuelo.pasaje?.fecha_salida ? ' - ' + new Date(vuelo.pasaje.fecha_salida).toLocaleString() : ''}</p>
           <p class="flight-details">Llegada: ${vuelo.pasaje?.destino || 'Destino'}${vuelo.pasaje?.fecha_regreso ? ' - ' + new Date(vuelo.pasaje.fecha_regreso).toLocaleString() : ''}</p>
           <p class="flight-details">Clase: ${vuelo.pasaje?.clase || 'Turista'}</p>

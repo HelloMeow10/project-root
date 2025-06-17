@@ -3,6 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // src/routes/productRoutes.ts
 const express_1 = require("express");
 const client_1 = require("@prisma/client");
+const ProductController_1 = require("../controllers/ProductController");
+const authMiddleware_1 = require("../middlewares/authMiddleware");
+const adminOnly_1 = require("../middlewares/adminOnly");
 const router = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
 // Extensión del tipo Request para incluir `user`
@@ -107,6 +110,33 @@ router.post('/pedidos', async (req, res) => {
     catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Error al crear el pedido' });
+    }
+});
+// Endpoint para eliminar productos
+router.delete('/:id', authMiddleware_1.authMiddleware, adminOnly_1.adminOnly, ProductController_1.deleteProduct);
+// Endpoint para obtener solo los autos
+router.get('/autos', async (req, res) => {
+    try {
+        const tipoAuto = await prisma.tipoProducto.findFirst({
+            where: { nombre: { contains: 'auto', mode: 'insensitive' } }
+        });
+        if (!tipoAuto)
+            return res.json([]);
+        const autos = await prisma.producto.findMany({
+            where: {
+                id_tipo: tipoAuto.id_tipo,
+                activo: true,
+                stock: { gt: 0 }
+            },
+            include: {
+                alquiler: true,
+                tipo: true // <-- agrega esto para que el producto tenga su tipo
+            }
+        });
+        res.json(autos);
+    }
+    catch (err) {
+        res.status(500).json({ error: 'Error al obtener autos' });
     }
 });
 exports.default = router;

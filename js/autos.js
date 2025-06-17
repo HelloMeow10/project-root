@@ -215,32 +215,29 @@ async function loadCars() {
 
 // Simular llamada a API (reemplazar con llamada real)
 async function fetchCarsFromAPI() {
-  // Esta función simula una respuesta de API
-  // En producción, reemplazar con: return fetch('/api/cars').then(res => res.json())
-
-  return new Promise((resolve) => {
-    // Simular datos que vendrían de la base de datos
-    const cars = [] // Array vacío - los datos vendrán de tu BD
-
-    // Ejemplo de estructura que debería devolver tu API:
-    /*
-    const cars = [
-      {
-        id: 1,
-        name: 'Toyota Corolla',
-        category: 'economico',
-        price: 35,
-        image: '/images/toyota-corolla.jpg',
-        passengers: 5,
-        transmission: 'Automática',
-        fuel: 'Gasolina',
-        available: true
-      }
-    ];
-    */
-
-    resolve(cars)
-  })
+  // Ahora sí traemos los autos desde la API real
+  try {
+    const res = await fetch('/api/products/autos');
+    if (!res.ok) throw new Error('No se pudieron cargar los autos');
+    const autos = await res.json();
+    // Normaliza los datos para que coincidan con el render actual
+    return autos.map(auto => ({
+      id: auto.id_producto,
+      name: auto.nombre,
+      category: auto.categoria || 'economico',
+      price: auto.precio,
+      image: auto.imagen || '/placeholder.svg?height=200&width=300',
+      passengers: auto.pasajeros || 5,
+      transmission: auto.transmision || 'Automática',
+      fuel: auto.combustible || 'Gasolina',
+      doors: auto.puertas || 4,
+      featured: auto.destacado || false,
+      // Puedes agregar más campos si tu API los devuelve
+    }));
+  } catch (err) {
+    showNotification('Error al cargar autos', 'error');
+    return [];
+  }
 }
 
 // Aplicar filtros
@@ -368,80 +365,87 @@ function viewCarDetails(carId) {
   }
 }
 
-// Reservar auto
+// Reservar auto (ahora agrega al carrito)
 function bookCar(carId) {
   const car = allCars.find((c) => c.id === carId)
   if (!car) return
 
-  if (!currentFilters.startDate || !currentFilters.endDate) {
-    alert("Por favor selecciona las fechas de alquiler primero")
-    return
+  // Si quieres mantener el flujo de fechas/modal, puedes dejar esto:
+  // if (!currentFilters.startDate || !currentFilters.endDate) {
+  //   alert("Por favor selecciona las fechas de alquiler primero")
+  //   return
+  // }
+
+  // Nuevo: Agregar al carrito
+  addToCart(car)
+}
+
+// Agregar auto al carrito (requiere login)
+async function addToCart(car) {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    showNotification('Debes iniciar sesión para agregar al carrito', 'error');
+    setTimeout(() => window.location.href = 'login.html', 1800);
+    return;
   }
-
-  showBookingModal(car)
+  try {
+    const res = await fetch('/api/cart', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ productId: Number(car.id), cantidad: 1 })
+    });
+    if (res.ok) {
+      showNotification('Auto agregado al carrito', 'success');
+    } else {
+      const data = await res.json();
+      showNotification(data.message || 'Error al agregar al carrito', 'error');
+    }
+  } catch (err) {
+    showNotification('Error de red', 'error');
+  }
 }
 
-// Mostrar modal de reserva
-function showBookingModal(car) {
-  const modal = document.getElementById("bookingModal")
-  const carSummary = document.getElementById("carSummary")
-  const totalAmount = document.getElementById("totalAmount")
-
-  if (!modal || !carSummary || !totalAmount) return
-
-  const days = calculateDays(currentFilters.startDate, currentFilters.endDate)
-  const total = car.price * days
-
-  carSummary.innerHTML = `
-    <h4>${car.name}</h4>
-    <div class="summary-item">
-      <span>Fecha de inicio:</span>
-      <span>${formatDate(currentFilters.startDate)}</span>
-    </div>
-    <div class="summary-item">
-      <span>Fecha de fin:</span>
-      <span>${formatDate(currentFilters.endDate)}</span>
-    </div>
-    <div class="summary-item">
-      <span>Días:</span>
-      <span>${days}</span>
-    </div>
-    <div class="summary-item">
-      <span>Precio por día:</span>
-      <span>$${car.price}</span>
-    </div>
-    <div class="summary-item">
-      <span>Total:</span>
-      <span>$${total}</span>
-    </div>
-  `
-
-  totalAmount.textContent = `$${total}`
-
-  // Guardar datos del auto para la reserva
-  modal.dataset.carId = car.id
-  modal.dataset.totalAmount = total
-
-  modal.style.display = "block"
+// Notificación visual (puedes copiar la de vuelos.js si no la tienes)
+function showNotification(message, type = 'info', duration = 3500) {
+  let container = document.getElementById('notificationContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'notificationContainer';
+    container.className = 'notification-container';
+    document.body.appendChild(container);
+  }
+  const notification = document.createElement('div');
+  notification.className = `notification ${type}`;
+  notification.innerHTML = `
+    <i class="fas fa-${getNotificationIcon(type)}"></i>
+    <span>${message}</span>
+    <button class="notification-close" aria-label="Cerrar mensaje">
+      <i class="fas fa-times"></i>
+    </button>
+  `;
+  container.appendChild(notification);
+  setTimeout(() => closeNotification(notification), duration);
+  notification.querySelector('.notification-close').onclick = () => closeNotification(notification);
 }
-
-// Calcular días entre fechas
-function calculateDays(startDate, endDate) {
-  const start = new Date(startDate)
-  const end = new Date(endDate)
-  const diffTime = Math.abs(end - start)
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  return diffDays || 1
+function closeNotification(notification) {
+  if (notification && notification.parentNode) {
+    notification.style.animation = 'slideOutRight 0.3s ease';
+    setTimeout(() => {
+      if (notification.parentNode) notification.remove();
+    }, 300);
+  }
 }
-
-// Formatear fecha
-function formatDate(dateString) {
-  const date = new Date(dateString)
-  return date.toLocaleDateString("es-ES", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  })
+function getNotificationIcon(type) {
+  const icons = {
+    success: 'check-circle',
+    error: 'exclamation-circle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle'
+  };
+  return icons[type] || 'info-circle';
 }
 
 // Procesar reserva

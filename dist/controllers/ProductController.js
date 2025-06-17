@@ -46,7 +46,8 @@ async function updateProduct(req, res, next) {
 }
 async function deleteProduct(req, res, next) {
     try {
-        // ... lógica para eliminar producto ...
+        const id = Number(req.params.id);
+        await productService.eliminarProducto(id);
         res.json({ message: 'Producto eliminado' });
     }
     catch (err) {
