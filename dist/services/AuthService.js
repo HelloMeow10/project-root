@@ -8,14 +8,17 @@ exports.AuthService = void 0;
 const db_1 = require("../config/db");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const crypto_1 = __importDefault(require("crypto"));
 class AuthService {
     // Registro de cliente
     async registerCliente(userData) {
         const hashed = await bcryptjs_1.default.hash(userData.contrasena, 10);
+        // Generar token de verificación de email
+        const token_verificacion_email = crypto_1.default.randomBytes(32).toString('hex');
         const newUser = await db_1.prisma.cliente.create({
-            data: Object.assign(Object.assign({}, userData), { contrasena: hashed })
+            data: Object.assign(Object.assign({}, userData), { contrasena: hashed, email_verificado: false, token_verificacion_email })
         });
-        return newUser;
+        return Object.assign(Object.assign({}, newUser), { token_verificacion_email });
     }
     // Login de cliente
     async login(email, contrasena) {

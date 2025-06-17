@@ -4,23 +4,28 @@ exports.ProductRepository = void 0;
 // src/repositories/ProductRepository.ts
 const db_1 = require("../config/db");
 class ProductRepository {
-    // Devuelve todos los productos
+    // Devuelve todos los productos, incluyendo el tipo
     async findAll() {
-        return await db_1.prisma.producto.findMany();
+        return await db_1.prisma.producto.findMany({
+            include: { tipoProducto: true }
+        });
     }
-    // Busca un producto por su ID
+    // Busca un producto por su ID, incluyendo el tipo
     async findById(id_producto) {
-        if (!id_producto)
-            throw new Error('id_producto es requerido');
-        return await db_1.prisma.producto.findUnique({ where: { id_producto } });
+        if (!id_producto || isNaN(Number(id_producto)))
+            return null;
+        return await db_1.prisma.producto.findUnique({
+            where: { id_producto },
+            include: { tipoProducto: true }
+        });
     }
     // Crea un nuevo producto
     async create(data) {
-        return await db_1.prisma.producto.create({ data });
+        return await db_1.prisma.producto.create({ data, include: { tipoProducto: true } });
     }
     // Actualiza un producto existente
     async update(id_producto, data) {
-        return await db_1.prisma.producto.update({ where: { id_producto }, data });
+        return await db_1.prisma.producto.update({ where: { id_producto }, data, include: { tipoProducto: true } });
     }
     // Elimina un producto
     async delete(id_producto) {

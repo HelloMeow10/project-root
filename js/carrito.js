@@ -366,25 +366,6 @@ class CartUI {
     );
   }
 
-  clearCartWithAnimation() {
-    const cartItems = document.querySelectorAll('.cart-item');
-
-    cartItems.forEach((item, index) => {
-      setTimeout(() => {
-        item.style.transform = 'translateX(-100%)';
-        item.style.opacity = '0';
-
-        setTimeout(() => {
-          item.remove();
-          if (index === cartItems.length - 1) {
-            this.updateCartDisplay();
-            this.updateCartTotals();
-          }
-        }, 300);
-      }, index * 100);
-    });
-  }
-
   handlePromoCode(e) {
     e.preventDefault();
 
@@ -438,8 +419,6 @@ class CartUI {
 
     window.location.href = 'pagos.html';
   }
-
-  
 
   updateCartDisplay() {
     const cartItems = document.querySelectorAll('.cart-item');
@@ -643,6 +622,22 @@ class CartUI {
         return;
       }
 
+      if (res.status === 403) {
+        let errorMessage = 'Debes verificar tu email para ver el carrito';
+        try {
+          const errorData = await res.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch {}
+        if (errorMessage.includes('verificar tu email')) {
+          hideAccessOverlay();
+          showEmailVerificationOverlay();
+          return;
+        }
+        this.showNotification(errorMessage, 'error');
+        hideAccessOverlay();
+        return;
+      }
+
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         throw new Error(`Failed to fetch cart: ${res.status} - ${errorData.message || 'Unknown error'}`);
@@ -738,6 +733,55 @@ class CartUI {
   }
 }
 
+// Overlay para email no verificado
+function showEmailVerificationOverlay() {
+  let overlay = document.getElementById('emailVerificationOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'emailVerificationOverlay';
+    overlay.style.position = 'fixed';
+    overlay.style.zIndex = '10000';
+    overlay.style.inset = '0';
+    overlay.style.background = 'rgba(255,255,255,0.98)';
+    overlay.style.display = 'flex';
+    overlay.style.flexDirection = 'column';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.innerHTML = `
+      <div style="background:#fff;padding:2.5rem 2rem 2rem 2rem;border-radius:1rem;box-shadow:0 2px 24px #0002;max-width:400px;text-align:center;">
+        <i class="fas fa-envelope-open-text" style="font-size:2.5rem;color:#007bff;"></i>
+        <h2 style="margin:1rem 0 0.5rem 0;">Verifica tu email</h2>
+        <p style="color:#444;">Debes verificar tu email para acceder al carrito y finalizar tu compra.</p>
+        <button id="resendVerificationBtn" class="btn btn-primary" style="margin:1rem 0 0.5rem 0;width:100%;"><i class="fas fa-paper-plane"></i> Reenviar email de verificación</button>
+        <a href="verificar-email.html" class="btn btn-secondary" style="width:100%;display:inline-block;">Ya verifiqué mi email</a>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+  }
+  overlay.style.display = 'flex';
+  // Oculta el contenido principal
+  document.querySelector('main')?.classList.add('blurred');
+  // Evento para reenviar email
+  document.getElementById('resendVerificationBtn').onclick = async function() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+      const res = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (res.ok) {
+        window.CartAPI.showNotification('Email de verificación reenviado. Revisa tu bandeja de entrada.', 'success');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        window.CartAPI.showNotification(data.message || 'No se pudo reenviar el email.', 'error');
+      }
+    } catch (err) {
+      window.CartAPI.showNotification('Error al reenviar el email.', 'error');
+    }
+  };
+}
+
 let cartUI;
 
 document.addEventListener('DOMContentLoaded', async function () {
@@ -784,6 +828,22 @@ document.addEventListener('DOMContentLoaded', async function () {
       hideAccessOverlay();
       window.CartAPI.showNotification('Sesión inválida. Por favor, inicia sesión nuevamente.', 'error');
       setTimeout(() => window.location.href = 'login.html', 3000);
+      return;
+    }
+
+    if (res.status === 403) {
+      let errorMessage = 'Debes verificar tu email para ver el carrito';
+      try {
+        const errorData = await res.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch {}
+      if (errorMessage.includes('verificar tu email')) {
+        hideAccessOverlay();
+        showEmailVerificationOverlay();
+        return;
+      }
+      window.CartAPI.showNotification(errorMessage, 'error');
+      hideAccessOverlay();
       return;
     }
 
