@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 // src/routes/productRoutes.ts
 const express_1 = require("express");
@@ -6,110 +39,91 @@ const client_1 = require("@prisma/client");
 const ProductController_1 = require("../controllers/ProductController");
 const authMiddleware_1 = require("../middlewares/authMiddleware");
 const adminOnly_1 = require("../middlewares/adminOnly");
+const ProductController = __importStar(require("../controllers/ProductController"));
 const router = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
 // Extensión del tipo Request para incluir `user`
 // Endpoint para obtener todos los paquetes turísticos
 router.get('/paquetes', async (req, res) => {
-    try {
-        const paquetes = await prisma.producto.findMany({
-            where: {
-                tipo: { nombre: 'paquete' },
-                activo: true
-            },
-            include: {
-                paqueteDetallesAsPaquete: {
-                    include: {
-                        producto: {
-                            include: {
-                                hospedaje: true,
-                                pasaje: true
-                            }
+    const paquetes = await prisma.producto.findMany({
+        where: { id_tipo: 1, activo: true },
+        include: {
+            paqueteDetallesAsPaquete: {
+                include: {
+                    producto: {
+                        include: {
+                            hospedaje: true,
+                            pasaje: true
                         }
                     }
                 }
             }
-        });
-        res.json(paquetes);
-    }
-    catch (err) {
-        res.status(500).json({ error: 'Error al obtener paquetes' });
-    }
+        }
+    });
+    res.json(paquetes);
 });
 // Endpoint para obtener solo los vuelos
 router.get('/vuelos', async (req, res) => {
-    try {
-        const vuelos = await prisma.producto.findMany({
-            where: { id_tipo: 2, activo: true },
-            include: { pasaje: true }
-        });
-        res.json(vuelos);
-    }
-    catch (err) {
-        res.status(500).json({ error: 'Error al obtener vuelos' });
-    }
+    const vuelos = await prisma.producto.findMany({
+        where: { id_tipo: 2, activo: true },
+        include: { pasaje: true }
+    });
+    res.json(vuelos);
 });
 // Endpoint para obtener solo los hoteles
 router.get('/hoteles', async (req, res) => {
-    try {
-        const hoteles = await prisma.producto.findMany({
-            where: { id_tipo: 3, activo: true },
-            include: { hospedaje: true }
-        });
-        res.json(hoteles);
-    }
-    catch (err) {
-        res.status(500).json({ error: 'Error al obtener hoteles' });
-    }
+    const hoteles = await prisma.producto.findMany({
+        where: { id_tipo: 3, activo: true },
+        include: { hospedaje: true }
+    });
+    res.json(hoteles);
 });
 // Endpoint para crear pedidos
-router.post('/pedidos', async (req, res) => {
+router.post('/pedidos', authMiddleware_1.authMiddleware, async (req, res) => {
     var _a;
     try {
         const { items } = req.body;
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id_cliente; // <--- CORREGIDO
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
         if (!userId) {
             return res.status(401).json({ message: 'No autenticado' });
         }
-        let total = 0;
+        // Validar productos y calcular total
+        let subtotal = 0;
+        const itemsToCreate = [];
         for (const item of items) {
             const producto = await prisma.producto.findUnique({
                 where: { id_producto: item.id_producto }
             });
             if (!producto) {
-                return res.status(400).json({ message: 'Producto no encontrado' });
+                return res.status(400).json({ message: `Producto no encontrado: ${item.id_producto}` });
             }
-            total += Number(producto.precio) * item.cantidad;
+            subtotal += Number(producto.precio) * item.cantidad;
+            itemsToCreate.push({
+                id_producto: item.id_producto,
+                cantidad: item.cantidad,
+                precio: Number(producto.precio)
+            });
         }
+        // Sumar IVA (21%)
+        const iva = subtotal * 0.21;
+        const total = subtotal + iva;
+        // Crear el pedido
         const pedido = await prisma.pedido.create({
             data: {
                 id_cliente: userId,
                 estado: 'pendiente',
                 total,
                 items: {
-                    create: items.map((item) => ({
-                        id_producto: item.id_producto,
-                        cantidad: item.cantidad,
-                        precio: undefined // Se actualiza después
-                    }))
+                    create: itemsToCreate
                 }
             },
             include: { items: true }
         });
-        for (const item of pedido.items) {
-            const producto = await prisma.producto.findUnique({
-                where: { id_producto: item.id_producto }
-            });
-            await prisma.pedidoItem.update({
-                where: { id_detalle: item.id_detalle },
-                data: { precio: (producto === null || producto === void 0 ? void 0 : producto.precio) || 0 }
-            });
-        }
-        res.json({ id: pedido.id_pedido, items: pedido.items });
+        res.json({ id: pedido.id_pedido, items: pedido.items, total: pedido.total });
     }
     catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Error al crear el pedido' });
+        console.error('Error al crear el pedido:', err);
+        res.status(500).json({ message: 'Error al crear el pedido', error: err.message });
     }
 });
 // Endpoint para eliminar productos
@@ -129,8 +143,7 @@ router.get('/autos', async (req, res) => {
                 stock: { gt: 0 }
             },
             include: {
-                alquiler: true,
-                tipo: true // <-- agrega esto para que el producto tenga su tipo
+                alquiler: true
             }
         });
         res.json(autos);
@@ -139,4 +152,10 @@ router.get('/autos', async (req, res) => {
         res.status(500).json({ error: 'Error al obtener autos' });
     }
 });
+// Endpoint para obtener todos los productos
+router.get('/', ProductController.getAllProducts);
+router.get('/:id', ProductController.getProductById);
+router.post('/', ProductController.createProduct); // <-- ESTA LÍNEA ES CLAVE
+router.put('/:id', ProductController.updateProduct);
+router.delete('/:id', ProductController.deleteProduct);
 exports.default = router;

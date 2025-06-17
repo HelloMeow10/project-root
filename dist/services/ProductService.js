@@ -7,10 +7,10 @@ function mapPrismaProductoToProducto(prismaProducto) {
     return {
         id: prismaProducto.id_producto,
         nombre: prismaProducto.nombre,
+        tipo: prismaProducto.tipo, // <-- AGREGA ESTA LÍNEA
         descripcion: prismaProducto.descripcion,
         precio: prismaProducto.precio,
         stock: prismaProducto.stock,
-        // agrega otros campos si tu interfaz los tiene
     };
 }
 class ProductService {
@@ -33,8 +33,15 @@ class ProductService {
     async crearProducto(data) {
         if (data.precio < 0)
             throw new Error('El precio debe ser positivo');
-        // Prisma espera id_tipo, debes adaptar si es necesario
-        const prismaData = Object.assign(Object.assign({}, data), { id_tipo: 1 }); // Ajusta id_tipo según corresponda
+        // Mapear tipo string a id_tipo
+        let id_tipo = 1;
+        if (data.tipo === 'vuelo')
+            id_tipo = 2;
+        else if (data.tipo === 'hotel')
+            id_tipo = 3;
+        else if (data.tipo === 'auto')
+            id_tipo = 4;
+        const prismaData = Object.assign(Object.assign({}, data), { id_tipo });
         const producto = await this.repo.create(prismaData);
         return mapPrismaProductoToProducto(producto);
     }

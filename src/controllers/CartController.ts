@@ -23,14 +23,12 @@ export async function getCart(req: Request, res: Response) {
       include: {
         items: {
           include: {
-            producto: {
-              include: { tipo: true },
-            },
+            producto: true, // Quita "tipo: true"
           },
         },
       },
     });
-    const items = carrito?.items.map((item) => ({
+    const items = carrito?.items?.map((item: any) => ({
       ...item,
       producto: {
         ...item.producto,
@@ -65,7 +63,7 @@ export async function addToCart(req: Request, res: Response) {
     if (!producto) {
       return res.status(404).json({ message: 'Producto no encontrado' });
     }
-    if (producto.stock < cantidad) {
+    if ((producto.stock ?? 0) < cantidad) {
       return res.status(400).json({ message: `Stock insuficiente. Disponible: ${producto.stock}` });
     }
 
@@ -83,7 +81,7 @@ export async function addToCart(req: Request, res: Response) {
 
     if (existingItem) {
       const totalCantidad = existingItem.cantidad + (cantidad || 1);
-      if (producto.stock < totalCantidad) {
+      if ((producto.stock ?? 0) < totalCantidad) {
         return res.status(400).json({ message: `Stock insuficiente. Disponible: ${producto.stock}` });
       }
       const item = await prisma.carritoItem.update({
@@ -139,7 +137,7 @@ export async function updateCartItem(req: Request, res: Response) {
       return res.status(404).json({ message: 'Item no encontrado' });
     }
 
-    if (item.producto.stock < cantidad) {
+    if ((item.producto.stock ?? 0) < cantidad) {
       return res.status(400).json({ message: `Stock insuficiente. Disponible: ${item.producto.stock}` });
     }
 
@@ -189,24 +187,23 @@ export async function removeCartItem(req: Request, res: Response) {
   }
 }
 
-export async function clearCart(req: Request, res: Response) {
-  let userId: number | undefined;
+export const clearCart = async (req: Request, res: Response) => {
+  console.log('clearCart called. req.user:', req.user);
   try {
     if (!req.user || req.user.tipo !== 'cliente') {
-      return res.status(401).json({ message: 'Acceso no autorizado. Solo clientes pueden vaciar el carrito.' });
+      console.log('clearCart: acceso denegado', req.user);
+      return res.status(403).json({ message: 'Acceso no autorizado. Solo clientes pueden vaciar su carrito.' });
     }
-    userId = req.user.userId;
-    const carrito = await prisma.carrito.findFirst({ where: { id_cliente: userId } });
-    if (!carrito) {
-      console.log(`Cart not found for userId: ${userId}`);
-      return res.status(200).json({ message: 'Carrito ya vacío' });
-    }
-
-    await prisma.carritoItem.deleteMany({ where: { id_carrito: carrito.id_carrito } });
-    console.log(`Cleared cart: ${carrito.id_carrito}`);
-    res.json({ message: 'Carrito vaciado exitosamente' });
-  } catch (error) {
-    console.error(`clearCart error for userId ${userId || 'unknown'}:`, error);
-    res.status(500).json({ message: 'Error al vaciar el carrito' });
+    const userId = req.user.userId;
+    await prisma.carritoItem.deleteMany({
+      where: {
+        carrito: {
+          id_cliente: userId
+        }
+      }
+    });
+    res.json({ message: 'Carrito vaciado correctamente.' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error al vaciar el carrito.' });
   }
-}
+};

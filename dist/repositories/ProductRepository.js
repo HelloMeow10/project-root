@@ -10,6 +10,8 @@ class ProductRepository {
     }
     // Busca un producto por su ID
     async findById(id_producto) {
+        if (!id_producto)
+            throw new Error('id_producto es requerido');
         return await db_1.prisma.producto.findUnique({ where: { id_producto } });
     }
     // Crea un nuevo producto

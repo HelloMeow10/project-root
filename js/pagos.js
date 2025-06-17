@@ -336,72 +336,89 @@ class CheckoutManager {
 
   async handlePurchase(e) {
     e.preventDefault();
-    const btn = e.target;
+    const btn = document.getElementById("completePurchaseBtn");
     const btnText = document.getElementById("btnText");
     btnText.innerHTML = '<span class="loading"></span> Procesando...';
     btn.disabled = true;
 
     try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Debes iniciar sesión');
+
+      // 1. Obtener los items del carrito
+      const resCart = await fetch('/api/cart', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const cartItems = await resCart.json();
+      if (!Array.isArray(cartItems) || !cartItems.length) throw new Error('El carrito está vacío.');
+
+      // 2. Crear el pedido si no existe uno pendiente
+      let pedidoPendiente;
+      const resPedidos = await fetch('/api/orders', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const pedidos = await resPedidos.json();
+      pedidoPendiente = Array.isArray(pedidos)
+        ? pedidos.find(p => p.estado === 'pendiente')
+        : null;
+
+      if (!pedidoPendiente) {
+        // Crear pedido con los items del carrito
+        const resPedido = await fetch('/api/products/pedidos', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            items: cartItems.map(item => ({
+              id_producto: item.producto.id_producto,
+              cantidad: item.cantidad
+            }))
+          })
+        });
+        const pedidoData = await resPedido.json();
+        if (!resPedido.ok) throw new Error(pedidoData.message || 'No se pudo crear el pedido');
+        pedidoPendiente = { id_pedido: pedidoData.id, total: this.orderData.total };
+      }
+
+      const pedidoId = pedidoPendiente.id_pedido;
+      const monto = Number(pedidoPendiente.total);
+
+      // 3. Llamar al endpoint de pagos
       const res = await fetch('/api/payments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          amount: this.orderData.total,
-          currency: 'usd',
-          items: this.orderData.items
-        })
+        body: JSON.stringify({ pedidoId, monto })
       });
 
-      if (!res.ok) {
-        throw new Error('Failed to create payment intent');
-      }
-
-      const { clientSecret } = await res.json();
-      const stripe = Stripe('pk_test_xxx'); // Replace with your actual Stripe public key
-      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: {
-            number: document.getElementById("cardNumber").value,
-            exp_month: document.getElementById("expiryDate").value.split("/")[0],
-            exp_year: document.getElementById("expiryDate").value.split("/")[1],
-            cvc: document.getElementById("cvv").value
-          },
-          billing_details: {
-            name: document.getElementById("cardName").value
-          }
-        }
-      });
-
-      if (error) {
-        alert(`Error de pago: ${error.message}`);
-        btnText.textContent = "Completar Compra";
-        btn.disabled = false;
-        return;
-      }
-
-      if (paymentIntent.status === 'succeeded') {
-        await fetch('/api/orders', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({
-            orderData: this.orderData,
-            paymentIntentId: paymentIntent.id
-          })
-        });
+      const data = await res.json();
+      if (res.ok) {
         this.showSuccessModal();
+        // Vacía el carrito en el backend
+        await fetch('/api/cart', {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        // Opcional: actualiza el contador de carrito en la UI
+        if (window.CartAPI && typeof window.CartAPI.updateCartCount === 'function') {
+          window.CartAPI.updateCartCount();
+        }
+        // Redirige después de un tiempo
+        setTimeout(() => {
+          window.location.href = 'paquetes.html';
+        }, 2500);
+      } else {
+        this.showNotification(data.message || 'Error al procesar el pago', 'error');
       }
     } catch (error) {
-      console.error('Payment Error:', error);
-      alert('Error al procesar el pago');
+      this.showNotification(error.message || 'Error de red', 'error');
     } finally {
-      btnText.textContent = "Completar Compra";
       btn.disabled = false;
+      btnText.innerHTML = 'Finalizar compra';
     }
   }
 
@@ -411,6 +428,52 @@ class CheckoutManager {
       modal.classList.add("show");
       document.body.style.overflow = "hidden";
     }
+  }
+
+  showNotification(text, type = 'info', duration = 5000) {
+    let container = document.getElementById('notificationContainer');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'notificationContainer';
+      container.className = 'notification-container';
+      document.body.appendChild(container);
+    }
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    const icon = this.getNotificationIcon(type);
+    notification.innerHTML = `
+      <i class="fas fa-${icon}"></i>
+      <span>${text}</span>
+      <button class="notification-close" aria-label="Cerrar mensaje">
+        <i class="fas fa-times"></i>
+      </button>
+    `;
+    container.appendChild(notification);
+
+    setTimeout(() => {
+      this.closeNotification(notification);
+    }, duration);
+
+    notification.querySelector('.notification-close').onclick = () => this.closeNotification(notification);
+  }
+
+  closeNotification(notification) {
+    if (notification && notification.parentNode) {
+      notification.style.animation = 'slideOutRight 0.3s ease';
+      setTimeout(() => {
+        if (notification.parentNode) notification.remove();
+      }, 300);
+    }
+  }
+
+  getNotificationIcon(type) {
+    const icons = {
+      success: 'check-circle',
+      error: 'exclamation-circle',
+      warning: 'exclamation-triangle',
+      info: 'info-circle'
+    };
+    return icons[type] || 'info-circle';
   }
 }
 

@@ -26,13 +26,14 @@ async function getProductById(req, res, next) {
         next(err);
     }
 }
-async function createProduct(req, res, next) {
+async function createProduct(req, res) {
     try {
-        // ... lógica para crear producto ...
-        res.status(201).json({ message: 'Producto creado' });
+        const { nombre, tipo, precio } = req.body;
+        const nuevoProducto = await productService.crearProducto({ nombre, tipo, precio });
+        res.status(201).json(nuevoProducto);
     }
     catch (err) {
-        next(err);
+        res.status(500).json({ error: 'Error al crear producto' });
     }
 }
 async function updateProduct(req, res, next) {

@@ -12,6 +12,7 @@ import cartRoutes from './routes/cartRoutes';
 import paymentRoutes from './routes/paymentRoutes';
 import { errorHandler } from './middlewares/errorHandler';
 import path from 'path';
+import dashboardRoutes from './routes/dashboardRoutes';
 
 const app: Application = express();
 const port = process.env.PORT || 3000;
@@ -39,6 +40,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../html/inicio.html'));
 });

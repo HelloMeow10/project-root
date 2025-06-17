@@ -9,6 +9,7 @@ export class ProductRepository {
 
   // Busca un producto por su ID
   async findById(id_producto: number) {
+    if (!id_producto) throw new Error('id_producto es requerido');
     return await prisma.producto.findUnique({ where: { id_producto } });
   }
 

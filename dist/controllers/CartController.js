@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.clearCart = void 0;
 exports.getCart = getCart;
 exports.addToCart = addToCart;
 exports.updateCartItem = updateCartItem;
 exports.removeCartItem = removeCartItem;
-exports.clearCart = clearCart;
 const db_1 = require("../config/db");
 // Extend Express Request type (already defined in authMiddleware.ts)
 // declare global {
@@ -15,6 +15,7 @@ const db_1 = require("../config/db");
 //   }
 // }
 async function getCart(req, res) {
+    var _a;
     let userId;
     try {
         if (!req.user || req.user.tipo !== 'cliente') {
@@ -27,14 +28,12 @@ async function getCart(req, res) {
             include: {
                 items: {
                     include: {
-                        producto: {
-                            include: { tipo: true },
-                        },
+                        producto: true, // Quita "tipo: true"
                     },
                 },
             },
         });
-        const items = (carrito === null || carrito === void 0 ? void 0 : carrito.items.map((item) => (Object.assign(Object.assign({}, item), { producto: Object.assign(Object.assign({}, item.producto), { precio: Number(item.producto.precio) }) })))) || [];
+        const items = ((_a = carrito === null || carrito === void 0 ? void 0 : carrito.items) === null || _a === void 0 ? void 0 : _a.map((item) => (Object.assign(Object.assign({}, item), { producto: Object.assign(Object.assign({}, item.producto), { precio: Number(item.producto.precio) }) })))) || [];
         console.log(`Cart items fetched: ${JSON.stringify(items, null, 2)}`);
         res.json(items);
     }
@@ -44,6 +43,7 @@ async function getCart(req, res) {
     }
 }
 async function addToCart(req, res) {
+    var _a, _b;
     let userId;
     try {
         if (!req.user || req.user.tipo !== 'cliente') {
@@ -61,7 +61,7 @@ async function addToCart(req, res) {
         if (!producto) {
             return res.status(404).json({ message: 'Producto no encontrado' });
         }
-        if (producto.stock < cantidad) {
+        if (((_a = producto.stock) !== null && _a !== void 0 ? _a : 0) < cantidad) {
             return res.status(400).json({ message: `Stock insuficiente. Disponible: ${producto.stock}` });
         }
         let carrito = await db_1.prisma.carrito.findFirst({ where: { id_cliente: userId } });
@@ -76,7 +76,7 @@ async function addToCart(req, res) {
         });
         if (existingItem) {
             const totalCantidad = existingItem.cantidad + (cantidad || 1);
-            if (producto.stock < totalCantidad) {
+            if (((_b = producto.stock) !== null && _b !== void 0 ? _b : 0) < totalCantidad) {
                 return res.status(400).json({ message: `Stock insuficiente. Disponible: ${producto.stock}` });
             }
             const item = await db_1.prisma.carritoItem.update({
@@ -102,6 +102,7 @@ async function addToCart(req, res) {
     }
 }
 async function updateCartItem(req, res) {
+    var _a;
     let userId;
     try {
         if (!req.user || req.user.tipo !== 'cliente') {
@@ -127,7 +128,7 @@ async function updateCartItem(req, res) {
             console.log(`Item not found: id_item=${id}, id_carrito=${carrito.id_carrito}`);
             return res.status(404).json({ message: 'Item no encontrado' });
         }
-        if (item.producto.stock < cantidad) {
+        if (((_a = item.producto.stock) !== null && _a !== void 0 ? _a : 0) < cantidad) {
             return res.status(400).json({ message: `Stock insuficiente. Disponible: ${item.producto.stock}` });
         }
         const updatedItem = await db_1.prisma.carritoItem.update({
@@ -173,24 +174,25 @@ async function removeCartItem(req, res) {
         res.status(500).json({ message: 'Error al eliminar el item' });
     }
 }
-async function clearCart(req, res) {
-    let userId;
+const clearCart = async (req, res) => {
+    console.log('clearCart called. req.user:', req.user);
     try {
         if (!req.user || req.user.tipo !== 'cliente') {
-            return res.status(401).json({ message: 'Acceso no autorizado. Solo clientes pueden vaciar el carrito.' });
+            console.log('clearCart: acceso denegado', req.user);
+            return res.status(403).json({ message: 'Acceso no autorizado. Solo clientes pueden vaciar su carrito.' });
         }
-        userId = req.user.userId;
-        const carrito = await db_1.prisma.carrito.findFirst({ where: { id_cliente: userId } });
-        if (!carrito) {
-            console.log(`Cart not found for userId: ${userId}`);
-            return res.status(200).json({ message: 'Carrito ya vacío' });
-        }
-        await db_1.prisma.carritoItem.deleteMany({ where: { id_carrito: carrito.id_carrito } });
-        console.log(`Cleared cart: ${carrito.id_carrito}`);
-        res.json({ message: 'Carrito vaciado exitosamente' });
+        const userId = req.user.userId;
+        await db_1.prisma.carritoItem.deleteMany({
+            where: {
+                carrito: {
+                    id_cliente: userId
+                }
+            }
+        });
+        res.json({ message: 'Carrito vaciado correctamente.' });
     }
-    catch (error) {
-        console.error(`clearCart error for userId ${userId || 'unknown'}:`, error);
-        res.status(500).json({ message: 'Error al vaciar el carrito' });
+    catch (err) {
+        res.status(500).json({ message: 'Error al vaciar el carrito.' });
     }
-}
+};
+exports.clearCart = clearCart;

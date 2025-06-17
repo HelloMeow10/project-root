@@ -4,7 +4,7 @@ import { ProductService } from '../services/ProductService';
 
 const productService = new ProductService();
 
-export async function getAllProducts(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function getAllProducts(req: Request, res: Response, next: NextFunction) {
   try {
     const productos = await productService.obtenerProductos();
     res.status(200).json(productos);
@@ -23,12 +23,13 @@ export async function getProductById(req: Request, res: Response, next: NextFunc
   }
 }
 
-export async function createProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function createProduct(req: Request, res: Response) {
   try {
-    // ... lógica para crear producto ...
-    res.status(201).json({ message: 'Producto creado' });
+    const { nombre, tipo, precio } = req.body;
+    const nuevoProducto = await productService.crearProducto({ nombre, tipo, precio });
+    res.status(201).json(nuevoProducto);
   } catch (err) {
-    next(err);
+    res.status(500).json({ error: 'Error al crear producto' });
   }
 }
 

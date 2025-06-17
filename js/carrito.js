@@ -350,6 +350,8 @@ class CartUI {
 
           if (!res.ok) {
             const errorData = await res.json().catch(() => ({}));
+            // Muestra el mensaje real del backend en la notificación
+            this.showNotification(errorData.message || `Error: ${res.status}`, 'error');
             throw new Error(`Failed to clear cart: ${res.status} - ${errorData.message || 'Unknown error'}`);
           }
 
