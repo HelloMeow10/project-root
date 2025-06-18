@@ -13,6 +13,7 @@ class DashboardUI {
         this.currentPage = 1;
         this.itemsPerPage = 10;
         
+        this.handleProductSearch = this.handleProductSearch.bind(this); // Bind here
         this.init();
     }
 
@@ -117,7 +118,19 @@ class DashboardUI {
             // Search input for Manage Package Components Modal
             const buscarProductoIndividualInput = document.getElementById('buscarProductoIndividual');
             if (buscarProductoIndividualInput) {
-                buscarProductoIndividualInput.addEventListener('input', handleProductSearch);
+                buscarProductoIndividualInput.addEventListener('input', this.handleProductSearch);
+            }
+
+            // Event delegation for adding components in Manage Package Components Modal
+            const listaDisponiblesDiv = document.getElementById('listaProductosIndividualesDisponibles');
+            if (listaDisponiblesDiv) {
+                listaDisponiblesDiv.addEventListener('click', handleAddComponent);
+            }
+
+            // Event delegation for removing components in Manage Package Components Modal
+            const listaActualesDiv = document.getElementById('listaComponentesActuales');
+            if (listaActualesDiv) {
+                listaActualesDiv.addEventListener('click', handleRemoveComponent);
             }
 
         // Alternar pestañas de usuarios
@@ -349,7 +362,22 @@ class DashboardUI {
         console.log("[onPageShow] Finished.");
     }
 
-    // Sidebar Methods
+    handleProductSearch(event) {
+        const searchTerm = event.target.value.toLowerCase();
+        // _globalAllAvailableIndividualProductsForModal and renderAvailableIndividualProducts are still global
+        const filteredProducts = _globalAllAvailableIndividualProductsForModal.filter(prod =>
+            prod.nombre.toLowerCase().includes(searchTerm) ||
+            (prod.tipo && prod.tipo.toLowerCase().includes(searchTerm))
+        );
+        renderAvailableIndividualProducts(filteredProducts);
+    }
+
+} // End of DashboardUI class definition
+
+// Instantiated AFTER class definition
+const dashboardUI = new DashboardUI();
+
+// Sidebar Methods
     toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         sidebar.classList.toggle('show');
@@ -1007,6 +1035,8 @@ class DashboardUI {
     }
 }
 
+const dashboardUI = new DashboardUI(); // MOVED HERE
+
 // Ejemplo de función para cargar productos
 function cargarVistaProductos() {
   document.getElementById('dashboardContent').innerHTML = '<h2>Productos</h2>';
@@ -1620,7 +1650,116 @@ function renderAvailableIndividualProducts(productsToDisplay) {
   // Note: Event listeners for .btn-add-component will be handled in a subsequent step (5.4)
 }
 
-const dashboardUI = new DashboardUI();
+async function handleRemoveComponent(event) {
+  if (!event.target.classList.contains('btn-remove-component')) {
+    return;
+  }
+
+  const packageId = document.getElementById('idPaqueteGestionActual').value;
+  const componentProductId = event.target.dataset.componentId;
+
+  if (!packageId || !componentProductId || isNaN(Number(packageId)) || isNaN(Number(componentProductId))) {
+    DashboardAPI.showNotification('Error: IDs de paquete o componente inválidos para eliminación.', 'error');
+    console.error('Invalid packageId or componentProductId for handleRemoveComponent');
+    return;
+  }
+
+  console.log(`Removing component ${componentProductId} from package ${packageId}`);
+
+  try {
+    DashboardAPI.showLoading();
+    const token = localStorage.getItem('token');
+    if (!token) {
+        DashboardAPI.showNotification('Error de autenticación: Token no encontrado.', 'error');
+        DashboardAPI.hideLoading();
+        return;
+    }
+
+    const res = await fetch(`/api/paquetes/${packageId}/details/${componentProductId}?_=${Date.now()}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (res.ok) {
+        DashboardAPI.showNotification('Componente eliminado del paquete con éxito.', 'success');
+        // Refresh modal content by re-calling gestionarComponentesPaquete
+        await gestionarComponentesPaquete(packageId);
+    } else {
+        const errorData = await res.json().catch(() => ({ message: 'Error desconocido al procesar la respuesta del servidor.' }));
+        DashboardAPI.showNotification(`Error al eliminar componente: ${errorData.message || res.statusText}`, 'error');
+        console.error('Error removing component:', res.status, res.statusText, errorData);
+    }
+  } catch (err) {
+    console.error('Fetch error in handleRemoveComponent:', err);
+    DashboardAPI.showNotification('Error de red al eliminar componente.', 'error');
+  } finally {
+    DashboardAPI.hideLoading();
+  }
+}
+
+async function handleAddComponent(event) {
+  if (!event.target.classList.contains('btn-add-component')) {
+    return;
+  }
+
+  const packageId = document.getElementById('idPaqueteGestionActual').value;
+  const componentProductId = event.target.dataset.productId;
+
+  const itemDiv = event.target.closest('.producto-individual-item');
+  const quantityInput = itemDiv ? itemDiv.querySelector('.componente-cantidad') : null;
+  const quantity = Number(quantityInput ? quantityInput.value : 1);
+
+  if (!packageId || !componentProductId || isNaN(Number(packageId)) || isNaN(Number(componentProductId))) {
+    DashboardAPI.showNotification('Error: IDs de paquete o componente inválidos.', 'error');
+    console.error('Invalid packageId or componentProductId for handleAddComponent');
+    return;
+  }
+  if (isNaN(quantity) || quantity <= 0) {
+    DashboardAPI.showNotification('Error: Cantidad inválida. Debe ser un número positivo.', 'error');
+    console.error('Invalid quantity for handleAddComponent');
+    return;
+  }
+
+  console.log(`Adding component ${componentProductId} (qty: ${quantity}) to package ${packageId}`);
+
+  try {
+    DashboardAPI.showLoading();
+    const token = localStorage.getItem('token');
+    if (!token) {
+        DashboardAPI.showNotification('Error de autenticación: Token no encontrado.', 'error');
+        DashboardAPI.hideLoading();
+        return;
+    }
+
+    const res = await fetch(`/api/paquetes/${packageId}/details`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ id_producto: Number(componentProductId), cantidad: quantity })
+    });
+
+    if (res.ok) {
+        DashboardAPI.showNotification('Componente agregado al paquete con éxito.', 'success');
+        // Refresh modal content by re-calling gestionarComponentesPaquete
+        await gestionarComponentesPaquete(packageId);
+    } else {
+        const errorData = await res.json().catch(() => ({ message: 'Error desconocido al procesar la respuesta del servidor.' }));
+        DashboardAPI.showNotification(`Error al agregar componente: ${errorData.message || res.statusText}`, 'error');
+        console.error('Error adding component:', res.status, res.statusText, errorData);
+    }
+  } catch (err) {
+    console.error('Fetch error in handleAddComponent:', err);
+    DashboardAPI.showNotification('Error de red al agregar componente.', 'error');
+  } finally {
+    DashboardAPI.hideLoading();
+  }
+}
+
+// const dashboardUI = new DashboardUI(); // Ensuring this is removed if it was here
 
 async function abrirModalEditarProducto(id) {
   console.log('Abriendo modal para editar producto ID:', id);
