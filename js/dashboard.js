@@ -241,7 +241,7 @@ class DashboardUI {
             method = 'PUT';
             url = `/api/products/${id}?_=${Date.now()}`;
           }
-          
+
           console.log(`Enviando producto (${method}):`, formData, 'to URL:', url);
 
           try {
@@ -254,7 +254,8 @@ class DashboardUI {
               body: JSON.stringify(formData)
             });
 
-            console.log('Respuesta del servidor:', res.status); 
+            console.log('Respuesta del servidor:', res.status);
+
             if (res.ok) {
               DashboardAPI.showNotification(`Producto ${id ? 'actualizado' : 'creado'} con éxito`, 'success');
               cerrarModalProducto();
@@ -1228,14 +1229,15 @@ const btnAgregarProducto = document.getElementById('btnAgregarProducto');
       console.log('Click en agregar producto');
       document.getElementById('modalProductoTitulo').textContent = 'Agregar Producto';
       document.getElementById('productoId').value = ''; // Clear ID for creation mode
-      
+
       const form = document.getElementById('formProducto');
       if (form) {
         form.reset(); // Resets text, number, select to their HTML defaults
       }
-      
+
       // Explicitly set values for fields not fully handled by form.reset() or to ensure specific defaults
-      document.getElementById('productoDescripcion').value = ''; 
+      document.getElementById('productoDescripcion').value = '';
+
       document.getElementById('productoTipo').value = 'paquete'; // Default type
       const stockInput = document.getElementById('productoStock');
       if (stockInput) stockInput.value = '0'; // Default stock, ensure it's a string for .value
@@ -1420,7 +1422,7 @@ async function abrirModalEditarProducto(id) {
     document.getElementById('productoPrecio').value = producto.precio !== undefined ? producto.precio : '';
     document.getElementById('productoStock').value = producto.stock !== undefined ? producto.stock : '';
     document.getElementById('productoActivo').checked = producto.activo === true;
-    
+
     document.getElementById('modalProductoTitulo').textContent = 'Editar Producto';
     document.getElementById('modalProducto').style.display = 'block';
   } catch (err) {

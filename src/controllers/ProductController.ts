@@ -39,7 +39,8 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
     const id = Number(req.params.id);
     if (isNaN(id)) {
       res.status(400).json({ message: 'ID de producto inválido.' });
-      return; 
+      return;
+
     }
     const { nombre, descripcion, precio, stock, activo, tipo } = req.body;
     const productoActualizado = await productService.actualizarProducto(id, { nombre, descripcion, precio, stock, activo, tipo });
