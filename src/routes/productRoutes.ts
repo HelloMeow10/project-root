@@ -13,22 +13,37 @@ const prisma = new PrismaClient();
 
 // Endpoint para obtener todos los paquetes turísticos
 router.get('/paquetes', async (req, res) => {
-  const paquetes = await prisma.producto.findMany({
-    where: { id_tipo: 1, activo: true },
-    include: {
-      paqueteDetallesAsPaquete: {
-        include: {
-          producto: {
-            include: {
-              hospedaje: true,
-              pasaje: true
+  try {
+    const tipoPaquete = await prisma.tipoProducto.findUnique({
+      where: { nombre: 'paquete' },
+    });
+
+    if (!tipoPaquete) {
+      console.error("TipoProducto 'paquete' not found in database.");
+      return res.status(404).json({ message: "Tipo de producto 'paquete' no configurado." });
+    }
+    const paqueteTipoId = tipoPaquete.id_tipo;
+
+    const paquetes = await prisma.producto.findMany({
+      where: { id_tipo: paqueteTipoId, activo: true }, // Use the fetched ID
+      include: {
+        paqueteDetallesAsPaquete: {
+          include: {
+            producto: {
+              include: {
+                hospedaje: true,
+                pasaje: true
+              }
             }
           }
         }
       }
-    }
-  });
-  res.json(paquetes);
+    });
+    res.json(paquetes);
+  } catch (err: any) {
+    console.error('Error al obtener paquetes:', err);
+    res.status(500).json({ message: 'Error al obtener paquetes', error: err.message });
+  }
 });
 
 // Endpoint para obtener solo los vuelos
@@ -129,11 +144,31 @@ router.get('/autos', async (req: Request, res: Response) => {
   }
 });
 
+router.get(
+  '/individuals',
+  // authMiddleware, // Consider if auth is needed for just listing individuals for an admin
+  ProductController.getIndividualProducts // New controller method
+);
+
 // Endpoint para obtener todos los productos
 router.get('/', ProductController.getAllProducts);
 router.get('/:id', ProductController.getProductById);
 router.post('/', ProductController.createProduct); // <-- ESTA LÍNEA ES CLAVE
 router.put('/:id', authMiddleware, adminOnly, ProductController.updateProduct);
 router.delete('/:id', ProductController.deleteProduct);
+
+router.post(
+  '/paquetes/:id_paquete/details',
+  authMiddleware,
+  adminOnly,
+  ProductController.agregarComponenteAPaquete // New controller method
+);
+
+router.delete(
+  '/paquetes/:id_paquete/details/:id_producto_componente',
+  authMiddleware,
+  adminOnly,
+  ProductController.eliminarComponenteDePaquete // New controller method
+);
 
 export default router;

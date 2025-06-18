@@ -13,6 +13,34 @@ export async function getAllProducts(req: Request, res: Response, next: NextFunc
   }
 }
 
+export async function getIndividualProducts(req: Request, res: Response, next: NextFunction) {
+  try {
+    const productos = await productService.obtenerProductosIndividuales();
+    res.status(200).json(productos);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function eliminarComponenteDePaquete(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id_paquete = Number(req.params.id_paquete);
+    if (isNaN(id_paquete)) {
+      return res.status(400).json({ message: 'ID de paquete inválido.' });
+    }
+
+    const id_producto_componente = Number(req.params.id_producto_componente);
+    if (isNaN(id_producto_componente)) {
+      return res.status(400).json({ message: 'ID de producto componente inválido.' });
+    }
+
+    const paqueteActualizado = await productService.eliminarComponenteDePaqueteServ(id_paquete, id_producto_componente);
+    res.status(200).json(paqueteActualizado); // Return updated package
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function getProductById(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const id = Number(req.params.id);
@@ -40,7 +68,6 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
     if (isNaN(id)) {
       res.status(400).json({ message: 'ID de producto inválido.' });
       return;
-
     }
     const { nombre, descripcion, precio, stock, activo, tipo } = req.body;
     const productoActualizado = await productService.actualizarProducto(id, { nombre, descripcion, precio, stock, activo, tipo });
@@ -67,5 +94,29 @@ export async function deleteProduct(req: Request, res: Response) {
          return res.status(409).json({ message: 'Este producto no se puede eliminar porque está referenciado en otros registros (ej. paquetes, pedidos).' });
     }
     res.status(500).json({ message: 'Error al eliminar producto' });
+  }
+}
+
+export async function agregarComponenteAPaquete(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id_paquete = Number(req.params.id_paquete);
+    if (isNaN(id_paquete)) {
+      return res.status(400).json({ message: 'ID de paquete inválido.' });
+    }
+
+    const id_producto_componente = Number(req.body.id_producto);
+    if (isNaN(id_producto_componente)) {
+      return res.status(400).json({ message: 'ID de producto componente inválido.' });
+    }
+
+    const cantidad = Number(req.body.cantidad ?? 1);
+    if (isNaN(cantidad) || cantidad <= 0) {
+      return res.status(400).json({ message: 'Cantidad inválida. Debe ser un número positivo.' });
+    }
+
+    const paqueteActualizado = await productService.agregarComponenteAPaqueteServ(id_paquete, id_producto_componente, cantidad);
+    res.status(201).json(paqueteActualizado); // 201 for created detail, or 200 if just updating package
+  } catch (err) {
+    next(err);
   }
 }

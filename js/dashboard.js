@@ -100,6 +100,26 @@ class DashboardUI {
         // Window resize
         window.addEventListener('resize', () => this.handleResize());
 
+            // Close Manage Components Modal
+            const cerrarModalGestionarComponentesBtn = document.getElementById('cerrarModalGestionarComponentes');
+            if (cerrarModalGestionarComponentesBtn) {
+                cerrarModalGestionarComponentesBtn.onclick = () => {
+                    document.getElementById('modalGestionarComponentes').style.display = 'none';
+                };
+            }
+            const btnCerrarGestionComponentes = document.getElementById('btnCerrarGestionComponentes');
+            if (btnCerrarGestionComponentes) {
+                btnCerrarGestionComponentes.onclick = () => {
+                    document.getElementById('modalGestionarComponentes').style.display = 'none';
+                };
+            }
+
+            // Search input for Manage Package Components Modal
+            const buscarProductoIndividualInput = document.getElementById('buscarProductoIndividual');
+            if (buscarProductoIndividualInput) {
+                buscarProductoIndividualInput.addEventListener('input', handleProductSearch);
+            }
+
         // Alternar pestañas de usuarios
         const tabUsuariosInternos = document.getElementById('tabUsuariosInternos');
         const tabClientes = document.getElementById('tabClientes');
@@ -255,7 +275,6 @@ class DashboardUI {
             });
 
             console.log('Respuesta del servidor:', res.status);
-
             if (res.ok) {
               DashboardAPI.showNotification(`Producto ${id ? 'actualizado' : 'creado'} con éxito`, 'success');
               cerrarModalProducto();
@@ -311,15 +330,23 @@ class DashboardUI {
     }
 
     onPageShow(pageId) {
-        if (pageId === 'productos') { // <-- aquí el cambio
+        console.log(`[onPageShow] Started. pageId: '${pageId}' (type: ${typeof pageId})`); // Log entry and type
+
+        if (pageId === 'productos') {
+            console.log("[onPageShow] Condition for 'productos' met. Calling cargarProductos().");
             cargarProductos();
+        } else if (pageId === 'paquetes') {
+            console.log("[onPageShow] Condition for 'paquetes' met. Calling cargarPaquetes()."); // Key log
+            cargarPaquetes();
+        } else {
+            console.log(`[onPageShow] pageId '${pageId}' did not match 'productos' or 'paquetes'.`);
         }
-        // Override this method to handle page-specific logic
-        // This is where you would trigger data loading for each page
-        console.log(`Page ${pageId} shown - trigger data loading here`);
+
+        console.log(`[onPageShow] Dispatching pageChanged event for pageId: '${pageId}'.`);
         document.dispatchEvent(new CustomEvent('pageChanged', { 
             detail: { page: pageId } 
         }));
+        console.log("[onPageShow] Finished.");
     }
 
     // Sidebar Methods
@@ -1156,7 +1183,7 @@ async function cargarProductos() {
     }
     const productos = await res.json();
     console.log('Fetched products data:', productos);
-    
+
     const tbody = document.getElementById('tablaProductosBody');
     if (!tbody) {
         console.error('Element with ID "tablaProductosBody" not found.');
@@ -1237,7 +1264,6 @@ const btnAgregarProducto = document.getElementById('btnAgregarProducto');
 
       // Explicitly set values for fields not fully handled by form.reset() or to ensure specific defaults
       document.getElementById('productoDescripcion').value = '';
-
       document.getElementById('productoTipo').value = 'paquete'; // Default type
       const stockInput = document.getElementById('productoStock');
       if (stockInput) stockInput.value = '0'; // Default stock, ensure it's a string for .value
@@ -1389,6 +1415,209 @@ async function cargarUsuariosInternos() {
   } catch (err) {
     window.DashboardAPI.showNotification('Error al cargar usuarios internos', 'error');
   }
+}
+
+async function cargarPaquetes() {
+  console.log('Attempting to load packages...');
+  const token = localStorage.getItem('token');
+  if (!token) {
+    console.log('No token for cargarPaquetes');
+    DashboardAPI.showNotification('Autenticación requerida para cargar paquetes.', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/products/paquetes?_=${Date.now()}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+      cache: 'no-cache'
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text().catch(() => 'No additional error text available.');
+      console.error(`Error fetching packages: ${res.status} ${res.statusText}`, errorText);
+      throw new Error(`HTTP error ${res.status} when fetching packages.`);
+    }
+    const paquetes = await res.json();
+    console.log('Fetched packages data:', paquetes);
+
+    const tbody = document.getElementById('tablaPaquetesBody');
+    if (!tbody) {
+      console.error('Element with ID "tablaPaquetesBody" not found.');
+      return;
+    }
+    tbody.innerHTML = ''; // Clear existing rows
+
+    if (!paquetes || paquetes.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No hay paquetes para mostrar.</td></tr>';
+      return;
+    }
+
+    paquetes.forEach(paquete => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${paquete.id_producto}</td>
+        <td>${paquete.nombre}</td>
+        <td>${paquete.descripcion || ''}</td>
+        <td>${paquete.precio}</td>
+        <td>${paquete.stock !== null && paquete.stock !== undefined ? paquete.stock : ''}</td>
+        <td>${paquete.activo ? 'Sí' : 'No'}</td>
+        <td>
+          <button class="btn btn-sm btn-primary btn-editar-info-paquete" data-id="${paquete.id_producto}" title="Editar Información del Paquete">
+            <i class="fas fa-info-circle"></i> Info
+          </button>
+          <button class="btn btn-sm btn-secondary btn-gestionar-componentes" data-id="${paquete.id_producto}" title="Gestionar Componentes del Paquete">
+            <i class="fas fa-cogs"></i> Componentes
+          </button>
+          <button class="btn btn-sm btn-danger btn-eliminar-paquete" data-id="${paquete.id_producto}" title="Eliminar Paquete">
+            <i class="fas fa-trash"></i>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('.btn-editar-info-paquete').forEach(btn => {
+      btn.onclick = () => abrirModalEditarProducto(btn.getAttribute('data-id'));
+    });
+    tbody.querySelectorAll('.btn-gestionar-componentes').forEach(btn => {
+      btn.onclick = () => gestionarComponentesPaquete(btn.getAttribute('data-id'));
+    });
+    tbody.querySelectorAll('.btn-eliminar-paquete').forEach(btn => {
+      btn.onclick = () => dashboardUI.deleteItem(btn.getAttribute('data-id'));
+    });
+
+  } catch (err) {
+    console.error('Error in cargarPaquetes:', err);
+    if (window.DashboardAPI && typeof window.DashboardAPI.showNotification === 'function') {
+      DashboardAPI.showNotification('Error al cargar paquetes.', 'error');
+    }
+    const tbody = document.getElementById('tablaPaquetesBody');
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Error al cargar paquetes.</td></tr>';
+    }
+  }
+}
+
+async function gestionarComponentesPaquete(packageId) {
+  console.log('[gestionarComponentesPaquete] Started for packageId:', packageId);
+  document.getElementById('idPaqueteGestionActual').value = packageId;
+  DashboardAPI.showLoading();
+
+  const token = localStorage.getItem('token');
+  if (!token) {
+    DashboardAPI.showNotification('Error de autenticación: Token no encontrado.', 'error');
+    DashboardAPI.hideLoading();
+    return;
+  }
+
+  try {
+    // Fetch Package Details
+    const resPkg = await fetch(`/api/products/${packageId}?_=${Date.now()}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+      cache: 'no-cache'
+    });
+
+    if (!resPkg.ok) {
+      const errorDataPkg = await resPkg.json().catch(() => ({ message: `Error HTTP ${resPkg.status}` }));
+      DashboardAPI.showNotification(`Error al cargar datos del paquete: ${errorDataPkg.message || resPkg.statusText}`, 'error');
+      console.error('Error fetching package details:', resPkg.status, resPkg.statusText, errorDataPkg);
+      DashboardAPI.hideLoading();
+      return;
+    }
+    const paquete = await resPkg.json();
+    console.log('Package details for management:', paquete);
+    document.getElementById('nombrePaqueteGestion').textContent = paquete.nombre || '';
+
+    // Fetch Available Individual Products
+    const resInd = await fetch(`/api/products/individuals?_=${Date.now()}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+      cache: 'no-cache'
+    });
+
+    if (!resInd.ok) {
+      const errorDataInd = await resInd.json().catch(() => ({ message: `Error HTTP ${resInd.status}` }));
+      DashboardAPI.showNotification(`Error al cargar productos individuales: ${errorDataInd.message || resInd.statusText}`, 'error');
+      console.error('Error fetching individual products:', resInd.status, resInd.statusText, errorDataInd);
+      DashboardAPI.hideLoading();
+      return;
+    }
+    const fetchedProductosIndividuales = await resInd.json();
+    console.log('Fetched available individual products:', fetchedProductosIndividuales);
+
+    // Filter out products already in the package and the package itself
+    const currentComponentIds = new Set((paquete.componentes || []).map(c => c.id_producto));
+    _globalAllAvailableIndividualProductsForModal = fetchedProductosIndividuales.filter(p =>
+        !currentComponentIds.has(p.id_producto) &&
+        p.id_producto !== Number(packageId)
+    );
+    console.log('Initially filtered available products for modal:', _globalAllAvailableIndividualProductsForModal);
+
+    // Populate Current Components List
+    const listaActualesDiv = document.getElementById('listaComponentesActuales');
+    listaActualesDiv.innerHTML = ''; // Clear previous
+    if (paquete.componentes && paquete.componentes.length > 0) {
+      paquete.componentes.forEach(componente => {
+        const div = document.createElement('div');
+        div.className = 'componente-item';
+        div.style.display = 'flex';
+        div.style.justifyContent = 'space-between';
+        div.style.alignItems = 'center';
+        div.style.padding = '5px 0';
+        div.innerHTML = `
+          <span>${componente.nombre} (ID: ${componente.id_producto})</span>
+          <button class="btn btn-sm btn-danger btn-remove-component" data-component-id="${componente.id_producto}" style="margin-left: 10px;">Quitar</button>
+        `;
+        listaActualesDiv.appendChild(div);
+      });
+    } else {
+      listaActualesDiv.innerHTML = '<p>Este paquete aún no tiene componentes.</p>';
+    }
+
+    // Populate Available Individual Products List using the new render function
+    renderAvailableIndividualProducts(_globalAllAvailableIndividualProductsForModal);
+
+    document.getElementById('modalGestionarComponentes').style.display = 'block';
+  } catch (err) {
+    console.error('Error in gestionarComponentesPaquete:', err);
+    DashboardAPI.showNotification('Error al gestionar componentes del paquete.', 'error');
+  } finally {
+    DashboardAPI.hideLoading();
+  }
+}
+
+// Global variable to store available individual products for the manage components modal
+let _globalAllAvailableIndividualProductsForModal = [];
+
+function renderAvailableIndividualProducts(productsToDisplay) {
+  const listaDisponiblesDiv = document.getElementById('listaProductosIndividualesDisponibles');
+  if (!listaDisponiblesDiv) {
+    console.error('Element with ID "listaProductosIndividualesDisponibles" not found for rendering.');
+    return;
+  }
+  listaDisponiblesDiv.innerHTML = ''; // Clear previous content
+
+  if (!productsToDisplay || productsToDisplay.length === 0) {
+    listaDisponiblesDiv.innerHTML = '<p>No hay productos que coincidan con su búsqueda o no hay más productos disponibles para agregar.</p>';
+    return;
+  }
+
+  productsToDisplay.forEach(productoInd => {
+    const div = document.createElement('div');
+    div.className = 'producto-individual-item'; // For potential styling
+    div.style.display = 'flex';
+    div.style.justifyContent = 'space-between';
+    div.style.alignItems = 'center';
+    div.style.padding = '5px 0';
+    div.innerHTML = `
+      <span>${productoInd.nombre} (Tipo: ${productoInd.tipo || 'N/A'}, ID: ${productoInd.id_producto})</span>
+      <div style="display: flex; align-items: center; gap: 5px;">
+        <input type="number" class="form-control form-control-sm componente-cantidad" value="1" min="1" style="width: 60px;">
+        <button class="btn btn-sm btn-success btn-add-component" data-product-id="${productoInd.id_producto}" style="margin-left: 10px;">Agregar</button>
+      </div>
+    `;
+    listaDisponiblesDiv.appendChild(div);
+  });
+  // Note: Event listeners for .btn-add-component will be handled in a subsequent step (5.4)
 }
 
 const dashboardUI = new DashboardUI();
