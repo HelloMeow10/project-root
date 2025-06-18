@@ -67,7 +67,7 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
     const id = Number(req.params.id);
     if (isNaN(id)) {
       res.status(400).json({ message: 'ID de producto inválido.' });
-      return;
+      return; 
     }
     const { nombre, descripcion, precio, stock, activo, tipo } = req.body;
     const productoActualizado = await productService.actualizarProducto(id, { nombre, descripcion, precio, stock, activo, tipo });
@@ -108,7 +108,7 @@ export async function agregarComponenteAPaquete(req: Request, res: Response, nex
     if (isNaN(id_producto_componente)) {
       return res.status(400).json({ message: 'ID de producto componente inválido.' });
     }
-
+    
     const cantidad = Number(req.body.cantidad ?? 1);
     if (isNaN(cantidad) || cantidad <= 0) {
       return res.status(400).json({ message: 'Cantidad inválida. Debe ser un número positivo.' });

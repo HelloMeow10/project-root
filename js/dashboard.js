@@ -13,6 +13,7 @@ class DashboardUI {
         this.currentPage = 1;
         this.itemsPerPage = 10;
         
+        this.handleProductSearch = this.handleProductSearch.bind(this); // Bind here
         this.init();
     }
 
@@ -117,7 +118,7 @@ class DashboardUI {
             // Search input for Manage Package Components Modal
             const buscarProductoIndividualInput = document.getElementById('buscarProductoIndividual');
             if (buscarProductoIndividualInput) {
-                buscarProductoIndividualInput.addEventListener('input', handleProductSearch);
+                buscarProductoIndividualInput.addEventListener('input', this.handleProductSearch);
             }
 
         // Alternar pestañas de usuarios
@@ -261,7 +262,7 @@ class DashboardUI {
             method = 'PUT';
             url = `/api/products/${id}?_=${Date.now()}`;
           }
-
+          
           console.log(`Enviando producto (${method}):`, formData, 'to URL:', url);
 
           try {
@@ -274,7 +275,7 @@ class DashboardUI {
               body: JSON.stringify(formData)
             });
 
-            console.log('Respuesta del servidor:', res.status);
+            console.log('Respuesta del servidor:', res.status); 
             if (res.ok) {
               DashboardAPI.showNotification(`Producto ${id ? 'actualizado' : 'creado'} con éxito`, 'success');
               cerrarModalProducto();
@@ -331,7 +332,7 @@ class DashboardUI {
 
     onPageShow(pageId) {
         console.log(`[onPageShow] Started. pageId: '${pageId}' (type: ${typeof pageId})`); // Log entry and type
-
+        
         if (pageId === 'productos') {
             console.log("[onPageShow] Condition for 'productos' met. Calling cargarProductos().");
             cargarProductos();
@@ -341,12 +342,22 @@ class DashboardUI {
         } else {
             console.log(`[onPageShow] pageId '${pageId}' did not match 'productos' or 'paquetes'.`);
         }
-
+        
         console.log(`[onPageShow] Dispatching pageChanged event for pageId: '${pageId}'.`);
         document.dispatchEvent(new CustomEvent('pageChanged', { 
             detail: { page: pageId } 
         }));
         console.log("[onPageShow] Finished.");
+    }
+
+    handleProductSearch(event) {
+        const searchTerm = event.target.value.toLowerCase();
+        // _globalAllAvailableIndividualProductsForModal and renderAvailableIndividualProducts are still global
+        const filteredProducts = _globalAllAvailableIndividualProductsForModal.filter(prod => 
+            prod.nombre.toLowerCase().includes(searchTerm) || 
+            (prod.tipo && prod.tipo.toLowerCase().includes(searchTerm))
+        );
+        renderAvailableIndividualProducts(filteredProducts);
     }
 
     // Sidebar Methods
@@ -1007,6 +1018,8 @@ class DashboardUI {
     }
 }
 
+const dashboardUI = new DashboardUI(); // MOVED HERE
+
 // Ejemplo de función para cargar productos
 function cargarVistaProductos() {
   document.getElementById('dashboardContent').innerHTML = '<h2>Productos</h2>';
@@ -1183,7 +1196,7 @@ async function cargarProductos() {
     }
     const productos = await res.json();
     console.log('Fetched products data:', productos);
-
+    
     const tbody = document.getElementById('tablaProductosBody');
     if (!tbody) {
         console.error('Element with ID "tablaProductosBody" not found.');
@@ -1256,14 +1269,14 @@ const btnAgregarProducto = document.getElementById('btnAgregarProducto');
       console.log('Click en agregar producto');
       document.getElementById('modalProductoTitulo').textContent = 'Agregar Producto';
       document.getElementById('productoId').value = ''; // Clear ID for creation mode
-
+      
       const form = document.getElementById('formProducto');
       if (form) {
         form.reset(); // Resets text, number, select to their HTML defaults
       }
-
+      
       // Explicitly set values for fields not fully handled by form.reset() or to ensure specific defaults
-      document.getElementById('productoDescripcion').value = '';
+      document.getElementById('productoDescripcion').value = ''; 
       document.getElementById('productoTipo').value = 'paquete'; // Default type
       const stockInput = document.getElementById('productoStock');
       if (stockInput) stockInput.value = '0'; // Default stock, ensure it's a string for .value
@@ -1546,8 +1559,8 @@ async function gestionarComponentesPaquete(packageId) {
 
     // Filter out products already in the package and the package itself
     const currentComponentIds = new Set((paquete.componentes || []).map(c => c.id_producto));
-    _globalAllAvailableIndividualProductsForModal = fetchedProductosIndividuales.filter(p =>
-        !currentComponentIds.has(p.id_producto) &&
+    _globalAllAvailableIndividualProductsForModal = fetchedProductosIndividuales.filter(p => 
+        !currentComponentIds.has(p.id_producto) && 
         p.id_producto !== Number(packageId)
     );
     console.log('Initially filtered available products for modal:', _globalAllAvailableIndividualProductsForModal);
@@ -1575,7 +1588,7 @@ async function gestionarComponentesPaquete(packageId) {
 
     // Populate Available Individual Products List using the new render function
     renderAvailableIndividualProducts(_globalAllAvailableIndividualProductsForModal);
-
+    
     document.getElementById('modalGestionarComponentes').style.display = 'block';
   } catch (err) {
     console.error('Error in gestionarComponentesPaquete:', err);
@@ -1620,7 +1633,7 @@ function renderAvailableIndividualProducts(productsToDisplay) {
   // Note: Event listeners for .btn-add-component will be handled in a subsequent step (5.4)
 }
 
-const dashboardUI = new DashboardUI();
+// const dashboardUI = new DashboardUI(); // Ensuring this is removed if it was here
 
 async function abrirModalEditarProducto(id) {
   console.log('Abriendo modal para editar producto ID:', id);
@@ -1651,7 +1664,7 @@ async function abrirModalEditarProducto(id) {
     document.getElementById('productoPrecio').value = producto.precio !== undefined ? producto.precio : '';
     document.getElementById('productoStock').value = producto.stock !== undefined ? producto.stock : '';
     document.getElementById('productoActivo').checked = producto.activo === true;
-
+    
     document.getElementById('modalProductoTitulo').textContent = 'Editar Producto';
     document.getElementById('modalProducto').style.display = 'block';
   } catch (err) {
@@ -1659,4 +1672,3 @@ async function abrirModalEditarProducto(id) {
     DashboardAPI.showNotification('Error al procesar la solicitud para editar producto.', 'error');
   }
 }
-

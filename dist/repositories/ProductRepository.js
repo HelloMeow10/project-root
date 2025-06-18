@@ -10,13 +10,40 @@ class ProductRepository {
             include: { tipoProducto: true }
         });
     }
+    async findAllWhereNotTipo(id_tipo_excluir) {
+        return await db_1.prisma.producto.findMany({
+            where: {
+                NOT: {
+                    id_tipo: id_tipo_excluir
+                },
+                activo: true // Optionally, only list active individual products for selection
+            },
+            include: { tipoProducto: true },
+            orderBy: { nombre: 'asc' }
+        });
+    }
     // Busca un producto por su ID, incluyendo el tipo
     async findById(id_producto) {
         if (!id_producto || isNaN(Number(id_producto)))
             return null;
         return await db_1.prisma.producto.findUnique({
             where: { id_producto },
-            include: { tipoProducto: true }
+            include: {
+                tipoProducto: true,
+                paqueteDetallesAsPaquete: {
+                    orderBy: { producto: { nombre: 'asc' } }, // Optional: order components by name
+                    include: {
+                        producto: {
+                            select: {
+                                id_producto: true,
+                                nombre: true,
+                                // Optionally include component's type if needed for display:
+                                // tipoProducto: { select: { nombre: true } } 
+                            }
+                        }
+                    }
+                }
+            }
         });
     }
     // Crea un nuevo producto

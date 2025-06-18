@@ -27,9 +27,9 @@ export class ProductRepository {
     if (!id_producto || isNaN(Number(id_producto))) return null;
     return await prisma.producto.findUnique({
       where: { id_producto },
-      include: {
+      include: { 
         tipoProducto: true,
-        paqueteDetallesAsPaquete: {
+        paqueteDetallesAsPaquete: { 
           orderBy: { producto: { nombre: 'asc' } }, // Optional: order components by name
           include: {
             producto: { // This is the component product
@@ -37,7 +37,7 @@ export class ProductRepository {
                 id_producto: true,
                 nombre: true,
                 // Optionally include component's type if needed for display:
-                // tipoProducto: { select: { nombre: true } }
+                // tipoProducto: { select: { nombre: true } } 
               }
             }
           }
