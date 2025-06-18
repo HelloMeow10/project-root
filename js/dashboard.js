@@ -302,7 +302,7 @@ class DashboardUI {
     }
 
     onPageShow(pageId) {
-        if (pageId === 'products') { // <-- aquí el cambio
+        if (pageId === 'productos') { // <-- aquí el cambio
             cargarProductos();
         }
         // Override this method to handle page-specific logic
@@ -1130,26 +1130,41 @@ async function cargarPaquetes() {
 }
 
 async function cargarProductos() {
+  console.log('Attempting to load products...');
   const token = localStorage.getItem('token');
-  if (!token) return;
-  const res = await fetch('/api/products', {
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
-  const productos = await res.json();
-  console.log('Productos recibidos:', productos); // <-- depuración
-  const tbody = document.getElementById('tablaProductosBody');
-  tbody.innerHTML = '';
-  productos.forEach(producto => {
+  if (!token) {
+    console.log('No token found, exiting cargarProductos.');
+    return;
+  }
+  try {
+    const res = await fetch(`/api/products?_=${Date.now()}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+      cache: 'no-cache'
+    });
+    if (!res.ok) {
+      console.error(`Error fetching products: ${res.status} ${res.statusText}`, await res.text());
+      throw new Error(`HTTP error ${res.status}`);
+    }
+    const productos = await res.json();
+    console.log('Fetched products data:', productos);
+    
+    const tbody = document.getElementById('tablaProductosBody');
+    if (!tbody) {
+        console.error('Element with ID "tablaProductosBody" not found.');
+        return;
+    }
+    tbody.innerHTML = '';
+    productos.forEach(producto => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${producto.id}</td>
+      <td>${producto.id_producto}</td>
       <td>${producto.nombre}</td>
       <td>${producto.descripcion || ''}</td>
       <td>${producto.precio}</td>
       <td>${producto.stock}</td>
       <td>
-        <button class="btn-editar" data-id="${producto.id}"><i class="fas fa-edit"></i></button>
-        <button class="btn-eliminar" data-id="${producto.id}"><i class="fas fa-trash"></i></button>
+        <button class="btn-editar" data-id="${producto.id_producto}"><i class="fas fa-edit"></i></button>
+        <button class="btn-eliminar" data-id="${producto.id_producto}"><i class="fas fa-trash"></i></button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -1162,6 +1177,12 @@ async function cargarProductos() {
   tbody.querySelectorAll('.btn-eliminar').forEach(btn => {
     btn.onclick = () => eliminarProducto(btn.getAttribute('data-id'));
   });
+  } catch (err) {
+    console.error('Error in cargarProductos:', err);
+    if (window.DashboardAPI && typeof window.DashboardAPI.showNotification === 'function') {
+      DashboardAPI.showNotification('Error al cargar productos', 'error');
+    }
+  }
 }
 
 async function cargarEstadisticasDashboard() {
