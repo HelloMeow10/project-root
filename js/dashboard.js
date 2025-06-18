@@ -255,6 +255,7 @@ class DashboardUI {
             });
 
             console.log('Respuesta del servidor:', res.status);
+
             if (res.ok) {
               DashboardAPI.showNotification(`Producto ${id ? 'actualizado' : 'creado'} con éxito`, 'success');
               cerrarModalProducto();
@@ -1155,7 +1156,7 @@ async function cargarProductos() {
     }
     const productos = await res.json();
     console.log('Fetched products data:', productos);
-
+    
     const tbody = document.getElementById('tablaProductosBody');
     if (!tbody) {
         console.error('Element with ID "tablaProductosBody" not found.');
@@ -1236,6 +1237,7 @@ const btnAgregarProducto = document.getElementById('btnAgregarProducto');
 
       // Explicitly set values for fields not fully handled by form.reset() or to ensure specific defaults
       document.getElementById('productoDescripcion').value = '';
+
       document.getElementById('productoTipo').value = 'paquete'; // Default type
       const stockInput = document.getElementById('productoStock');
       if (stockInput) stockInput.value = '0'; // Default stock, ensure it's a string for .value

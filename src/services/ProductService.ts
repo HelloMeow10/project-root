@@ -33,6 +33,7 @@ export class ProductService {
   }
 
   // Crea un producto, validando datos (ejemplo simple)
+
   async crearProducto(data: {
     nombre: string;
     tipo?: string; // This is the string like 'auto', 'vuelo'
@@ -40,6 +41,7 @@ export class ProductService {
     descripcion?: string;
     stock?: number;
     activo?: boolean;
+
   }): Promise<Producto> {
     if (data.precio < 0) throw new Error('El precio debe ser positivo');
     if (!data.tipo) throw new Error('El campo tipo (string del nombre del tipo) es requerido');
@@ -59,7 +61,9 @@ export class ProductService {
       precio: data.precio,
       stock: data.stock,
       activo: data.activo !== undefined ? data.activo : true,
+
       id_tipo: id_tipo_resolved,
+
     };
     const producto = await this.repo.create(prismaData);
     return mapPrismaProductoToProducto(producto);
@@ -120,10 +124,12 @@ export class ProductService {
     } catch (err: any) { // Use 'any' or Prisma.PrismaClientKnownRequestError
       if (err.code === 'P2003') { // Foreign key constraint violation
         console.error(`Attempted to delete product ${id} which has foreign key constraints.`, err);
+
         throw new Error('Este producto está referenciado y no puede ser eliminado.');
       }
       // P2025 is "Record to delete not found." - handled by check above, but good as fallback.
       if (err.code === 'P2025') {
+
           console.error(`Attempted to delete non-existent product ${id}.`, err);
           throw new Error('Producto no encontrado para eliminar.');
       }

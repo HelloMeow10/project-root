@@ -156,6 +156,6 @@ router.get('/autos', async (req, res) => {
 router.get('/', ProductController.getAllProducts);
 router.get('/:id', ProductController.getProductById);
 router.post('/', ProductController.createProduct); // <-- ESTA LÍNEA ES CLAVE
-router.put('/:id', ProductController.updateProduct);
+router.put('/:id', authMiddleware_1.authMiddleware, adminOnly_1.adminOnly, ProductController.updateProduct);
 router.delete('/:id', ProductController.deleteProduct);
 exports.default = router;
