@@ -409,6 +409,10 @@
                         <input type="text" id="productoNombre" class="form-control" required>
                     </div>
                     <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="productoDescripcion">Descripción:</label>
+                        <textarea id="productoDescripcion" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
                         <label for="productoTipo">Tipo:</label>
                         <select id="productoTipo" class="form-control" required>
                             <option value="paquete">Paquete</option>
@@ -422,7 +426,14 @@
                         <label for="productoPrecio">Precio:</label>
                         <input type="number" id="productoPrecio" class="form-control" step="0.01" required>
                     </div>
-                    <!-- Add other fields like description, stock if they are part of the formProducto in JS -->
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="productoStock">Stock:</label>
+                        <input type="number" id="productoStock" class="form-control" min="0">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <input type="checkbox" id="productoActivo" style="margin-right: 0.5rem;">
+                        <label for="productoActivo">Activo</label>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" id="cancelarProducto">Cancelar</button>

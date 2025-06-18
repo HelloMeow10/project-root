@@ -225,40 +225,48 @@ class DashboardUI {
         document.getElementById('formProducto').onsubmit = async function(e) {
           e.preventDefault();
           const id = document.getElementById('productoId').value;
-          const data = {
+          const formData = {
             nombre: document.getElementById('productoNombre').value,
-            tipo: document.getElementById('productoTipo').value,
-            precio: Number(document.getElementById('productoPrecio').value)
+            descripcion: document.getElementById('productoDescripcion').value,
+            tipo: document.getElementById('productoTipo').value, // This is the string e.g., "auto"
+            precio: Number(document.getElementById('productoPrecio').value),
+            stock: Number(document.getElementById('productoStock').value),
+            activo: document.getElementById('productoActivo').checked
           };
           const token = localStorage.getItem('token');
-          console.log('Enviando producto:', data); // <-- agrega esto
-          let res;
+
+          let method = 'POST';
+          let url = `/api/products?_=${Date.now()}`;
           if (id) {
-            res = await fetch(`/api/products/${id}`, {
-              method: 'PUT',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(data)
-            });
-          } else {
-            res = await fetch('/api/products', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(data)
-            });
+            method = 'PUT';
+            url = `/api/products/${id}?_=${Date.now()}`;
           }
-          console.log('Respuesta:', res.status); // <-- agrega esto
-          if (res.ok) {
-            DashboardAPI.showNotification('Producto guardado', 'success');
-            cerrarModalProducto();
-            cargarProductos();
-          } else {
-            DashboardAPI.showNotification('Error al guardar producto', 'error');
+          
+          console.log(`Enviando producto (${method}):`, formData, 'to URL:', url);
+
+          try {
+            const res = await fetch(url, {
+              method: method,
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(formData)
+            });
+
+            console.log('Respuesta del servidor:', res.status); 
+            if (res.ok) {
+              DashboardAPI.showNotification(`Producto ${id ? 'actualizado' : 'creado'} con éxito`, 'success');
+              cerrarModalProducto();
+              cargarProductos(); // Make sure this function is correctly defined and accessible
+            } else {
+              const errorData = await res.json().catch(() => ({ message: 'Error desconocido al procesar la respuesta.' }));
+              DashboardAPI.showNotification(`Error al ${id ? 'actualizar' : 'crear'} producto: ${errorData.message || res.statusText}`, 'error');
+              console.error('Error guardando producto:', res.status, res.statusText, errorData);
+            }
+          } catch (err) {
+            console.error('Error de red o fetch al guardar producto:', err);
+            DashboardAPI.showNotification('Error de red al intentar guardar el producto.', 'error');
           }
         };
     }
@@ -1147,7 +1155,7 @@ async function cargarProductos() {
     }
     const productos = await res.json();
     console.log('Fetched products data:', productos);
-
+    
     const tbody = document.getElementById('tablaProductosBody');
     if (!tbody) {
         console.error('Element with ID "tablaProductosBody" not found.');
@@ -1217,12 +1225,22 @@ document.addEventListener('DOMContentLoaded', cargarEstadisticasDashboard);
 const btnAgregarProducto = document.getElementById('btnAgregarProducto');
   if (btnAgregarProducto) {
     btnAgregarProducto.onclick = function() {
-      console.log('Click en agregar producto'); // <-- agrega esto
+      console.log('Click en agregar producto');
       document.getElementById('modalProductoTitulo').textContent = 'Agregar Producto';
-      document.getElementById('productoId').value = '';
-      document.getElementById('productoNombre').value = '';
-      document.getElementById('productoTipo').value = 'paquete';
-      document.getElementById('productoPrecio').value = '';
+      document.getElementById('productoId').value = ''; // Clear ID for creation mode
+      
+      const form = document.getElementById('formProducto');
+      if (form) {
+        form.reset(); // Resets text, number, select to their HTML defaults
+      }
+      
+      // Explicitly set values for fields not fully handled by form.reset() or to ensure specific defaults
+      document.getElementById('productoDescripcion').value = ''; 
+      document.getElementById('productoTipo').value = 'paquete'; // Default type
+      const stockInput = document.getElementById('productoStock');
+      if (stockInput) stockInput.value = '0'; // Default stock, ensure it's a string for .value
+      document.getElementById('productoActivo').checked = true; // Default to active
+
       document.getElementById('modalProducto').style.display = 'block';
     };
   }
@@ -1374,14 +1392,40 @@ async function cargarUsuariosInternos() {
 const dashboardUI = new DashboardUI();
 
 async function abrirModalEditarProducto(id) {
+  console.log('Abriendo modal para editar producto ID:', id);
   const token = localStorage.getItem('token');
-  const res = await fetch(`/api/products/${id}`, {
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
-  const producto = await res.json();
-  // Aquí deberías mostrar el modal y rellenar los campos con los datos de producto
-  // Por ejemplo:
-  // document.getElementById('editNombre').value = producto.nombre;
-  // ...
+  if (!token) {
+    DashboardAPI.showNotification('Error de autenticación: Token no encontrado.', 'error');
+    return;
+  }
+  try {
+    const res = await fetch(`/api/products/${id}?_=${Date.now()}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+      cache: 'no-cache'
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({ message: `Error HTTP ${res.status}` }));
+      DashboardAPI.showNotification(`Error al cargar datos del producto: ${errorData.message || res.statusText}`, 'error');
+      console.error('Error fetching product data for edit:', res.status, res.statusText, errorData);
+      return;
+    }
+    const producto = await res.json();
+    console.log('Datos para editar:', producto);
+
+    document.getElementById('productoId').value = producto.id_producto;
+    document.getElementById('productoNombre').value = producto.nombre || '';
+    document.getElementById('productoDescripcion').value = producto.descripcion || '';
+    document.getElementById('productoTipo').value = producto.tipo || ''; // producto.tipo is the string name
+    document.getElementById('productoPrecio').value = producto.precio !== undefined ? producto.precio : '';
+    document.getElementById('productoStock').value = producto.stock !== undefined ? producto.stock : '';
+    document.getElementById('productoActivo').checked = producto.activo === true;
+    
+    document.getElementById('modalProductoTitulo').textContent = 'Editar Producto';
+    document.getElementById('modalProducto').style.display = 'block';
+  } catch (err) {
+    console.error('Error en abrirModalEditarProducto:', err);
+    DashboardAPI.showNotification('Error al procesar la solicitud para editar producto.', 'error');
+  }
 }
 
