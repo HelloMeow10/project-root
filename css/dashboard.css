@@ -973,8 +973,13 @@ body {
     }
 
     body {
-        background-color: #1a1a1a;
+        background-color: #000;
         color: #e0e0e0;
+    }
+
+    .dashboard,
+    .main-content {
+        background-color: #000; /* Or var(--dark-mode-body-bg) if you define such a var */
     }
 
     .card-header {
@@ -1002,10 +1007,6 @@ body {
     .search-bar input {
         color: #e0e0e0;
     }
-}
-
-body, .dashboard, .main-content {
-  background: #000 !important;
 }
 
 /* Utility Classes */

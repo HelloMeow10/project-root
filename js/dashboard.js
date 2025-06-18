@@ -372,11 +372,11 @@ class DashboardUI {
         if (!ctx) return;
 
         this.chart = new Chart(ctx.getContext('2d'), {
-            type: 'line',
+            type: 'bar',
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Ventas',
+                    label: 'Ventas por Mes',
                     data: [],
                     borderColor: '#3498db',
                     backgroundColor: 'rgba(52, 152, 219, 0.1)',
@@ -426,9 +426,10 @@ class DashboardUI {
     updateChart(labels, data) {
         if (!this.chart) return;
         
+        console.log('DashboardUI.updateChart - Applying to chart:', { labels, data });
         this.chart.data.labels = labels;
         this.chart.data.datasets[0].data = data;
-        this.chart.update('active');
+        this.chart.update();
     }
 
     updateChartPeriod(period) {
@@ -1167,16 +1168,23 @@ async function cargarEstadisticasDashboard() {
   const token = localStorage.getItem('token');
   if (!token) return;
   try {
-    const res = await fetch('/api/dashboard/stats', {
-      headers: { 'Authorization': `Bearer ${token}` }
+    const res = await fetch(`/api/dashboard/stats?_=${Date.now()}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+      cache: 'no-cache'
     });
     if (!res.ok) throw new Error('Error al obtener estadísticas');
     const stats = await res.json();
+    console.log('Fetched Dashboard Stats Data:', stats);
+    console.log('Updating DOM for total-users with:', stats.totalClientes ?? 0);
     document.getElementById('total-users').textContent = stats.totalClientes ?? 0;
+    console.log('Updating DOM for total-sales with:', stats.ingresosTotales ?? 0);
     document.getElementById('total-sales').textContent = `$${stats.ingresosTotales ?? 0}`;
+    console.log('Updating DOM for total-orders with:', stats.totalVentas ?? 0);
     document.getElementById('total-orders').textContent = stats.totalVentas ?? 0;
+    console.log('Updating DOM for monthly-revenue with:', stats.ingresosTotales ?? 0);
     document.getElementById('monthly-revenue').textContent = `$${stats.ingresosTotales ?? 0}`;
   } catch (err) {
+    console.error('Error in cargarEstadisticasDashboard:', err);
     if (window.DashboardAPI && typeof window.DashboardAPI.showNotification === 'function') {
       window.DashboardAPI.showNotification('Error al cargar estadísticas', 'error');
     }
@@ -1260,32 +1268,16 @@ async function cargarGraficoVentasPorMes() {
   const token = localStorage.getItem('token');
   if (!token) return;
   try {
-    const res = await fetch('/api/dashboard/sales-by-month', {
-      headers: { 'Authorization': `Bearer ${token}` }
+    const res = await fetch(`/api/dashboard/sales-by-month?_=${Date.now()}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+      cache: 'no-cache'
     });
     if (!res.ok) throw new Error('Error al obtener ventas por mes');
     const { labels, data } = await res.json();
-
-    const ctx = document.getElementById('salesChart').getContext('2d');
-    if (window.salesChartInstance) window.salesChartInstance.destroy();
-    window.salesChartInstance = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Ventas por mes',
-          data,
-          backgroundColor: 'rgba(54, 162, 235, 0.5)'
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { display: false }
-        }
-      }
-    });
+    console.log('Fetched Sales Chart Data:', { labels, data });
+    dashboardUI.updateChart(labels, data);
   } catch (err) {
+    console.error('Error in cargarGraficoVentasPorMes:', err);
     if (window.DashboardAPI && typeof window.DashboardAPI.showNotification === 'function') {
       window.DashboardAPI.showNotification('Error al cargar gráfico de ventas', 'error');
     }
@@ -1298,14 +1290,23 @@ async function cargarActividadReciente() {
   const token = localStorage.getItem('token');
   if (!token) return;
   try {
-    const res = await fetch('/api/dashboard/recent-activity', {
-      headers: { 'Authorization': `Bearer ${token}` }
+    const res = await fetch(`/api/dashboard/recent-activity?_=${Date.now()}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+      cache: 'no-cache'
     });
     if (!res.ok) throw new Error('Error al obtener actividad reciente');
     const { pedidos, usuarios } = await res.json();
+    console.log('Fetched Recent Activity Data:', { pedidos, usuarios });
 
+    console.log('Preparing to update activity list. Pedidos:', pedidos, 'Usuarios:', usuarios);
     const actividadDiv = document.getElementById('activity-list');
     if (actividadDiv) {
+        // Optional: Construct the HTML string first then log it if it's complex
+        // const activityHTML = `<h4>Últimos pedidos</h4>...`;
+        // console.log('Updating DOM for activity-list with HTML:', activityHTML);
+        // actividadDiv.innerHTML = activityHTML;
+        // For now, just logging the data again to confirm scope.
+        console.log('Updating DOM for activity-list with data:', { pedidos, usuarios });
       actividadDiv.innerHTML = `
         <h4>Últimos pedidos</h4>
         <ul>
@@ -1318,6 +1319,7 @@ async function cargarActividadReciente() {
       `;
     }
   } catch (err) {
+    console.error('Error in cargarActividadReciente:', err);
     if (window.DashboardAPI && typeof window.DashboardAPI.showNotification === 'function') {
       window.DashboardAPI.showNotification('Error al cargar actividad reciente', 'error');
     }
