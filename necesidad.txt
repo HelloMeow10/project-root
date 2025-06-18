@@ -68,3 +68,40 @@ INSERT INTO "PaqueteDetalle" (id_paquete, id_producto) VALUES
 ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Ushuaia Premium'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Ushuaia')),
 ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Ushuaia Premium'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Hotel Austral')),
 ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Ushuaia Premium'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Auto Familiar Ushuaia'));
+
+-- Añadir roles si no existen
+INSERT INTO "Rol" (nombre, descripcion) VALUES
+('ADMIN', 'Administrador del sistema')
+ON CONFLICT (nombre) DO NOTHING;
+
+INSERT INTO "Rol" (nombre, descripcion) VALUES
+('JEFE_VENTAS', 'Jefe de ventas')
+ON CONFLICT (nombre) DO NOTHING;
+
+-- Crear usuario administrador
+INSERT INTO "UsuarioInterno" (nombre, apellido, email, contrasena, telefono, activo, id_rol)
+VALUES (
+  'Admin',
+  'Principal',
+  'admin@musimundo.com',
+  -- Contraseña encriptada: cambia 'admin123' por el hash real generado con bcrypt
+  '$2a$10$wH6Q4w0n6wQwQwQwQwQwQeQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQw', 
+  '123456789',
+  true,
+  (SELECT id_rol FROM "Rol" WHERE nombre = 'ADMIN')
+);
+
+-- Crear usuario jefe de ventas
+INSERT INTO "UsuarioInterno" (nombre, apellido, email, contrasena, telefono, activo, id_rol)
+VALUES (
+  'Jefe',
+  'Ventas',
+  'jefe.ventas@musimundo.com',
+  -- Contraseña encriptada: cambia 'ventas123' por el hash real generado con bcrypt
+  '$2a$10$wH6Q4w0n6wQwQwQwQwQwQeQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQwQw', 
+  '987654321',
+  true,
+  (SELECT id_rol FROM "Rol" WHERE nombre = 'JEFE_VENTAS')
+);
+
+-- require('bcryptjs').hashSync('admin123', 10) para crear la contraseña (reemplazar en el hash)
