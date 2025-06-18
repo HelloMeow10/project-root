@@ -254,16 +254,35 @@
                     <div class="breadcrumb">Inicio / Productos</div>
                 </div>
                 <div class="page-content">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Nombre</th>
-                          <th>Precio</th>
-                          <th>Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody id="tablaPaquetesBody"></tbody>
-                    </table>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Lista de Productos Generales</h3>
+                            <div class="card-actions">
+                                <button class="btn btn-sm btn-primary" id="btnAgregarProducto">
+                                    <i class="fas fa-plus"></i> Agregar Producto
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nombre</th>
+                                            <th>Descripción</th>
+                                            <th>Precio</th>
+                                            <th>Stock</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaProductosBody">
+                                        <!-- Product data will be loaded here by js/dashboard.js -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -300,6 +319,58 @@
                 </div>
             </div>
 
+            <!-- Paquetes Page -->
+            <div id="paquetes-page" class="page">
+                <div class="page-title">
+                    <h1>Gestión de Paquetes</h1>
+                    <div class="breadcrumb">Inicio / Paquetes</div>
+                </div>
+                <div class="page-content">
+                    <!-- Form to add new package -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Agregar Nuevo Paquete</h3>
+                        </div>
+                        <div class="card-content">
+                            <form id="formAgregarPaquete">
+                                <div class="form-group" style="margin-bottom: 1rem;">
+                                    <label for="nombrePaquete">Nombre del Paquete:</label>
+                                    <input type="text" id="nombrePaquete" class="form-control" required>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 1rem;">
+                                    <label for="precioPaquete">Precio del Paquete:</label>
+                                    <input type="number" id="precioPaquete" class="form-control" step="0.01" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Agregar Paquete</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Table for existing packages -->
+                    <div class="card" style="margin-top: 2rem;">
+                        <div class="card-header">
+                            <h3 class="card-title">Lista de Paquetes</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Nombre</th>
+                                            <th>Precio</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaPaquetesBody">
+                                        <!-- Package data will be loaded here by js/dashboard.js -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Dynamic Content Area -->
             <div id="dashboardContent" class="dashboard-content">
                 <!-- Default content or loading spinner can go here -->
@@ -320,6 +391,84 @@
             <div class="modal-footer" id="modalFooter">
                 <!-- Modal buttons will be loaded here -->
             </div>
+        </div>
+    </div>
+
+    <!-- Product Modal -->
+    <div id="modalProducto" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalProductoTitulo">Agregar/Editar Producto</h3>
+                <button class="close-btn" id="cerrarModalProducto">&times;</button>
+            </div>
+            <form id="formProducto">
+                <div class="modal-body">
+                    <input type="hidden" id="productoId">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="productoNombre">Nombre:</label>
+                        <input type="text" id="productoNombre" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="productoTipo">Tipo:</label>
+                        <select id="productoTipo" class="form-control" required>
+                            <option value="paquete">Paquete</option>
+                            <option value="vuelo">Vuelo</option>
+                            <option value="hotel">Hotel</option>
+                            <option value="auto">Auto</option>
+                            <!-- Add other types if necessary -->
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="productoPrecio">Precio:</label>
+                        <input type="number" id="productoPrecio" class="form-control" step="0.01" required>
+                    </div>
+                    <!-- Add other fields like description, stock if they are part of the formProducto in JS -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelarProducto">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Edit Modal -->
+    <div id="modalEditarUsuario" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Usuario Interno</h3>
+                <button class="close-btn" id="cerrarModalEditar">&times;</button>
+            </div>
+            <form id="formEditarUsuario">
+                <div class="modal-body">
+                    <input type="hidden" id="editIdUsuario">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="editNombre">Nombre:</label>
+                        <input type="text" id="editNombre" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="editApellido">Apellido:</label>
+                        <input type="text" id="editApellido" class="form-control">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="editEmail">Email:</label>
+                        <input type="email" id="editEmail" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="editTelefono">Teléfono:</label>
+                        <input type="tel" id="editTelefono" class="form-control">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="editRol">Rol (ID):</label>
+                        <input type="number" id="editRol" class="form-control">
+                        <!-- Consider making this a select dropdown if roles are predefined -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelarEditarUsuario">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
         </div>
     </div>
 
