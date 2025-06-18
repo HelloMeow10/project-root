@@ -518,6 +518,10 @@
   if (valid) {
     document.addEventListener('DOMContentLoaded', function() {
       document.querySelector('.dashboard').style.display = '';
+      const mainContent = document.querySelector('.main-content');
+      if (mainContent) {
+        mainContent.style.display = 'block'; // Make .main-content visible
+      }
       overlay.style.display = 'none';
     });
   }
