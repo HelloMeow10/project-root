@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verificar Email | Musimundo Travel</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/login.css">
+  <style>
+    .verify-container {
+      max-width: 400px;
+      margin: 4rem auto;
+      background: #fff;
+      border-radius: 1rem;
+      box-shadow: 0 2px 24px #0002;
+      padding: 2.5rem 2rem 2rem 2rem;
+      text-align: center;
+    }
+    .verify-container h1 {
+      margin-bottom: 1rem;
+    }
+    .verify-container input {
+      width: 100%;
+      padding: 0.7rem;
+      margin: 0.5rem 0 1rem 0;
+      border-radius: 0.5rem;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    .verify-container .btn {
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
+    .verify-container .info {
+      color: #555;
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="verify-container">
+    <i class="fas fa-envelope-open-text" style="font-size:2.5rem;color:#007bff;"></i>
+    <h1>Verifica tu Email</h1>
+    <div class="info">Ingresa el código de verificación que recibiste por email o haz clic en el botón para reenviar el correo.</div>
+    <form id="verifyForm">
+      <input type="text" id="verificationCode" placeholder="Código de verificación" required autocomplete="one-time-code">
+      <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Verificar Email</button>
+    </form>
+    <button id="resendBtn" class="btn btn-secondary"><i class="fas fa-paper-plane"></i> Reenviar email de verificación</button>
+    <div id="verifyMessage" style="margin-top:1rem;"></div>
+    <a href="login.html" style="display:block;margin-top:1.5rem;color:#007bff;">Volver a iniciar sesión</a>
+  </div>
+  <script src="../js/verificar-email.js"></script>
+</body>
+</html>

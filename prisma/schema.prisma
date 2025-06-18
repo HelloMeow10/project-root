@@ -19,6 +19,8 @@ model Cliente {
   activo         Boolean   @default(true)
   carritos       Carrito[]
   pedidos        Pedido[]
+  email_verificado Boolean   @default(false)
+  token_verificacion_email String?
 }
 
 model Rol {
@@ -48,13 +50,13 @@ model TipoProducto {
 }
 
 model Producto {
-  nombre                    String
-  descripcion               String?
-  precio                    Decimal
-  stock                     Int              @default(0)
-  activo                    Boolean          @default(true)
   id_producto               Int              @id @default(autoincrement())
-  id_tipo                   Int
+  nombre                    String
+  tipo                      String?          // <-- ahora opcional
+  descripcion               String?
+  precio                    Float
+  stock                     Int?
+  activo                    Boolean          @default(true)
   alquiler                  Alquiler?
   Auto                      Auto?
   carritoItems              CarritoItem[]
@@ -63,7 +65,8 @@ model Producto {
   paqueteDetallesAsProducto PaqueteDetalle[] @relation("PaqueteDetallesProducto")
   pasaje                    Pasaje?
   pedidoItems               PedidoItem[]
-  tipo                      TipoProducto     @relation(fields: [id_tipo], references: [id_tipo])
+  id_tipo                   Int?
+  tipoProducto              TipoProducto?    @relation(fields: [id_tipo], references: [id_tipo])
 }
 
 model Hospedaje {
@@ -127,14 +130,15 @@ model CarritoItem {
 }
 
 model Pedido {
+  id_pedido    Int          @id @default(autoincrement())
   total        Decimal
   estado       String
   fecha_pedido DateTime     @default(now())
   id_cliente   Int
-  id_pedido    Int          @id @default(autoincrement())
   pagos        Pago[]
   cliente      Cliente      @relation(fields: [id_cliente], references: [id_cliente])
   items        PedidoItem[]
+  ventas       Venta[]      // Relación inversa
 }
 
 model PedidoItem {
@@ -174,4 +178,12 @@ model Auto {
   ubicacion_actual String?
   estado           String
   Producto         Producto @relation(fields: [id_producto], references: [id_producto])
+}
+
+model Venta {
+  id        Int      @id @default(autoincrement())
+  pedidoId  Int
+  monto     Float
+  fecha     DateTime
+  pedido    Pedido   @relation(fields: [pedidoId], references: [id_pedido])
 }

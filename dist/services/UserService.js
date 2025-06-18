@@ -9,7 +9,7 @@ class UserService {
     async obtenerUsuariosInternos() {
         const usuarios = await this.repo.findAllInternos();
         return usuarios.map((u) => ({
-            id: u.id_usuario,
+            id_usuario: u.id_usuario, // <--- CAMBIA ESTO
             nombre: u.nombre,
             apellido: u.apellido,
             email: u.email,

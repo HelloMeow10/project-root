@@ -2,15 +2,23 @@
 import { prisma } from '../config/db';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 
 export class AuthService {
   // Registro de cliente
   async registerCliente(userData: { nombre: string; apellido?: string; email: string; contrasena: string; telefono?: string; direccion?: string; }) {
     const hashed = await bcrypt.hash(userData.contrasena, 10);
+    // Generar token de verificación de email
+    const token_verificacion_email = crypto.randomBytes(32).toString('hex');
     const newUser = await prisma.cliente.create({
-      data: { ...userData, contrasena: hashed }
+      data: {
+        ...userData,
+        contrasena: hashed,
+        email_verificado: false,
+        token_verificacion_email
+      }
     });
-    return newUser;
+    return { ...newUser, token_verificacion_email };
   }
 
   // Login de cliente

@@ -23,8 +23,20 @@ export class OrderRepository {
     });
   }
 
+  // Crea un pedido con items y pagos en una sola transacción
   async create(data: any) {
-    return prisma.pedido.create({ data });
+    return prisma.pedido.create({
+      data: {
+        ...data,
+        items: data.items ? { create: data.items } : undefined,
+        pagos: data.pagos ? { create: data.pagos } : undefined
+      },
+      include: {
+        cliente: true,
+        items: true,
+        pagos: true
+      }
+    });
   }
 
   async update(id_pedido: number, data: any) {

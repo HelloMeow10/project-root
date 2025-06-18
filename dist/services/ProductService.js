@@ -4,13 +4,16 @@ exports.ProductService = void 0;
 // src/services/ProductService.ts
 const ProductRepository_1 = require("../repositories/ProductRepository");
 function mapPrismaProductoToProducto(prismaProducto) {
+    var _a;
     return {
-        id: prismaProducto.id_producto,
+        id_producto: prismaProducto.id_producto,
         nombre: prismaProducto.nombre,
+        tipo: (_a = prismaProducto.tipoProducto) === null || _a === void 0 ? void 0 : _a.nombre, // Deriva el nombre del tipo si está incluido
         descripcion: prismaProducto.descripcion,
         precio: prismaProducto.precio,
         stock: prismaProducto.stock,
-        // agrega otros campos si tu interfaz los tiene
+        activo: prismaProducto.activo,
+        id_tipo: prismaProducto.id_tipo
     };
 }
 class ProductService {
@@ -33,20 +36,16 @@ class ProductService {
     async crearProducto(data) {
         if (data.precio < 0)
             throw new Error('El precio debe ser positivo');
-        // Prisma espera id_tipo, debes adaptar si es necesario
-        const prismaData = Object.assign(Object.assign({}, data), { id_tipo: 1 }); // Ajusta id_tipo según corresponda
+        if (!data.id_tipo)
+            throw new Error('id_tipo es requerido');
+        // No se debe mapear tipo string a id_tipo aquí, debe venir del frontend o lógica superior
+        const prismaData = Object.assign({}, data);
         const producto = await this.repo.create(prismaData);
         return mapPrismaProductoToProducto(producto);
     }
-    // Actualiza un producto existente
-    async actualizarProducto(id, data) {
-        const producto = await this.repo.update(id, data);
-        return mapPrismaProductoToProducto(producto);
-    }
     // Elimina un producto
-    async eliminarProducto(id) {
-        const producto = await this.repo.delete(id);
-        return mapPrismaProductoToProducto(producto);
+    async deleteProduct(id) {
+        return this.repo.delete(id);
     }
 }
 exports.ProductService = ProductService;

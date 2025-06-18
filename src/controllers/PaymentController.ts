@@ -1,74 +1,97 @@
 import { Request, Response } from 'express';
+import { prisma } from '../prismaClient';
 import Stripe from 'stripe';
-import { prisma } from '../config/db';
+import nodemailer from 'nodemailer';
 
-// Extend Express Request type (already defined in authMiddleware.ts)
-// declare global {
-//   namespace Express {
-//     interface Request {
-//       user?: { userId: number; tipo: 'cliente' | 'admin'; nombre: string };
-//     }
-//   }
-// }
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, { apiVersion: '2025-05-28.basil' });
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-05-28.basil',
-});
+export async function processPayment(req: Request, res: Response) {
+  try {
+    const { pedidoId, monto, paymentMethodId } = req.body;
 
-interface PaymentRequestBody {
-  amount: number;
-  currency: string;
-  id_pedido: number;
+    // 1. Validar pedido
+    const pedido = await prisma.pedido.findUnique({
+      where: { id_pedido: pedidoId },
+      include: { cliente: true, items: { include: { producto: true } } }
+    });
+    if (!pedido) return res.status(404).json({ message: 'Pedido no encontrado' });
+    if (pedido.estado === 'pagado') return res.status(400).json({ message: 'El pedido ya está pagado' });
+    if (Number(pedido.total) !== Number(monto)) return res.status(400).json({ message: 'El monto no coincide con el pedido' });
+
+    // 2. Procesar pago con Stripe
+    let stripePayment;
+    if (paymentMethodId) {
+      stripePayment = await stripe.paymentIntents.create({
+        amount: Math.round(Number(monto) * 100), // en centavos
+        currency: 'ars',
+        payment_method: paymentMethodId,
+        confirm: true,
+        receipt_email: pedido.cliente?.email
+      });
+      if (stripePayment.status !== 'succeeded') {
+        return res.status(400).json({ message: 'Pago rechazado por Stripe' });
+      }
+    }
+
+    // 3. Actualizar estado del pedido
+    await prisma.pedido.update({
+      where: { id_pedido: pedidoId },
+      data: { estado: 'pagado' }
+    });
+
+    // 4. Registrar la venta
+    await prisma.venta.create({
+      data: {
+        pedidoId,
+        monto,
+        fecha: new Date()
+      }
+    });
+
+    // 5. Enviar email de confirmación al cliente
+    await enviarEmailConfirmacionCliente(pedido.cliente?.email, pedido.cliente?.nombre, pedido);
+    // 6. Enviar notificación interna
+    await enviarEmailNotificacionInterna(pedido);
+
+    res.json({ message: 'Pago procesado y venta registrada correctamente' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error procesando el pago', error: err });
+  }
 }
 
-export async function processPayment(req: Request<{}, {}, PaymentRequestBody>, res: Response) {
-  let userId: number | undefined;
-  try {
-    if (!req.user || req.user.tipo !== 'cliente') {
-      return res.status(401).json({ message: 'Acceso no autorizado. Solo clientes pueden procesar pagos.' });
+async function enviarEmailConfirmacionCliente(email: string, nombre: string, pedido: any) {
+  if (!email) return;
+  const html = `<h2>¡Gracias por tu compra, ${nombre}!</h2><p>Tu pedido #${pedido.id_pedido} ha sido pagado correctamente.</p>`;
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_PASS
     }
-    userId = req.user.userId;
+  });
+  await transporter.sendMail({
+    from: `Musimundo Travel <${process.env.GMAIL_USER}>`,
+    to: email,
+    subject: 'Confirmación de compra',
+    html
+  });
+}
 
-    const { amount, currency, id_pedido } = req.body;
-
-    if (!amount || amount < 1 || !currency || !id_pedido) {
-      console.log(`Invalid payment request: amount=${amount}, currency=${currency}, id_pedido=${id_pedido}`);
-      return res.status(400).json({ message: 'Invalid amount, currency, or pedido ID' });
+async function enviarEmailNotificacionInterna(pedido: any) {
+  // Puedes poner aquí el email de la empresa o leerlo de la base de datos
+  const emailEmpresa = process.env.GMAIL_USER;
+  const html = `<h2>Nuevo pedido pagado</h2><p>Pedido #${pedido.id_pedido} de ${pedido.cliente?.nombre} (${pedido.cliente?.email})</p>`;
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_PASS
     }
-
-    const pedido = await prisma.pedido.findUnique({
-      where: { id_pedido },
-      include: { cliente: true },
-    });
-    if (!pedido || pedido.id_cliente !== userId) {
-      console.log(`Pedido not found or unauthorized: id_pedido=${id_pedido}, userId=${userId}`);
-      return res.status(404).json({ message: 'Pedido no encontrado o no autorizado' });
-    }
-
-    if (Number(pedido.total) * 100 !== amount) {
-      console.log(`Amount mismatch: pedido total=${pedido.total}, provided=${amount / 100}`);
-      return res.status(400).json({ message: 'El monto no coincide con el total del pedido' });
-    }
-
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount,
-      currency,
-      metadata: { id_pedido: id_pedido.toString(), userId: userId.toString() },
-    });
-
-    const pago = await prisma.pago.create({
-      data: {
-        id_pedido,
-        monto: amount / 100,
-        metodo: 'stripe',
-        estado: 'pending',
-      },
-    });
-
-    console.log(`Created payment intent: ${paymentIntent.id}, pago: ${pago.id_pago}`);
-    res.status(200).json({ clientSecret: paymentIntent.client_secret, pagoId: pago.id_pago });
-  } catch (error) {
-    console.error(`processPayment error for userId ${userId || 'unknown'}:`, error);
-    res.status(500).json({ message: 'Error al procesar el pago' });
-  }
+  });
+  await transporter.sendMail({
+    from: `Musimundo Travel <${process.env.GMAIL_USER}>`,
+    to: emailEmpresa,
+    subject: 'Notificación interna: Pedido pagado',
+    html
+  });
 }

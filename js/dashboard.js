@@ -100,25 +100,41 @@ class DashboardUI {
         // Window resize
         window.addEventListener('resize', () => this.handleResize());
 
-        document.getElementById('tabUsuariosInternos').onclick = async () => {
-          document.getElementById('usuariosInternosTable').style.display = '';
-          document.getElementById('clientesTable').style.display = 'none';
-          document.getElementById('tabUsuariosInternos').classList.add('active');
-          document.getElementById('tabClientes').classList.remove('active');
-          const res = await fetch('/api/users/internos');
-          const data = await res.json();
-          dashboardUI.renderUsuariosInternosTable(data);
-        };
+        // Alternar pestañas de usuarios
+        const tabUsuariosInternos = document.getElementById('tabUsuariosInternos');
+        const tabClientes = document.getElementById('tabClientes');
+        const usuariosInternosTable = document.getElementById('usuariosInternosTable');
+        const clientesTable = document.getElementById('clientesTable');
 
-        document.getElementById('tabClientes').onclick = async () => {
-          document.getElementById('usuariosInternosTable').style.display = 'none';
-          document.getElementById('clientesTable').style.display = '';
-          document.getElementById('tabUsuariosInternos').classList.remove('active');
-          document.getElementById('tabClientes').classList.add('active');
-          const res = await fetch('/api/users/clientes');
-          const data = await res.json();
-          dashboardUI.renderClientesTable(data);
-        };
+        if (tabUsuariosInternos && tabClientes && usuariosInternosTable && clientesTable) {
+          tabUsuariosInternos.onclick = async () => {
+            tabUsuariosInternos.classList.add('active');
+            tabClientes.classList.remove('active');
+            usuariosInternosTable.style.display = '';
+            clientesTable.style.display = 'none';
+            // Usa el método de tu clase para renderizar
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/users/internos', {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            this.renderUsuariosInternosTable(data);
+          };
+          tabClientes.onclick = async () => {
+            tabClientes.classList.add('active');
+            tabUsuariosInternos.classList.remove('active');
+            usuariosInternosTable.style.display = 'none';
+            clientesTable.style.display = '';
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/users/clientes', {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            this.renderClientesTable(data);
+          };
+          // Mostrar por defecto usuarios internos
+          tabUsuariosInternos.click();
+        }
 
         document.getElementById('formAgregarPaquete').onsubmit = async function(e) {
           e.preventDefault();
@@ -139,6 +155,110 @@ class DashboardUI {
             this.reset();
           } else {
             DashboardAPI.showNotification('Error al añadir paquete', 'error');
+          }
+        };
+
+        // Cerrar modal
+        document.getElementById('cerrarModalEditar').onclick = function() {
+          document.getElementById('modalEditarUsuario').style.display = 'none';
+        };
+        document.getElementById('cancelarEditarUsuario').onclick = function() {
+          document.getElementById('modalEditarUsuario').style.display = 'none';
+        };
+
+        // Guardar cambios
+        document.getElementById('formEditarUsuario').onsubmit = async function(e) {
+          e.preventDefault();
+          const id = document.getElementById('editIdUsuario').value;
+          const data = {
+            nombre: document.getElementById('editNombre').value,
+            apellido: document.getElementById('editApellido').value,
+            email: document.getElementById('editEmail').value,
+            telefono: document.getElementById('editTelefono').value,
+            id_rol: document.getElementById('editRol').value
+          };
+          const token = localStorage.getItem('token');
+          const res = await fetch(`/api/users/internos/${id}`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+          if (res.ok) {
+            dashboardUI.showNotification('Usuario actualizado', 'success');
+            document.getElementById('modalEditarUsuario').style.display = 'none';
+            // Recarga la tabla de usuarios internos
+            const tabUsuariosInternos = document.getElementById('tabUsuariosInternos');
+            if (tabUsuariosInternos) tabUsuariosInternos.click();
+          } else {
+            dashboardUI.showNotification('Error al actualizar usuario', 'error');
+          }
+        };
+
+        
+
+        // Cerrar modal
+        document.getElementById('cerrarModalProducto').onclick = cerrarModalProducto;
+        document.getElementById('cancelarProducto').onclick = cerrarModalProducto;
+        function cerrarModalProducto() {
+          document.getElementById('modalProducto').style.display = 'none';
+        }
+
+        // Abrir modal para editar producto
+        async function abrirModalEditarProducto(id) {
+          const token = localStorage.getItem('token');
+          const res = await fetch(`/api/products/${id}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const producto = await res.json();
+          document.getElementById('modalProductoTitulo').textContent = 'Editar Producto';
+          document.getElementById('productoId').value = producto.id || producto.id_producto;
+          document.getElementById('productoNombre').value = producto.nombre;
+          document.getElementById('productoTipo').value = producto.tipo;
+          document.getElementById('productoPrecio').value = producto.precio;
+          document.getElementById('modalProducto').style.display = 'block';
+        }
+
+        // Guardar producto (crear o editar)
+        document.getElementById('formProducto').onsubmit = async function(e) {
+          e.preventDefault();
+          const id = document.getElementById('productoId').value;
+          const data = {
+            nombre: document.getElementById('productoNombre').value,
+            tipo: document.getElementById('productoTipo').value,
+            precio: Number(document.getElementById('productoPrecio').value)
+          };
+          const token = localStorage.getItem('token');
+          console.log('Enviando producto:', data); // <-- agrega esto
+          let res;
+          if (id) {
+            res = await fetch(`/api/products/${id}`, {
+              method: 'PUT',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(data)
+            });
+          } else {
+            res = await fetch('/api/products', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(data)
+            });
+          }
+          console.log('Respuesta:', res.status); // <-- agrega esto
+          if (res.ok) {
+            DashboardAPI.showNotification('Producto guardado', 'success');
+            cerrarModalProducto();
+            cargarProductos();
+          } else {
+            DashboardAPI.showNotification('Error al guardar producto', 'error');
           }
         };
     }
@@ -164,6 +284,7 @@ class DashboardUI {
     }
 
     showPage(pageId) {
+        console.log('Mostrando página:', pageId); // <-- agrega esto
         // Hide all pages
         document.querySelectorAll('.page').forEach(page => {
             page.classList.remove('active');
@@ -181,11 +302,12 @@ class DashboardUI {
     }
 
     onPageShow(pageId) {
+        if (pageId === 'products') { // <-- aquí el cambio
+            cargarProductos();
+        }
         // Override this method to handle page-specific logic
         // This is where you would trigger data loading for each page
         console.log(`Page ${pageId} shown - trigger data loading here`);
-        
-        // Example: Emit custom event for data loading
         document.dispatchEvent(new CustomEvent('pageChanged', { 
             detail: { page: pageId } 
         }));
@@ -744,15 +866,36 @@ class DashboardUI {
         data.forEach(u => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-              <td>${u.id}</td>
-              <td>${u.nombre}</td>
-              <td>${u.apellido || ''}</td>
-              <td>${u.email}</td>
-              <td>${u.telefono || ''}</td>
-              <td>${u.activo ? 'Sí' : 'No'}</td>
-              <td>${u.id_rol || ''}</td>
+                <td>${u.id_usuario}</td>
+                <td>${u.nombre}</td>
+                <td>${u.apellido || ''}</td>
+                <td>${u.email}</td>
+                <td>${u.telefono || ''}</td>
+                <td>${u.activo ? 'Sí' : 'No'}</td>
+                <td>${u.id_rol || ''}</td>
+                <td>
+                    <button class="btn-activar" data-id="${u.id_usuario}" data-activo="${u.activo}">
+                        ${u.activo ? 'Desactivar' : 'Activar'}
+                    </button>
+                    <button class="btn-eliminar" data-id="${u.id_usuario}">Eliminar</button>
+                </td>
             `;
             tbody.appendChild(tr);
+        });
+
+        // Listeners para los botones
+        tbody.querySelectorAll('.btn-activar').forEach(btn => {
+            btn.onclick = (e) => {
+                const id = btn.getAttribute('data-id');
+                const activo = btn.getAttribute('data-activo') === 'true';
+                this.toggleUsuarioInternoActivo(id, !activo);
+            };
+        });
+        tbody.querySelectorAll('.btn-eliminar').forEach(btn => {
+            btn.onclick = (e) => {
+                const id = btn.getAttribute('data-id');
+                this.eliminarUsuarioInterno(id);
+            };
         });
     }
 
@@ -772,52 +915,60 @@ class DashboardUI {
             tbody.appendChild(tr);
         });
     }
+
+    async toggleUsuarioInternoActivo(id, nuevoEstado) {
+      const token = localStorage.getItem('token');
+      try {
+        const res = await fetch(`/api/users/internos/${id}/activo`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ activo: nuevoEstado })
+        });
+        if (!res.ok) throw new Error('Error al actualizar estado');
+        this.showNotification('Estado actualizado', 'success');
+        // Recarga la tabla
+        this.setupEventListeners(); // O llama a cargarUsuariosInternos()
+      } catch (err) {
+        this.showNotification('Error al actualizar estado', 'error');
+      }
+    }
+
+    async eliminarUsuarioInterno(id) {
+      const token = localStorage.getItem('token');
+      if (!confirm('¿Seguro que deseas eliminar este usuario?')) return;
+      try {
+        const res = await fetch(`/api/users/internos/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Error al eliminar usuario');
+        this.showNotification('Usuario eliminado', 'success');
+        // Recarga la tabla
+        this.setupEventListeners(); // O llama a cargarUsuariosInternos()
+      } catch (err) {
+        this.showNotification('Error al eliminar usuario', 'error');
+      }
+    }
+
+    // Método para abrir el modal y cargar datos
+    async abrirModalEditarUsuario(id) {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/users/internos/${id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const usuario = await res.json();
+      document.getElementById('editIdUsuario').value = usuario.id_usuario;
+      document.getElementById('editNombre').value = usuario.nombre;
+      document.getElementById('editApellido').value = usuario.apellido || '';
+      document.getElementById('editEmail').value = usuario.email;
+      document.getElementById('editTelefono').value = usuario.telefono || '';
+      document.getElementById('editRol').value = usuario.id_rol || '';
+      document.getElementById('modalEditarUsuario').style.display = 'block';
+    }
 }
-
-// Initialize Dashboard UI when DOM is loaded
-let dashboardUI;
-
-document.addEventListener('DOMContentLoaded', function() {
-  const overlay = document.getElementById('accessOverlay');
-  if (overlay) overlay.style.display = 'none';
-  const dashboard = document.querySelector('.dashboard');
-  if (dashboard) dashboard.style.display = '';
-  const mainContent = document.querySelector('.main-content');
-  if (mainContent) mainContent.style.display = 'block';
-
-  // Listeners para las pestañas
-  document.getElementById('tabProductos').onclick = function() {
-    cargarVistaProductos();
-  };
-  document.getElementById('tabUsuarios').onclick = function() {
-    cargarVistaUsuarios();
-  };
-  document.getElementById('tabPaquetes').onclick = function() {
-    cargarVistaPaquetes();
-  };
-
-  // Muestra la pestaña por defecto
-  document.getElementById('tabProductos').click();
-
-  // Sidebar navigation
-  const navLinks = document.querySelectorAll('.nav-link[data-page]');
-  const pages = document.querySelectorAll('.page');
-
-  navLinks.forEach(link => {
-    link.addEventListener('click', function(e) {
-      e.preventDefault();
-      // Quitar clase active de todos los links y páginas
-      navLinks.forEach(l => l.classList.remove('active'));
-      pages.forEach(p => p.classList.remove('active'));
-
-      // Agregar clase active al link y a la página correspondiente
-      this.classList.add('active');
-      const pageId = this.getAttribute('data-page') + '-page';
-      const page = document.getElementById(pageId);
-      if (page) page.classList.add('active');
-    });
-  });
-});
 
 // Ejemplo de función para cargar productos
 function cargarVistaProductos() {
@@ -929,7 +1080,6 @@ async function eliminarProducto(id) {
   });
   if (res.ok) {
     DashboardAPI.showNotification('Producto eliminado', 'success');
-    // Recarga la lista de productos
     cargarProductos();
   } else {
     DashboardAPI.showNotification('Error al eliminar producto', 'error');
@@ -976,5 +1126,239 @@ async function cargarPaquetes() {
     `;
     tbody.appendChild(tr);
   });
+}
+
+async function cargarProductos() {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+  const res = await fetch('/api/products', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const productos = await res.json();
+  console.log('Productos recibidos:', productos); // <-- depuración
+  const tbody = document.getElementById('tablaProductosBody');
+  tbody.innerHTML = '';
+  productos.forEach(producto => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${producto.id}</td>
+      <td>${producto.nombre}</td>
+      <td>${producto.descripcion || ''}</td>
+      <td>${producto.precio}</td>
+      <td>${producto.stock}</td>
+      <td>
+        <button class="btn-editar" data-id="${producto.id}"><i class="fas fa-edit"></i></button>
+        <button class="btn-eliminar" data-id="${producto.id}"><i class="fas fa-trash"></i></button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Listeners para editar y eliminar
+  tbody.querySelectorAll('.btn-editar').forEach(btn => {
+    btn.onclick = () => abrirModalEditarProducto(btn.getAttribute('data-id'));
+  });
+  tbody.querySelectorAll('.btn-eliminar').forEach(btn => {
+    btn.onclick = () => eliminarProducto(btn.getAttribute('data-id'));
+  });
+}
+
+async function cargarEstadisticasDashboard() {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+  try {
+    const res = await fetch('/api/dashboard/stats', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('Error al obtener estadísticas');
+    const stats = await res.json();
+    document.getElementById('total-users').textContent = stats.totalClientes ?? 0;
+    document.getElementById('total-sales').textContent = `$${stats.ingresosTotales ?? 0}`;
+    document.getElementById('total-orders').textContent = stats.totalVentas ?? 0;
+    document.getElementById('monthly-revenue').textContent = `$${stats.ingresosTotales ?? 0}`;
+  } catch (err) {
+    if (window.DashboardAPI && typeof window.DashboardAPI.showNotification === 'function') {
+      window.DashboardAPI.showNotification('Error al cargar estadísticas', 'error');
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', cargarEstadisticasDashboard);
+
+const btnAgregarProducto = document.getElementById('btnAgregarProducto');
+  if (btnAgregarProducto) {
+    btnAgregarProducto.onclick = function() {
+      console.log('Click en agregar producto'); // <-- agrega esto
+      document.getElementById('modalProductoTitulo').textContent = 'Agregar Producto';
+      document.getElementById('productoId').value = '';
+      document.getElementById('productoNombre').value = '';
+      document.getElementById('productoTipo').value = 'paquete';
+      document.getElementById('productoPrecio').value = '';
+      document.getElementById('modalProducto').style.display = 'block';
+    };
+  }
+
+  // Botón "Guardar" del modal
+  const btnGuardarProducto = document.querySelector('#modalProducto .btn.btn-primary');
+  if (btnGuardarProducto) {
+    btnGuardarProducto.onclick = async function() {
+      const id = document.getElementById('productoId').value;
+      const data = {
+        nombre: document.getElementById('productoNombre').value,
+        tipo: document.getElementById('productoTipo').value,
+        precio: Number(document.getElementById('productoPrecio').value)
+      };
+      const token = localStorage.getItem('token');
+      let res;
+      if (id) {
+        res = await fetch(`/api/products/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+      } else {
+        res = await fetch('/api/products', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+      }
+      if (res.ok) {
+        DashboardAPI.showNotification('Producto guardado', 'success');
+        document.getElementById('modalProducto').style.display = 'none';
+        cargarProductos();
+      } else {
+        DashboardAPI.showNotification('Error al guardar producto', 'error');
+      }
+    };
+  }
+
+  // Botón "Cancelar" del modal
+  const btnCancelarProducto = document.getElementById('cancelarProducto');
+  if (btnCancelarProducto) {
+    btnCancelarProducto.onclick = function() {
+      document.getElementById('modalProducto').style.display = 'none';
+    };
+  }
+
+  // Botón cerrar modal
+  const btnCerrarModalProducto = document.getElementById('cerrarModalProducto');
+  if (btnCerrarModalProducto) {
+    btnCerrarModalProducto.onclick = function() {
+      document.getElementById('modalProducto').style.display = 'none';
+    };
+  }
+
+
+async function cargarGraficoVentasPorMes() {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+  try {
+    const res = await fetch('/api/dashboard/sales-by-month', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('Error al obtener ventas por mes');
+    const { labels, data } = await res.json();
+
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    if (window.salesChartInstance) window.salesChartInstance.destroy();
+    window.salesChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Ventas por mes',
+          data,
+          backgroundColor: 'rgba(54, 162, 235, 0.5)'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+  } catch (err) {
+    if (window.DashboardAPI && typeof window.DashboardAPI.showNotification === 'function') {
+      window.DashboardAPI.showNotification('Error al cargar gráfico de ventas', 'error');
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', cargarGraficoVentasPorMes);
+
+async function cargarActividadReciente() {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+  try {
+    const res = await fetch('/api/dashboard/recent-activity', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('Error al obtener actividad reciente');
+    const { pedidos, usuarios } = await res.json();
+
+    const actividadDiv = document.getElementById('activity-list');
+    if (actividadDiv) {
+      actividadDiv.innerHTML = `
+        <h4>Últimos pedidos</h4>
+        <ul>
+          ${pedidos.map(p => `<li><b>${p.cliente.nombre} ${p.cliente.apellido}</b> - ${new Date(p.fecha_pedido).toLocaleString()} - $${p.total}</li>`).join('')}
+        </ul>
+        <h4>Últimos usuarios registrados</h4>
+        <ul>
+          ${usuarios.map(u => `<li><b>${u.nombre} ${u.apellido}</b> - ${u.email} - ${new Date(u.fecha_registro).toLocaleDateString()}</li>`).join('')}
+        </ul>
+      `;
+    }
+  } catch (err) {
+    if (window.DashboardAPI && typeof window.DashboardAPI.showNotification === 'function') {
+      window.DashboardAPI.showNotification('Error al cargar actividad reciente', 'error');
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', cargarActividadReciente);
+
+async function cargarUsuariosInternos() {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+  try {
+    const res = await fetch('/api/users/internos', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('Error al obtener usuarios internos');
+    const data = await res.json();
+    // Renderiza la tabla usando tu DashboardUI o directamente
+    window.DashboardAPI.renderTable(data, [
+      { key: 'nombre', label: 'Nombre' },
+      { key: 'apellido', label: 'Apellido' },
+      { key: 'email', label: 'Email' },
+      { key: 'telefono', label: 'Teléfono' },
+      { key: 'activo', label: 'Activo' }
+    ]);
+  } catch (err) {
+    window.DashboardAPI.showNotification('Error al cargar usuarios internos', 'error');
+  }
+}
+
+const dashboardUI = new DashboardUI();
+
+async function abrirModalEditarProducto(id) {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`/api/products/${id}`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const producto = await res.json();
+  // Aquí deberías mostrar el modal y rellenar los campos con los datos de producto
+  // Por ejemplo:
+  // document.getElementById('editNombre').value = producto.nombre;
+  // ...
 }
 
