@@ -356,8 +356,12 @@
                                 <table class="data-table">
                                     <thead>
                                         <tr>
+                                            <th>ID</th>
                                             <th>Nombre</th>
+                                            <th>Descripción</th>
                                             <th>Precio</th>
+                                            <th>Stock</th>
+                                            <th>Activo</th>
                                             <th>Acciones</th>
                                         </tr>
                                     </thead>
@@ -480,6 +484,38 @@
                     <button type="submit" class="btn btn-primary">Guardar Cambios</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Manage Package Components Modal -->
+    <div id="modalGestionarComponentes" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width: 800px;"> <!-- Wider modal for more content -->
+            <div class="modal-header">
+                <h3 id="modalGestionarComponentesTitulo">Gestionar Componentes del Paquete: <span id="nombrePaqueteGestion"></span></h3>
+                <button class="close-btn" id="cerrarModalGestionarComponentes">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="idPaqueteGestionActual">
+
+                <h4>Componentes Actuales</h4>
+                <div id="listaComponentesActuales" style="margin-bottom: 20px; max-height: 200px; overflow-y: auto;">
+                    <!-- Current components will be listed here by JS -->
+                    <p>Cargando componentes...</p>
+                </div>
+
+                <h4>Agregar Nuevo Componente</h4>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <input type="text" id="buscarProductoIndividual" placeholder="Buscar producto individual (vuelo, hotel, auto)..." class="form-control" style="flex-grow: 1;">
+                    <!-- <button id="btnFiltrarProductosIndividuales" class="btn btn-sm btn-secondary">Filtrar</button> -->
+                </div>
+                <div id="listaProductosIndividualesDisponibles" style="max-height: 250px; overflow-y: auto; border: 1px solid #ddd; padding: 10px;">
+                    <!-- Available individual products will be listed here by JS -->
+                    <p>Buscar para ver productos disponibles.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btnCerrarGestionComponentes">Cerrar</button>
+            </div>
         </div>
     </div>
 
