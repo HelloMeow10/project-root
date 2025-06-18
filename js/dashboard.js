@@ -13,7 +13,6 @@ class DashboardUI {
         this.currentPage = 1;
         this.itemsPerPage = 10;
         
-        this.handleProductSearch = this.handleProductSearch.bind(this); // Bind here
         this.init();
     }
 
@@ -118,7 +117,19 @@ class DashboardUI {
             // Search input for Manage Package Components Modal
             const buscarProductoIndividualInput = document.getElementById('buscarProductoIndividual');
             if (buscarProductoIndividualInput) {
-                buscarProductoIndividualInput.addEventListener('input', this.handleProductSearch);
+                buscarProductoIndividualInput.addEventListener('input', (e) => this.handleProductSearch(e));
+            }
+
+            // Event delegation for adding components in Manage Package Components Modal
+            const listaDisponiblesDiv = document.getElementById('listaProductosIndividualesDisponibles');
+            if (listaDisponiblesDiv) {
+                listaDisponiblesDiv.addEventListener('click', handleAddComponent);
+            }
+
+            // Event delegation for removing components in Manage Package Components Modal
+            const listaActualesDiv = document.getElementById('listaComponentesActuales');
+            if (listaActualesDiv) {
+                listaActualesDiv.addEventListener('click', handleRemoveComponent);
             }
 
         // Alternar pestañas de usuarios
@@ -212,7 +223,7 @@ class DashboardUI {
             document.getElementById('modalEditarUsuario').style.display = 'none';
             // Recarga la tabla de usuarios internos
             const tabUsuariosInternos = document.getElementById('tabUsuariosInternos');
-            if (tabUsuariosInternos) tabUsuariosInternos.click();
+            if (tabUsuariosInternos) tabUsuariosInternas.click();
           } else {
             dashboardUI.showNotification('Error al actualizar usuario', 'error');
           }
@@ -350,17 +361,6 @@ class DashboardUI {
         console.log("[onPageShow] Finished.");
     }
 
-    handleProductSearch(event) {
-        const searchTerm = event.target.value.toLowerCase();
-        // _globalAllAvailableIndividualProductsForModal and renderAvailableIndividualProducts are still global
-        const filteredProducts = _globalAllAvailableIndividualProductsForModal.filter(prod => 
-            prod.nombre.toLowerCase().includes(searchTerm) || 
-            (prod.tipo && prod.tipo.toLowerCase().includes(searchTerm))
-        );
-        renderAvailableIndividualProducts(filteredProducts);
-    }
-
-    // Sidebar Methods
     toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
         sidebar.classList.toggle('show');
@@ -411,7 +411,7 @@ class DashboardUI {
         const modal = document.getElementById('modal');
         modal.classList.remove('show');
         document.body.style.overflow = 'auto';
-    }
+   }
 
     // Chart Methods
     initializeChart() {
@@ -470,444 +470,6 @@ class DashboardUI {
         });
     }
 
-    updateChart(labels, data) {
-        if (!this.chart) return;
-        
-        console.log('DashboardUI.updateChart - Applying to chart:', { labels, data });
-        this.chart.data.labels = labels;
-        this.chart.data.datasets[0].data = data;
-        this.chart.update();
-    }
-
-    updateChartPeriod(period) {
-        // Emit event for external data loading
-        document.dispatchEvent(new CustomEvent('chartPeriodChanged', { 
-            detail: { period } 
-        }));
-    }
-
-    // Table Methods
-    renderTable(data, columns) {
-        const tableBody = document.getElementById('tableBody');
-        if (!tableBody) return;
-
-        tableBody.innerHTML = '';
-        
-        data.forEach((item, index) => {
-            const row = document.createElement('tr');
-            row.style.animationDelay = `${index * 0.05}s`;
-            row.classList.add('fade-in');
-            
-            columns.forEach(column => {
-                const cell = document.createElement('td');
-                
-                if (column.type === 'status') {
-                    cell.innerHTML = `<span class="status ${item[column.key]}">${this.formatStatus(item[column.key])}</span>`;
-                } else if (column.type === 'actions') {
-                    cell.innerHTML = this.generateActionButtons(item.id);
-                } else if (column.type === 'currency') {
-                    cell.textContent = this.formatCurrency(item[column.key]);
-                } else if (column.type === 'date') {
-                    cell.textContent = this.formatDate(item[column.key]);
-                } else {
-                    cell.textContent = item[column.key] || '';
-                }
-                
-                row.appendChild(cell);
-            });
-            
-            tableBody.appendChild(row);
-        });
-        
-        this.updatePagination(data.length);
-    }
-
-    generateActionButtons(id) {
-        return `
-            <button class="btn btn-sm btn-primary" onclick="dashboardUI.editItem(${id})" title="Editar">
-                <i class="fas fa-edit"></i>
-            </button>
-            <button class="btn btn-sm btn-danger" onclick="dashboardUI.deleteItem(${id})" title="Eliminar">
-                <i class="fas fa-trash"></i>
-            </button>
-        `;
-    }
-
-    handleSort(column) {
-        const direction = this.sortDirection[column] === 'asc' ? 'desc' : 'asc';
-        this.sortDirection[column] = direction;
-        
-        // Update sort indicators
-        document.querySelectorAll('[data-sort]').forEach(header => {
-            header.classList.remove('sorted');
-            const icon = header.querySelector('i');
-            icon.className = 'fas fa-sort';
-        });
-        
-        const header = document.querySelector(`[data-sort="${column}"]`);
-        header.classList.add('sorted');
-        const icon = header.querySelector('i');
-        icon.className = `fas fa-sort-${direction === 'asc' ? 'up' : 'down'}`;
-        
-        // Emit sort event
-        document.dispatchEvent(new CustomEvent('tableSort', { 
-            detail: { column, direction } 
-        }));
-    }
-
-    handleStatusFilter(status) {
-        document.dispatchEvent(new CustomEvent('statusFilter', { 
-            detail: { status } 
-        }));
-    }
-
-    // Pagination Methods
-    updatePagination(totalItems) {
-        const totalPages = Math.ceil(totalItems / this.itemsPerPage);
-        const paginationInfo = document.getElementById('paginationInfo');
-        const pageNumbers = document.getElementById('pageNumbers');
-        const prevBtn = document.getElementById('prevPage');
-        const nextBtn = document.getElementById('nextPage');
-        
-        if (paginationInfo) {
-            const start = (this.currentPage - 1) * this.itemsPerPage + 1;
-            const end = Math.min(this.currentPage * this.itemsPerPage, totalItems);
-            paginationInfo.textContent = `Mostrando ${start}-${end} de ${totalItems} registros`;
-        }
-        
-        if (pageNumbers) {
-            pageNumbers.innerHTML = '';
-            for (let i = 1; i <= totalPages; i++) {
-                const pageBtn = document.createElement('span');
-                pageBtn.className = `page-number ${i === this.currentPage ? 'active' : ''}`;
-                pageBtn.textContent = i;
-                pageBtn.addEventListener('click', () => this.goToPage(i));
-                pageNumbers.appendChild(pageBtn);
-            }
-        }
-        
-        if (prevBtn) prevBtn.disabled = this.currentPage === 1;
-        if (nextBtn) nextBtn.disabled = this.currentPage === totalPages;
-    }
-
-    goToPage(page) {
-        this.currentPage = page;
-        document.dispatchEvent(new CustomEvent('pageChanged', { 
-            detail: { page } 
-        }));
-    }
-
-    previousPage() {
-        if (this.currentPage > 1) {
-            this.goToPage(this.currentPage - 1);
-        }
-    }
-
-    nextPage() {
-        this.goToPage(this.currentPage + 1);
-    }
-
-    // Statistics Methods
-    updateStats(stats) {
-        Object.keys(stats).forEach(key => {
-            const element = document.getElementById(key);
-            if (element) {
-                this.animateCounter(element, stats[key]);
-            }
-        });
-    }
-
-    animateCounter(element, targetValue) {
-        const startValue = parseInt(element.textContent.replace(/[^0-9]/g, '')) || 0;
-        const duration = 1000;
-        const startTime = performance.now();
-        
-        const animate = (currentTime) => {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            
-            const currentValue = Math.floor(startValue + (targetValue - startValue) * progress);
-            
-            if (element.id.includes('sales') || element.id.includes('revenue')) {
-                element.textContent = this.formatCurrency(currentValue);
-            } else {
-                element.textContent = currentValue.toLocaleString();
-            }
-            
-            if (progress < 1) {
-                requestAnimationFrame(animate);
-            }
-        };
-        
-        requestAnimationFrame(animate);
-    }
-
-    // Activity Methods
-    updateActivity(activities) {
-        const activityList = document.getElementById('activity-list');
-        if (!activityList) return;
-        
-        activityList.innerHTML = '';
-        
-        activities.forEach((activity, index) => {
-            const item = document.createElement('div');
-            item.className = 'activity-item';
-            item.style.animationDelay = `${index * 0.1}s`;
-            
-            item.innerHTML = `
-                <div class="activity-icon ${activity.type}">
-                    <i class="fas fa-${this.getActivityIcon(activity.type)}"></i>
-                </div>
-                <div class="activity-content">
-                    <h4>${activity.title}</h4>
-                    <p>${activity.description}</p>
-                </div>
-                <div class="activity-time">${this.formatTimeAgo(activity.timestamp)}</div>
-            `;
-            
-            activityList.appendChild(item);
-        });
-    }
-
-    refreshActivity() {
-        const refreshBtn = document.getElementById('refreshActivity');
-        const icon = refreshBtn.querySelector('i');
-        
-        icon.style.animation = 'spin 1s linear infinite';
-        
-        // Emit refresh event
-        document.dispatchEvent(new CustomEvent('refreshActivity'));
-        
-        setTimeout(() => {
-            icon.style.animation = '';
-        }, 1000);
-    }
-
-    getActivityIcon(type) {
-        const icons = {
-            user: 'user-plus',
-            order: 'shopping-bag',
-            payment: 'credit-card',
-            product: 'box',
-            system: 'cog'
-        };
-        return icons[type] || 'info-circle';
-    }
-
-    // Notification Methods
-    showNotification(message, type = 'info', duration = 5000) {
-        const container = document.getElementById('notificationContainer');
-        if (!container) return;
-        
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        
-        notification.innerHTML = `
-            <i class="fas fa-${this.getNotificationIcon(type)}"></i>
-            <span>${message}</span>
-            <button class="notification-close">&times;</button>
-        `;
-        
-        container.appendChild(notification);
-        
-        // Auto remove
-        setTimeout(() => {
-            this.removeNotification(notification);
-        }, duration);
-        
-        // Close button
-        notification.querySelector('.notification-close').addEventListener('click', () => {
-            this.removeNotification(notification);
-        });
-    }
-
-    removeNotification(notification) {
-        notification.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove();
-            }
-        }, 300);
-    }
-
-    getNotificationIcon(type) {
-        const icons = {
-            success: 'check-circle',
-            error: 'exclamation-circle',
-            warning: 'exclamation-triangle',
-            info: 'info-circle'
-        };
-        return icons[type] || 'info-circle';
-    }
-
-    // Loading Methods
-    showLoading() {
-        const overlay = document.getElementById('loadingOverlay');
-        if (overlay) {
-            overlay.classList.add('show');
-        }
-    }
-
-    hideLoading() {
-        const overlay = document.getElementById('loadingOverlay');
-        if (overlay) {
-            overlay.classList.remove('show');
-        }
-    }
-
-    // Utility Methods
-    formatCurrency(value) {
-        return new Intl.NumberFormat('es-ES', {
-            style: 'currency',
-            currency: 'EUR'
-        }).format(value);
-    }
-
-    formatDate(dateString) {
-        return new Date(dateString).toLocaleDateString('es-ES');
-    }
-
-    formatTimeAgo(timestamp) {
-        const now = new Date();
-        const time = new Date(timestamp);
-        const diff = now - time;
-        
-        const minutes = Math.floor(diff / 60000);
-        const hours = Math.floor(diff / 3600000);
-        const days = Math.floor(diff / 86400000);
-        
-        if (minutes < 1) return 'Ahora';
-        if (minutes < 60) return `Hace ${minutes} min`;
-        if (hours < 24) return `Hace ${hours} h`;
-        return `Hace ${days} días`;
-    }
-
-    formatStatus(status) {
-        const translations = {
-            active: 'Activo',
-            inactive: 'Inactivo',
-            pending: 'Pendiente'
-        };
-        return translations[status] || status;
-    }
-
-    // Event Handlers
-    handleKeyboardShortcuts(e) {
-        // Ctrl/Cmd + K for search
-        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-            e.preventDefault();
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                searchInput.focus();
-            }
-        }
-        
-        // Escape to close modal
-        if (e.key === 'Escape') {
-            this.closeModal();
-        }
-    }
-
-    handleResize() {
-        this.isMobile = window.innerWidth <= 768;
-        
-        if (this.chart) {
-            this.chart.resize();
-        }
-        
-        // Close sidebar on desktop
-        if (!this.isMobile) {
-            this.closeSidebar();
-        }
-    }
-
-    handleExport() {
-        // Emit export event
-        document.dispatchEvent(new CustomEvent('exportData', { 
-            detail: { page: this.currentPage } 
-        }));
-        
-        this.showNotification('Exportando datos...', 'info');
-    }
-
-    // Animation Methods
-    initializeAnimations() {
-        // Add CSS for fade-in animation
-        const style = document.createElement('style');
-        style.textContent = `
-            .fade-in {
-                opacity: 0;
-                animation: fadeInUp 0.3s ease forwards;
-            }
-            
-            @keyframes fadeInUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(10px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-            
-            @keyframes slideOutRight {
-                from {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-                to {
-                    transform: translateX(100%);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-
-    setupResponsiveHandlers() {
-        // Handle responsive behavior
-        const mediaQuery = window.matchMedia('(max-width: 768px)');
-        mediaQuery.addListener((e) => {
-            this.isMobile = e.matches;
-            if (!this.isMobile) {
-                this.closeSidebar();
-            }
-        });
-    }
-
-    // Public API Methods (to be called from external scripts)
-    editItem(id) {
-        document.dispatchEvent(new CustomEvent('editItem', { 
-            detail: { id, page: this.currentPage } 
-        }));
-    }
-
-    deleteItem(id) {
-        if (confirm('¿Estás seguro de que quieres eliminar este elemento?')) {
-            document.dispatchEvent(new CustomEvent('deleteItem', { 
-                detail: { id, page: this.currentPage } 
-            }));
-        }
-    }
-
-    // Update notification badge
-    updateNotificationBadge(count) {
-        const badge = document.getElementById('notificationBadge');
-        if (badge) {
-            badge.textContent = count;
-            badge.style.display = count > 0 ? 'flex' : 'none';
-        }
-    }
-
-    // Update user info
-    updateUserInfo(userName) {
-        const userNameElement = document.getElementById('userName');
-        if (userNameElement) {
-            userNameElement.textContent = userName;
-        }
-    }
-
     renderUsuariosInternosTable(data) {
         const tbody = document.getElementById('usuariosInternosTableBody');
         tbody.innerHTML = '';
@@ -964,77 +526,157 @@ class DashboardUI {
         });
     }
 
-    async toggleUsuarioInternoActivo(id, nuevoEstado) {
-      const token = localStorage.getItem('token');
-      try {
-        const res = await fetch(`/api/users/internos/${id}/activo`, {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ activo: nuevoEstado })
+    setupResponsiveHandlers() {
+        // Handle responsive behavior
+        const mediaQuery = window.matchMedia('(max-width: 768px)');
+        mediaQuery.addListener((e) => {
+            this.isMobile = e.matches;
+            if (!this.isMobile) {
+                this.closeSidebar();
+            }
         });
-        if (!res.ok) throw new Error('Error al actualizar estado');
-        this.showNotification('Estado actualizado', 'success');
-        // Recarga la tabla
-        this.setupEventListeners(); // O llama a cargarUsuariosInternos()
-      } catch (err) {
-        this.showNotification('Error al actualizar estado', 'error');
-      }
     }
 
-    async eliminarUsuarioInterno(id) {
-      const token = localStorage.getItem('token');
-      if (!confirm('¿Seguro que deseas eliminar este usuario?')) return;
-      try {
-        const res = await fetch(`/api/users/internos/${id}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` }
+    initializeAnimations() {
+        // Add CSS for fade-in animation
+        const style = document.createElement('style');
+        style.textContent = `
+            .fade-in {
+                opacity: 0;
+                animation: fadeInUp 0.3s ease forwards;
+            }
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            @keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    handleKeyboardShortcuts(e) {
+        // Ctrl/Cmd + K for search
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.focus();
+            }
+        }
+        // Escape to close modal
+        if (e.key === 'Escape') {
+            this.closeModal();
+        }
+    }
+
+    // Métodos utilitarios requeridos por DashboardAPI y funciones globales
+    updateChart(labels, data) {
+        if (this.chart) {
+            this.chart.data.labels = labels;
+            this.chart.data.datasets[0].data = data;
+            this.chart.update();
+        }
+    }
+    showNotification(message, type = 'info', duration = 3000) {
+        // Implementación simple de notificación
+        let notif = document.createElement('div');
+        notif.className = `dashboard-notification ${type}`;
+        notif.textContent = message;
+        notif.style.position = 'fixed';
+        notif.style.top = '20px';
+        notif.style.right = '20px';
+        notif.style.zIndex = 9999;
+        notif.style.padding = '12px 24px';
+        notif.style.background = type === 'success' ? '#27ae60' : (type === 'error' ? '#e74c3c' : '#3498db');
+        notif.style.color = '#fff';
+        notif.style.borderRadius = '6px';
+        notif.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+        document.body.appendChild(notif);
+        setTimeout(() => notif.remove(), duration);
+    }
+    showLoading() {
+        if (!document.getElementById('dashboard-loading')) {
+            let loader = document.createElement('div');
+            loader.id = 'dashboard-loading';
+            loader.style.position = 'fixed';
+            loader.style.top = 0;
+            loader.style.left = 0;
+            loader.style.width = '100vw';
+            loader.style.height = '100vh';
+            loader.style.background = 'rgba(255,255,255,0.7)';
+            loader.style.zIndex = 9998;
+            loader.innerHTML = '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2rem;color:#3498db;">Cargando...</div>';
+            document.body.appendChild(loader);
+        }
+    }
+    hideLoading() {
+        const loader = document.getElementById('dashboard-loading');
+        if (loader) loader.remove();
+    }
+    updateStats(stats) {
+        // Implementación básica: actualizar elementos del DOM si existen
+        if (stats) {
+            if (document.getElementById('total-users')) document.getElementById('total-users').textContent = stats.totalClientes ?? '';
+            if (document.getElementById('total-sales')) document.getElementById('total-sales').textContent = `$${stats.ingresosTotales ?? ''}`;
+            if (document.getElementById('total-orders')) document.getElementById('total-orders').textContent = stats.totalVentas ?? '';
+            if (document.getElementById('monthly-revenue')) document.getElementById('monthly-revenue').textContent = `$${stats.ingresosTotales ?? ''}`;
+        }
+    }
+    updateActivity(activities) {
+        // Implementación básica: actualizar lista de actividad si existe
+        if (document.getElementById('activity-list')) {
+            document.getElementById('activity-list').textContent = JSON.stringify(activities);
+        }
+    }
+    updateNotificationBadge(count) {
+        // Implementación básica
+        if (document.getElementById('notification-badge')) {
+            document.getElementById('notification-badge').textContent = count;
+        }
+    }
+    updateUserInfo(userName) {
+        // Implementación básica
+        if (document.getElementById('userNameDisplay')) {
+            document.getElementById('userNameDisplay').textContent = userName;
+        }
+    }
+    renderTable(data, columns) {
+        // Implementación básica
+        const tbody = document.getElementById('tableBody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        data.forEach(row => {
+            const tr = document.createElement('tr');
+            columns.forEach(col => {
+                const td = document.createElement('td');
+                td.textContent = row[col.key];
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
         });
-        if (!res.ok) throw new Error('Error al eliminar usuario');
-        this.showNotification('Usuario eliminado', 'success');
-        // Recarga la tabla
-        this.setupEventListeners(); // O llama a cargarUsuariosInternos()
-      } catch (err) {
-        this.showNotification('Error al eliminar usuario', 'error');
-      }
     }
+}; // <-- End of DashboardUI class
 
-    // Método para abrir el modal y cargar datos
-    async abrirModalEditarUsuario(id) {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`/api/users/internos/${id}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const usuario = await res.json();
-      document.getElementById('editIdUsuario').value = usuario.id_usuario;
-      document.getElementById('editNombre').value = usuario.nombre;
-      document.getElementById('editApellido').value = usuario.apellido || '';
-      document.getElementById('editEmail').value = usuario.email;
-      document.getElementById('editTelefono').value = usuario.telefono || '';
-      document.getElementById('editRol').value = usuario.id_rol || '';
-      document.getElementById('modalEditarUsuario').style.display = 'block';
-    }
-}
+// Instancia global para acceso desde funciones y DashboardAPI
+const dashboardUI = new DashboardUI();
 
-const dashboardUI = new DashboardUI(); // MOVED HERE
+// ------------------- GLOBAL API & UTILS -------------------
 
-// Ejemplo de función para cargar productos
-function cargarVistaProductos() {
-  document.getElementById('dashboardContent').innerHTML = '<h2>Productos</h2>';
-  // Aquí puedes cargar la tabla de productos...
-}
-function cargarVistaUsuarios() {
-  document.getElementById('dashboardContent').innerHTML = '<h2>Usuarios</h2>';
-  // Aquí puedes cargar la tabla de usuarios...
-}
-function cargarVistaPaquetes() {
-  document.getElementById('dashboardContent').innerHTML = '<h2>Paquetes</h2>';
-  // Aquí puedes cargar la tabla de paquetes...
-}
-
-// Global utility functions for external use
 window.DashboardAPI = {
   renderTable: function(data, columns) {
     const tbody = document.getElementById('tableBody');
@@ -1633,7 +1275,114 @@ function renderAvailableIndividualProducts(productsToDisplay) {
   // Note: Event listeners for .btn-add-component will be handled in a subsequent step (5.4)
 }
 
-// const dashboardUI = new DashboardUI(); // Ensuring this is removed if it was here
+async function handleRemoveComponent(event) {
+  if (!event.target.classList.contains('btn-remove-component')) {
+    return;
+  }
+
+  const packageId = document.getElementById('idPaqueteGestionActual').value;
+  const componentProductId = event.target.dataset.componentId;
+
+  if (!packageId || !componentProductId || isNaN(Number(packageId)) || isNaN(Number(componentProductId))) {
+    DashboardAPI.showNotification('Error: IDs de paquete o componente inválidos para eliminación.', 'error');
+    console.error('Invalid packageId or componentProductId for handleRemoveComponent');
+    return;
+  }
+
+  console.log(`Removing component ${componentProductId} from package ${packageId}`);
+
+  try {
+    DashboardAPI.showLoading();
+    const token = localStorage.getItem('token');
+    if (!token) {
+        DashboardAPI.showNotification('Error de autenticación: Token no encontrado.', 'error');
+        DashboardAPI.hideLoading();
+        return;
+    }
+
+    const res = await fetch(`/api/paquetes/${packageId}/details/${componentProductId}?_=${Date.now()}`, {
+        method: 'DELETE',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+
+    if (res.ok) {
+        DashboardAPI.showNotification('Componente eliminado del paquete con éxito.', 'success');
+        // Refresh modal content by re-calling gestionarComponentesPaquete
+        await gestionarComponentesPaquete(packageId);
+    } else {
+        const errorData = await res.json().catch(() => ({ message: 'Error desconocido al procesar la respuesta del servidor.' }));
+        DashboardAPI.showNotification(`Error al eliminar componente: ${errorData.message || res.statusText}`, 'error');
+        console.error('Error removing component:', res.status, res.statusText, errorData);
+    }
+  } catch (err) {
+    console.error('Fetch error in handleRemoveComponent:', err);
+    DashboardAPI.showNotification('Error de red al eliminar componente.', 'error');
+  } finally {
+    DashboardAPI.hideLoading();
+  }
+}
+
+async function handleAddComponent(event) {
+  if (!event.target.classList.contains('btn-add-component')) {
+    return;
+  }
+
+  const packageId = document.getElementById('idPaqueteGestionActual').value;
+  const componentProductId = event.target.dataset.productId;
+  
+  const itemDiv = event.target.closest('.producto-individual-item');
+  const quantityInput = itemDiv ? itemDiv.querySelector('.componente-cantidad') : null;
+  const quantity = Number(quantityInput ? quantityInput.value : 1);
+
+  if (!packageId || !componentProductId || isNaN(Number(packageId)) || isNaN(Number(componentProductId))) {
+    DashboardAPI.showNotification('Error: IDs de paquete o componente inválidos.', 'error');
+    console.error('Invalid packageId or componentProductId for handleAddComponent');
+    return;
+  }
+  if (isNaN(quantity) || quantity <= 0) {
+    DashboardAPI.showNotification('Error: Cantidad inválida. Debe ser un número positivo.', 'error');
+    console.error('Invalid quantity for handleAddComponent');
+    return;
+  }
+
+  console.log(`Adding component ${componentProductId} (qty: ${quantity}) to package ${packageId}`);
+
+  try {
+    DashboardAPI.showLoading();
+    const token = localStorage.getItem('token');
+    if (!token) {
+        DashboardAPI.showNotification('Error de autenticación: Token no encontrado.', 'error');
+        DashboardAPI.hideLoading();
+        return;
+    }
+
+    const res = await fetch(`/api/paquetes/${packageId}/details`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ id_producto: Number(componentProductId), cantidad: quantity })
+    });
+
+    if (res.ok) {
+        DashboardAPI.showNotification('Componente agregado al paquete con éxito.', 'success');
+        // Refresh modal content by re-calling gestionarComponentesPaquete
+        await gestionarComponentesPaquete(packageId); 
+    } else {
+        const errorData = await res.json().catch(() => ({ message: 'Error desconocido al procesar la respuesta del servidor.' }));
+        DashboardAPI.showNotification(`Error al agregar componente: ${errorData.message || res.statusText}`, 'error');
+        console.error('Error adding component:', res.status, res.statusText, errorData);
+    }
+  } catch (err) {
+    console.error('Fetch error in handleAddComponent:', err);
+    DashboardAPI.showNotification('Error de red al agregar componente.', 'error');
+  } finally {
+    DashboardAPI.hideLoading();
+  }
+}
 
 async function abrirModalEditarProducto(id) {
   console.log('Abriendo modal para editar producto ID:', id);
@@ -1672,3 +1421,4 @@ async function abrirModalEditarProducto(id) {
     DashboardAPI.showNotification('Error al procesar la solicitud para editar producto.', 'error');
   }
 }
+
