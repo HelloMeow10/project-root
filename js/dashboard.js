@@ -1147,7 +1147,7 @@ async function cargarProductos() {
     }
     const productos = await res.json();
     console.log('Fetched products data:', productos);
-    
+
     const tbody = document.getElementById('tablaProductosBody');
     if (!tbody) {
         console.error('Element with ID "tablaProductosBody" not found.');
