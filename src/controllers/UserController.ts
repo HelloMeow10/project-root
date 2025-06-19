@@ -181,9 +181,11 @@ export const toggleActivoCliente = async (req: Request, res: Response) => {
       where: { id_cliente: idCliente },
       data: { activo },
     });
+
     res.json({
         message: `Cliente ${activo ? 'activado' : 'desactivado'} con éxito.`,
         cliente: updatedCliente
+
     });
   } catch (error: any) {
     console.error('Error al cambiar estado activo del cliente:', error);

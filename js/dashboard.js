@@ -12,8 +12,10 @@ class DashboardUI {
         this.sortDirection = {};
         this.currentPage = 1; // Sobrescribe el anterior, intencional si es para paginación general
         this.itemsPerPage = 10;
+
         this.clientesData = new Map();
         this.usuariosInternosData = new Map();
+
         
         this.init();
     }
@@ -113,6 +115,7 @@ class DashboardUI {
 
         window.addEventListener('resize', () => this.handleResize());
 
+
         const cerrarModalGestionarComponentesBtn = document.getElementById('cerrarModalGestionarComponentes');
         if (cerrarModalGestionarComponentesBtn) {
             cerrarModalGestionarComponentesBtn.onclick = () => {
@@ -126,10 +129,12 @@ class DashboardUI {
             };
         }
 
+
         const buscarProductoIndividualInput = document.getElementById('buscarProductoIndividual');
         if (buscarProductoIndividualInput) {
             buscarProductoIndividualInput.addEventListener('input', (e) => this.handleProductSearch(e));
         }
+
 
         const listaDisponiblesDiv = document.getElementById('listaProductosIndividualesDisponibles');
         if (listaDisponiblesDiv) {
@@ -140,6 +145,7 @@ class DashboardUI {
         if (listaActualesDiv) {
             listaActualesDiv.addEventListener('click', handleRemoveComponent); // Global
         }
+
 
         const usuariosInternosTableBody = document.getElementById('usuariosInternosTableBody');
         if (usuariosInternosTableBody) {
@@ -160,6 +166,7 @@ class DashboardUI {
           tabUsuariosInternos.onclick = async () => {
             console.log("Cambiando a pestaña Usuarios Internos. Limpiando contexto...");
             const tableSearchInput = document.getElementById('tableSearch');
+
             if (tableSearchInput) tableSearchInput.value = '';
 
             tabUsuariosInternos.classList.add('active');
@@ -191,10 +198,12 @@ class DashboardUI {
           }
         }
 
+
         const modalEditarCliente = document.getElementById('modalEditarCliente');
         const formEditarCliente = document.getElementById('formEditarCliente');
         const cerrarModalEditarClienteBtn = document.getElementById('cerrarModalEditarCliente');
         const cancelarEditarClienteBtn = document.getElementById('cancelarEditarCliente');
+
 
         if (modalEditarCliente) {
             if (cerrarModalEditarClienteBtn) {
@@ -291,9 +300,11 @@ class DashboardUI {
           document.getElementById('modalEditarUsuario').style.display = 'none';
         };
 
+
         const formEditarUsuario = document.getElementById('formEditarUsuario');
         if (formEditarUsuario) {
             formEditarUsuario.onsubmit = async (e) => {
+
               e.preventDefault();
               const id = document.getElementById('editIdUsuario').value;
               const data = {
@@ -301,6 +312,7 @@ class DashboardUI {
                 apellido: document.getElementById('editApellido').value,
                 email: document.getElementById('editEmail').value,
                 telefono: document.getElementById('editTelefono').value,
+
                 id_rol: parseInt(document.getElementById('editRol').value, 10)
               };
 
@@ -315,6 +327,7 @@ class DashboardUI {
               }
               try {
                 this.showLoading();
+
                 const res = await fetch(`/api/users/internos/${id}`, {
                   method: 'PUT',
                   headers: {
@@ -327,6 +340,7 @@ class DashboardUI {
                     const errorData = await res.json().catch(() => ({ message: `Error al actualizar usuario interno: ${res.statusText}` }));
                     throw new Error(errorData.message);
                 }
+
                 this.showNotification('Usuario interno actualizado con éxito.', 'success');
                 document.getElementById('modalEditarUsuario').style.display = 'none';
                 await this.cargarYRenderizarUsuariosInternos();
@@ -337,6 +351,7 @@ class DashboardUI {
                 this.hideLoading();
               }
             };
+
         }
 
         const btnAnadirUsuarioInterno = document.getElementById('btnAnadirUsuarioInterno');
@@ -484,6 +499,7 @@ class DashboardUI {
         }
         const page = link.dataset.page;
         console.log('[handleNavigation] Navigating to pageId:', page);
+
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
         link.classList.add('active');
         this.showPage(page);
@@ -494,18 +510,23 @@ class DashboardUI {
 
     showPage(pageId) {
         console.log(`[showPage] Attempting to show pageId: '${pageId}'`);
+
         document.querySelectorAll('.page').forEach(p => {
             p.classList.remove('active');
             p.style.display = 'none';
         });
+
         const targetPage = document.getElementById(`${pageId}-page`);
+        
         if (targetPage) {
             console.log(`[showPage] Found target page element for ID: ${pageId}-page`, targetPage);
             targetPage.classList.add('active');
+
             targetPage.style.display = 'block';
             this.currentPage = pageId;
             console.log(`[showPage] Current page set to: '${this.currentPage}'`);
             this.onPageShow(pageId);
+
         } else {
             console.error(`[showPage] Target page element NOT FOUND for ID: '${pageId}-page'. Check HTML structure and pageId spelling.`);
         }
@@ -513,6 +534,7 @@ class DashboardUI {
 
     onPageShow(pageId) {
         console.log(`[onPageShow] Initializing content for page: '${pageId}'`);
+
         if (pageId === 'productos') {
             this.cargarYRenderizarProductos();
         } else if (pageId === 'paquetes') {
@@ -524,6 +546,7 @@ class DashboardUI {
         }
         console.log(`[onPageShow] Dispatching 'pageChanged' event for pageId: '${pageId}'.`);
         document.dispatchEvent(new CustomEvent('pageChanged', { detail: { page: pageId } }));
+
         console.log(`[onPageShow] Finished processing for pageId: '${pageId}'.`);
     }
 
@@ -576,10 +599,12 @@ class DashboardUI {
     renderUsuariosInternosTable(data) {
         const tbody = document.getElementById('usuariosInternosTableBody');
         tbody.innerHTML = '';
+
         this.usuariosInternosData.clear();
         data.forEach(u => {
             const userId = u.id_usuario;
             this.usuariosInternosData.set(String(userId), u);
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${userId}</td>
@@ -604,10 +629,12 @@ class DashboardUI {
     renderClientesTable(data) {
         const tbody = document.getElementById('clientesTableBody');
         tbody.innerHTML = '';
+
         this.clientesData.clear();
         data.forEach(cliente => {
             const clienteId = cliente.id_cliente || cliente.id;
             this.clientesData.set(String(clienteId), cliente);
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
               <td>${clienteId}</td>
@@ -631,9 +658,11 @@ class DashboardUI {
         });
     }
 
+
     handleUsuariosInternosTableClick(event) {
         const target = event.target;
         const userId = target.dataset.id;
+
         if (target.classList.contains('btn-editar-usuario-interno')) {
             this.handleEditarUsuarioInternoClick(userId, event);
         } else if (target.classList.contains('btn-toggle-usuario-interno')) {
@@ -642,6 +671,7 @@ class DashboardUI {
         } else if (target.classList.contains('btn-eliminar-usuario-interno')) {
             this.handleEliminarUsuarioInternoClick(userId, event);
         }
+
     }
 
     handleClientesTableClick(event) {
