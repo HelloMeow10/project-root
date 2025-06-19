@@ -70,13 +70,13 @@ export class ProductService {
   }
 
   // Crea un producto, validando datos (ejemplo simple)
-  async crearProducto(data: {
-    nombre: string;
+  async crearProducto(data: { 
+    nombre: string; 
     tipo?: string; // This is the string like 'auto', 'vuelo'
-    precio: number;
-    descripcion?: string;
-    stock?: number;
-    activo?: boolean;
+    precio: number; 
+    descripcion?: string; 
+    stock?: number; 
+    activo?: boolean; 
   }): Promise<Producto> {
     if (data.precio < 0) throw new Error('El precio debe ser positivo');
     if (!data.tipo) throw new Error('El campo tipo (string del nombre del tipo) es requerido');
@@ -96,7 +96,7 @@ export class ProductService {
       precio: data.precio,
       stock: data.stock,
       activo: data.activo !== undefined ? data.activo : true,
-      id_tipo: id_tipo_resolved,
+      id_tipo: id_tipo_resolved, 
     };
     const producto = await this.repo.create(prismaData);
     return mapPrismaProductoToProducto(producto);
@@ -157,10 +157,10 @@ export class ProductService {
     } catch (err: any) { // Use 'any' or Prisma.PrismaClientKnownRequestError
       if (err.code === 'P2003') { // Foreign key constraint violation
         console.error(`Attempted to delete product ${id} which has foreign key constraints.`, err);
-        throw new Error('Este producto está referenciado y no puede ser eliminado.');
+        throw new Error('Este producto está referenciado y no puede ser eliminado.'); 
       }
       // P2025 is "Record to delete not found." - handled by check above, but good as fallback.
-      if (err.code === 'P2025') {
+      if (err.code === 'P2025') { 
           console.error(`Attempted to delete non-existent product ${id}.`, err);
           throw new Error('Producto no encontrado para eliminar.');
       }
@@ -174,6 +174,7 @@ export class ProductService {
     const paqueteProducto = await this.repo.findById(id_paquete); // Renamed 'paquete' to 'paqueteProducto' for clarity with logs
 
     console.log(`[Svc AddComp Detail] Start validation for id_paquete ${id_paquete}.`);
+
 
     if (!paqueteProducto) {
         console.error(`[Svc AddComp Detail] VALIDATION FAIL: paqueteProducto (id: ${id_paquete}) NOT FOUND.`);
@@ -198,6 +199,23 @@ export class ProductService {
 
     console.log(`[Svc AddComp Detail] All validations passed for id_paquete ${id_paquete}.`);
 
+    if (!paqueteProducto.tipoProducto) {
+        console.error(`[Svc AddComp Detail] VALIDATION FAIL: paqueteProducto.tipoProducto IS UNDEFINED/NULL for id_paquete ${id_paquete}. Full object:`, JSON.stringify(paqueteProducto, null, 2));
+        throw new Error('Paquete base no encontrado o el ID proporcionado no corresponde a un paquete.');
+    }
+    console.log(`[Svc AddComp Detail] paqueteProducto.tipoProducto IS found. Name: ${paqueteProducto.tipoProducto.nombre}`);
+
+    // Assuming tipoProducto.nombre is already a string, no need for .toLowerCase() if the comparison is exact
+    const isCorrectType = paqueteProducto.tipoProducto.nombre === 'paquete'; 
+    console.log(`[Svc AddComp Detail] Is correct type ('paqueteProducto.tipoProducto.nombre === "paquete"'): ${isCorrectType}`);
+
+    if (!isCorrectType) {
+        console.error(`[Svc AddComp Detail] VALIDATION FAIL: Type is NOT 'paquete'. Actual type: '${paqueteProducto.tipoProducto.nombre}'.`);
+        throw new Error('Paquete base no encontrado o el ID proporcionado no corresponde a un paquete.');
+    }
+
+    console.log(`[Svc AddComp Detail] All validations passed for id_paquete ${id_paquete}.`);
+    
     // Fetch the component product to ensure it exists and is NOT a package
     const componente = await this.repo.findById(id_producto_componente);
     if (!componente) {
@@ -206,7 +224,7 @@ export class ProductService {
     if (componente.tipo?.toLowerCase() === 'paquete') {
       throw new Error("No se puede agregar un paquete como componente de otro paquete.");
     }
-
+    
     if (id_paquete === id_producto_componente) {
       throw new Error("Un paquete no puede ser componente de sí mismo.");
     }

@@ -1,20 +1,35 @@
 import { Router } from 'express';
-import { getAllUsuariosInternos, getAllClientes, createUsuarioInterno, toggleActivoUsuarioInterno, eliminarUsuarioInterno, obtenerUsuarioInternoPorId, editarUsuarioInterno } from '../controllers/UserController';
+
+import {
+    getAllUsuariosInternos,
+    getAllClientes,
+    createUsuarioInterno,
+    toggleActivoUsuarioInterno,
+    eliminarUsuarioInterno,
+    obtenerUsuarioInternoPorId,
+
+    editarUsuarioInterno,
+    editarCliente,
+    toggleActivoCliente,
+    eliminarCliente
+} from '../controllers/UserController';
 import { authMiddleware } from '../middlewares/authMiddleware';
 import { adminOnly } from '../middlewares/adminOnly';
 
 const router = Router();
 
+// Rutas para Usuarios Internos
 router.get('/internos', authMiddleware, adminOnly, getAllUsuariosInternos);
-router.get('/clientes', authMiddleware, adminOnly, getAllClientes);
 router.post('/internos', authMiddleware, adminOnly, createUsuarioInterno);
-// PATCH para activar/desactivar usuario interno
-router.patch('/internos/:id/activo', authMiddleware, adminOnly, toggleActivoUsuarioInterno);
-// DELETE para eliminar usuario interno
-router.delete('/internos/:id', authMiddleware, adminOnly, eliminarUsuarioInterno);
-// Obtener usuario interno por ID
 router.get('/internos/:id', authMiddleware, adminOnly, obtenerUsuarioInternoPorId);
-// Editar usuario interno
 router.put('/internos/:id', authMiddleware, adminOnly, editarUsuarioInterno);
+router.patch('/internos/:id/activo', authMiddleware, adminOnly, toggleActivoUsuarioInterno);
+router.delete('/internos/:id', authMiddleware, adminOnly, eliminarUsuarioInterno);
+
+// Rutas para Clientes
+router.get('/clientes', authMiddleware, adminOnly, getAllClientes);
+router.put('/clientes/:id', authMiddleware, adminOnly, editarCliente);
+router.patch('/clientes/:id/activo', authMiddleware, adminOnly, toggleActivoCliente);
+router.delete('/clientes/:id', authMiddleware, adminOnly, eliminarCliente);
 
 export default router;

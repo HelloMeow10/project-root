@@ -145,7 +145,7 @@ router.get('/autos', async (req: Request, res: Response) => {
 });
 
 router.get(
-  '/individuals',
+  '/individuals', 
   // authMiddleware, // Consider if auth is needed for just listing individuals for an admin
   ProductController.getIndividualProducts // New controller method
 );
@@ -158,16 +158,16 @@ router.put('/:id', authMiddleware, adminOnly, ProductController.updateProduct);
 router.delete('/:id', ProductController.deleteProduct);
 
 router.post(
-  '/paquetes/:id_paquete/details',
-  authMiddleware,
-  adminOnly,
+  '/paquetes/:id_paquete/details', 
+  authMiddleware, 
+  adminOnly, 
   ProductController.agregarComponenteAPaquete // New controller method
 );
 
 router.delete(
-  '/paquetes/:id_paquete/details/:id_producto_componente',
-  authMiddleware,
-  adminOnly,
+  '/paquetes/:id_paquete/details/:id_producto_componente', 
+  authMiddleware, 
+  adminOnly, 
   ProductController.eliminarComponenteDePaquete // New controller method
 );
 

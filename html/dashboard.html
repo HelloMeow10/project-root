@@ -213,10 +213,16 @@
                         <button id="tabUsuariosInternos" class="active">Usuarios Internos</button>
                         <button id="tabClientes">Clientes</button>
                     </div>
-                    <div id="usuariosInternosTable">
-                        <table>
-                            <thead>
-                                <tr>
+                    <div id="usuariosInternosContent"> <!-- Contenedor para botón y tabla -->
+                        <div style="margin-bottom: 1rem; text-align: right;">
+                            <button id="btnAnadirUsuarioInterno" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Añadir Usuario Interno
+                            </button>
+                        </div>
+                        <div id="usuariosInternosTable">
+                            <table>
+                                <thead>
+                                    <tr>
                                     <th>ID</th>
                                     <th>Nombre</th>
                                     <th>Apellido</th>
@@ -456,7 +462,10 @@
             </div>
             <form id="formEditarUsuario">
                 <div class="modal-body">
-                    <input type="hidden" id="editIdUsuario">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="editIdUsuario">ID Usuario:</label>
+                        <input type="text" id="editIdUsuario" name="id_usuario" class="form-control" readonly>
+                    </div>
                     <div class="form-group" style="margin-bottom: 1rem;">
                         <label for="editNombre">Nombre:</label>
                         <input type="text" id="editNombre" class="form-control" required>
@@ -482,6 +491,95 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" id="cancelarEditarUsuario">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Client Edit Modal -->
+    <div id="modalEditarCliente" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Cliente</h3>
+                <button class="close-btn" id="cerrarModalEditarCliente">&times;</button>
+            </div>
+            <form id="formEditarCliente">
+                <div class="modal-body">
+                    <input type="hidden" id="editIdCliente">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="editNombreCliente">Nombre:</label>
+                        <input type="text" id="editNombreCliente" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="editApellidoCliente">Apellido:</label>
+                        <input type="text" id="editApellidoCliente" class="form-control">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="editEmailCliente">Email:</label>
+                        <input type="email" id="editEmailCliente" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="editTelefonoCliente">Teléfono:</label>
+                        <input type="tel" id="editTelefonoCliente" class="form-control">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="editDireccionCliente">Dirección:</label>
+                        <input type="text" id="editDireccionCliente" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelarEditarCliente">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="guardarEditarCliente">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Internal User Modal -->
+    <div id="modalAnadirUsuarioInterno" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Añadir Nuevo Usuario Interno</h3>
+                <button class="close-btn" id="cerrarModalAnadirUsuarioInterno">&times;</button>
+            </div>
+            <form id="formAnadirUsuarioInterno">
+                <div class="modal-body">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="anadirNombre">Nombre:</label>
+                        <input type="text" id="anadirNombre" name="nombre" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="anadirApellido">Apellido:</label>
+                        <input type="text" id="anadirApellido" name="apellido" class="form-control">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="anadirEmail">Email:</label>
+                        <input type="email" id="anadirEmail" name="email" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="anadirContrasena">Contraseña:</label>
+                        <input type="password" id="anadirContrasena" name="contrasena" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="anadirTelefono">Teléfono:</label>
+                        <input type="tel" id="anadirTelefono" name="telefono" class="form-control">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="anadirRol">Rol:</label>
+                        <select id="anadirRol" name="id_rol" class="form-control" required>
+                            <option value="" disabled selected>Seleccione un rol</option>
+                            <option value="1">ADMIN</option>
+                            <option value="2">JEFE_VENTAS</option>
+                            <!-- Se podrían añadir más roles dinámicamente o tenerlos predefinidos si son estáticos -->
+
+                            <option value="3">VENDEDOR</option>
+
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelarAnadirUsuarioInterno">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="guardarAnadirUsuarioInterno">Guardar</button>
                 </div>
             </form>
         </div>
