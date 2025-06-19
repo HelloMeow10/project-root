@@ -181,9 +181,11 @@ export const toggleActivoCliente = async (req: Request, res: Response) => {
       where: { id_cliente: idCliente },
       data: { activo },
     });
-    res.json({ 
-        message: `Cliente ${activo ? 'activado' : 'desactivado'} con éxito.`, 
-        cliente: updatedCliente 
+
+    res.json({
+        message: `Cliente ${activo ? 'activado' : 'desactivado'} con éxito.`,
+        cliente: updatedCliente
+
     });
   } catch (error: any) {
     console.error('Error al cambiar estado activo del cliente:', error);
@@ -211,7 +213,7 @@ export const eliminarCliente = async (req: Request, res: Response) => {
     if (!clienteExistente) {
       return res.status(404).json({ message: 'Cliente no encontrado para eliminar.' });
     }
-    
+
     await prisma.cliente.delete({
       where: { id_cliente: idCliente },
     });
