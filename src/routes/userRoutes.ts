@@ -1,13 +1,11 @@
 import { Router } from 'express';
-
-import {
-    getAllUsuariosInternos,
-    getAllClientes,
-    createUsuarioInterno,
-    toggleActivoUsuarioInterno,
-    eliminarUsuarioInterno,
-    obtenerUsuarioInternoPorId,
-
+import { 
+    getAllUsuariosInternos, 
+    getAllClientes, 
+    createUsuarioInterno, 
+    toggleActivoUsuarioInterno, 
+    eliminarUsuarioInterno, 
+    obtenerUsuarioInternoPorId, 
     editarUsuarioInterno,
     editarCliente,
     toggleActivoCliente,
