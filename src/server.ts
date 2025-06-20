@@ -36,8 +36,6 @@ app.use('/imagenes', express.static(path.join(__dirname, '../imagenes')));
 
 // Rutas
 app.use('/api/products', productRoutes);
-// Si quieres que funcione también en /api/pedidos:
-app.use('/api', productRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/users', userRoutes);

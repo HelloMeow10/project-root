@@ -696,11 +696,11 @@ class CartUI {
       const div = document.createElement('div');
       div.className = 'cart-item';
       div.dataset.itemId = item.id_item;
-      div.dataset.itemType = item.producto.tipo?.nombre?.toLowerCase() || 'unknown';
+      div.dataset.itemType = item.producto.tipoProducto?.nombre?.toLowerCase() || 'unknown';
       div.innerHTML = `
         <div>
           <span class="item-title">${item.producto.nombre}</span>
-          <span class="item-type-badge">${item.producto.tipo?.nombre || 'N/A'}</span>
+          <span class="item-type-badge">${item.producto.tipoProducto?.nombre || 'N/A'}</span>
         </div>
         <div>
           <span>Cantidad: 

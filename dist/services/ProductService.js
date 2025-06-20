@@ -53,7 +53,9 @@ class ProductService {
     }
     // Obtiene un producto por ID, lanza error si no existe
     async obtenerProductoPorId(id) {
+        console.log('PRODUCTSERVICE: obtenerProductoPorId called with ID:', id);
         const producto = await this.repo.findById(id);
+        console.log('PRODUCTSERVICE: Prisma findUnique result for ID ' + id + ':', producto);
         if (!producto)
             throw new Error('Producto no encontrado');
         return mapPrismaProductoToProducto(producto);
