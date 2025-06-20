@@ -28,27 +28,34 @@ class FlightBooking {
       this.flightListContainer.innerHTML = '<p>No hay vuelos disponibles.</p>';
       return;
     }
-    this.flightListContainer.innerHTML = vuelos.map(vuelo => `
-      <div class="flight-card">
-        <div class="flight-info">
-          <h3 class="flight-destination">${vuelo.pasaje?.destino || 'Destino'}</h3>
-          <p class="flight-details">Aerolínea: <b>${vuelo.pasaje?.aerolinea || 'No especificada'}</b></p>
-          <p class="flight-details">Salida: ${vuelo.pasaje?.origen || 'Origen'}${vuelo.pasaje?.fecha_salida ? ' - ' + new Date(vuelo.pasaje.fecha_salida).toLocaleString() : ''}</p>
-          <p class="flight-details">Llegada: ${vuelo.pasaje?.destino || 'Destino'}${vuelo.pasaje?.fecha_regreso ? ' - ' + new Date(vuelo.pasaje.fecha_regreso).toLocaleString() : ''}</p>
-          <p class="flight-details">Clase: ${vuelo.pasaje?.clase || 'Turista'}</p>
-          <p class="flight-price">Precio: $${vuelo.precio}</p>
+    this.flightListContainer.innerHTML = vuelos.map(vuelo => {
+      const pasaje = vuelo.pasaje || {};
+      const tipoAsiento = pasaje.tipoAsiento ? pasaje.tipoAsiento.nombre : 'No especificado';
+      const descripcionAsiento = pasaje.tipoAsiento ? pasaje.tipoAsiento.descripcion : '';
+      return `
+        <div class="flight-card">
+          <div class="flight-info">
+            <h3 class="flight-destination">${pasaje.destino || 'Destino'}</h3>
+            <p class="flight-details">Aerolínea: <b>${pasaje.aerolinea || 'No especificada'}</b></p>
+            <p class="flight-details">Salida: ${pasaje.origen || 'Origen'}${pasaje.fecha_salida ? ' - ' + new Date(pasaje.fecha_salida).toLocaleString() : ''}</p>
+            <p class="flight-details">Llegada: ${pasaje.destino || 'Destino'}${pasaje.fecha_regreso ? ' - ' + new Date(pasaje.fecha_regreso).toLocaleString() : ''}</p>
+            <p class="flight-details">Clase: ${pasaje.clase || 'Turista'}</p>
+            <p class="flight-details">Tipo de asiento: ${tipoAsiento} ${descripcionAsiento ? '(' + descripcionAsiento + ')' : ''}</p>
+            <p class="flight-details">Descripción: ${vuelo.descripcion || 'Sin descripción'}</p>
+            <p class="flight-price">Precio: $${vuelo.precio}</p>
+          </div>
+          <button 
+            class="add-to-cart-btn"
+            data-id="${vuelo.id_producto}"
+            data-tipo="vuelo"
+            data-nombre="${vuelo.nombre}"
+            data-precio="${vuelo.precio}"
+          >
+            Comprar
+          </button>
         </div>
-        <button 
-          class="add-to-cart-btn"
-          data-id="${vuelo.id_producto}"
-          data-tipo="vuelo"
-          data-nombre="${vuelo.nombre}"
-          data-precio="${vuelo.precio}"
-        >
-          Comprar
-        </button>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 
   // Create animated background particles
@@ -159,5 +166,28 @@ document.addEventListener('click', async function(e) {
     }
   } catch (err) {
     showNotification('Error de red', 'error');
+  }
+});
+
+// Código del servidor (por ejemplo, usando Express y Prisma)
+app.get('/api/products/vuelos', async (req, res) => {
+  try {
+    const vuelos = await prisma.producto.findMany({
+      where: {
+        // tu filtro para vuelos, por ejemplo:
+        tipoProducto: { nombre: 'vuelo' }
+      },
+      include: {
+        pasaje: {
+          include: {
+            tipoAsiento: true
+          }
+        }
+      }
+    });
+    res.json(vuelos);
+  } catch (error) {
+    console.error('Error al obtener vuelos:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
