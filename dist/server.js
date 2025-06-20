@@ -18,12 +18,15 @@ const paymentRoutes_1 = __importDefault(require("./routes/paymentRoutes"));
 const errorHandler_1 = require("./middlewares/errorHandler");
 const path_1 = __importDefault(require("path"));
 const dashboardRoutes_1 = __importDefault(require("./routes/dashboardRoutes"));
+// ... otras importaciones
+const roleRoutes_1 = __importDefault(require("./routes/roleRoutes")); // Ajusta la ruta
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3000;
 // Middlewares globales
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.use((0, morgan_1.default)('dev'));
+app.use('/api/roles', roleRoutes_1.default); // Añade esta línea
 // Servir archivos estáticos de la carpeta css
 app.use('/css', express_1.default.static(path_1.default.join(__dirname, '../css')));
 // Servir archivos estáticos de la carpeta html

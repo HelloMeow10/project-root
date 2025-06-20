@@ -12,8 +12,7 @@ class DashboardUI {
         this.sortDirection = {};
         this.currentPage = 1;
         this.itemsPerPage = 10;
-        this.clientesData = new Map(); // Para almacenar datos de clientes para edición
-        this.usuariosInternosData = new Map(); // Para almacenar datos de usuarios internos
+        this.listaRoles = null;
         
         this.init();
     }
@@ -102,48 +101,37 @@ class DashboardUI {
         // Window resize
         window.addEventListener('resize', () => this.handleResize());
 
-        // Close Manage Components Modal
-        const cerrarModalGestionarComponentesBtn = document.getElementById('cerrarModalGestionarComponentes');
-        if (cerrarModalGestionarComponentesBtn) {
-            cerrarModalGestionarComponentesBtn.onclick = () => {
-                document.getElementById('modalGestionarComponentes').style.display = 'none';
-            };
-        }
-        const btnCerrarGestionComponentes = document.getElementById('btnCerrarGestionComponentes');
-        if (btnCerrarGestionComponentes) {
-            btnCerrarGestionComponentes.onclick = () => {
-                document.getElementById('modalGestionarComponentes').style.display = 'none';
-            };
-        }
+            // Close Manage Components Modal
+            const cerrarModalGestionarComponentesBtn = document.getElementById('cerrarModalGestionarComponentes');
+            if (cerrarModalGestionarComponentesBtn) {
+                cerrarModalGestionarComponentesBtn.onclick = () => {
+                    document.getElementById('modalGestionarComponentes').style.display = 'none';
+                };
+            }
+            const btnCerrarGestionComponentes = document.getElementById('btnCerrarGestionComponentes');
+            if (btnCerrarGestionComponentes) {
+                btnCerrarGestionComponentes.onclick = () => {
+                    document.getElementById('modalGestionarComponentes').style.display = 'none';
+                };
+            }
 
-        // Search input for Manage Package Components Modal
-        const buscarProductoIndividualInput = document.getElementById('buscarProductoIndividual');
-        if (buscarProductoIndividualInput) {
-            buscarProductoIndividualInput.addEventListener('input', (e) => this.handleProductSearch(e));
-        }
+            // Search input for Manage Package Components Modal
+            const buscarProductoIndividualInput = document.getElementById('buscarProductoIndividual');
+            if (buscarProductoIndividualInput) {
+                buscarProductoIndividualInput.addEventListener('input', (e) => this.handleProductSearch(e));
+            }
 
-        // Event delegation for adding components in Manage Package Components Modal
-        const listaDisponiblesDiv = document.getElementById('listaProductosIndividualesDisponibles');
-        if (listaDisponiblesDiv) {
-            listaDisponiblesDiv.addEventListener('click', handleAddComponent);
-        }
+            // Event delegation for adding components in Manage Package Components Modal
+            const listaDisponiblesDiv = document.getElementById('listaProductosIndividualesDisponibles');
+            if (listaDisponiblesDiv) {
+                listaDisponiblesDiv.addEventListener('click', handleAddComponent);
+            }
 
-        // Event delegation for removing components in Manage Package Components Modal
-        const listaActualesDiv = document.getElementById('listaComponentesActuales');
-        if (listaActualesDiv) {
-            listaActualesDiv.addEventListener('click', handleRemoveComponent);
-        }
-
-        // Delegación de eventos para tablas de usuarios
-        const usuariosInternosTableBody = document.getElementById('usuariosInternosTableBody');
-        if (usuariosInternosTableBody) {
-            usuariosInternosTableBody.addEventListener('click', (e) => this.handleUsuariosInternosTableClick(e));
-        }
-
-        const clientesTableBody = document.getElementById('clientesTableBody');
-        if (clientesTableBody) {
-            clientesTableBody.addEventListener('click', (e) => this.handleClientesTableClick(e));
-        }
+            // Event delegation for removing components in Manage Package Components Modal
+            const listaActualesDiv = document.getElementById('listaComponentesActuales');
+            if (listaActualesDiv) {
+                listaActualesDiv.addEventListener('click', handleRemoveComponent);
+            }
 
         // Alternar pestañas de usuarios
         const tabUsuariosInternos = document.getElementById('tabUsuariosInternos');
@@ -153,95 +141,27 @@ class DashboardUI {
 
         if (tabUsuariosInternos && tabClientes && usuariosInternosTable && clientesTable) {
           tabUsuariosInternos.onclick = async () => {
-            console.log("Cambiando a pestaña Usuarios Internos. Limpiando contexto...");
-            const tableSearchInput = document.getElementById('tableSearch');
-            if (tableSearchInput) tableSearchInput.value = ''; // Limpiar búsqueda de tabla
-
             tabUsuariosInternos.classList.add('active');
             tabClientes.classList.remove('active');
             usuariosInternosTable.style.display = '';
             clientesTable.style.display = 'none';
-            
-            await this.cargarYRenderizarUsuariosInternos(); // Usar la nueva función
+            await this.cargarYRenderizarUsuariosInternos();
           };
-          tabClientes.onclick = async () => { 
-            console.log("Cambiando a pestaña Clientes. Limpiando contexto...");
-            const tableSearchInput = document.getElementById('tableSearch');
-            if (tableSearchInput) tableSearchInput.value = ''; // Limpiar búsqueda de tabla
-
+          tabClientes.onclick = async () => {
             tabClientes.classList.add('active');
             tabUsuariosInternos.classList.remove('active');
             usuariosInternosTable.style.display = 'none';
             clientesTable.style.display = '';
-            
-            await this.cargarYRenderizarClientes(); // Usamos la nueva función
-          };
-          // Mostrar por defecto usuarios internos al cargar la página de gestión de usuarios
-          if (this.currentPage === 'usuarios') { 
-            tabUsuariosInternos.click();
-          }
-        }
-
-        // Modal Editar Cliente
-        const modalEditarCliente = document.getElementById('modalEditarCliente');
-        const formEditarCliente = document.getElementById('formEditarCliente');
-        const cerrarModalEditarClienteBtn = document.getElementById('cerrarModalEditarCliente');
-        const cancelarEditarClienteBtn = document.getElementById('cancelarEditarCliente');
-
-        if (modalEditarCliente) {
-            if (cerrarModalEditarClienteBtn) {
-                cerrarModalEditarClienteBtn.onclick = () => modalEditarCliente.style.display = 'none';
-            }
-            if (cancelarEditarClienteBtn) {
-                cancelarEditarClienteBtn.onclick = () => modalEditarCliente.style.display = 'none';
-            }
-            // Cierre de modal si se hace clic fuera
-            window.addEventListener('click', (event) => {
-                if (event.target === modalEditarCliente) {
-                    modalEditarCliente.style.display = 'none';
-                }
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/users/clientes', {
+              headers: { 'Authorization': `Bearer ${token}` }
             });
+            const data = await res.json();
+            this.renderClientesTable(data);
+          };
+          // Mostrar por defecto usuarios internos
+          tabUsuariosInternos.click();
         }
-        
-        if (formEditarCliente) {
-            formEditarCliente.onsubmit = async (e) => {
-                e.preventDefault();
-                const idCliente = document.getElementById('editIdCliente').value;
-                const data = {
-                    nombre: document.getElementById('editNombreCliente').value,
-                    apellido: document.getElementById('editApellidoCliente').value,
-                    email: document.getElementById('editEmailCliente').value,
-                    telefono: document.getElementById('editTelefonoCliente').value,
-                    direccion: document.getElementById('editDireccionCliente').value,
-                };
-                const token = localStorage.getItem('token');
-                if (!token) {
-                    DashboardAPI.showNotification('Error de autenticación.', 'error');
-                    return;
-                }
-                try {
-                    const res = await fetch(`/api/users/clientes/${idCliente}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify(data)
-                    });
-                    if (!res.ok) {
-                        const errorData = await res.json().catch(() => ({ message: `Error al actualizar cliente: ${res.statusText}` }));
-                        throw new Error(errorData.message);
-                    }
-                    DashboardAPI.showNotification('Cliente actualizado con éxito.', 'success');
-                    modalEditarCliente.style.display = 'none';
-                    await this.cargarYRenderizarClientes();
-                } catch (error) {
-                    console.error(error);
-                    DashboardAPI.showNotification(error.message, 'error');
-                }
-            };
-        }
-
 
         document.getElementById('formAgregarPaquete').onsubmit = async function(e) {
           e.preventDefault();
@@ -273,167 +193,35 @@ class DashboardUI {
           document.getElementById('modalEditarUsuario').style.display = 'none';
         };
 
-        // Guardar cambios Usuario Interno
-        const formEditarUsuario = document.getElementById('formEditarUsuario');
-        if (formEditarUsuario) {
-            formEditarUsuario.onsubmit = async (e) => { 
-              e.preventDefault();
-              const id = document.getElementById('editIdUsuario').value;
-              const data = {
-                nombre: document.getElementById('editNombre').value,
-                apellido: document.getElementById('editApellido').value,
-                email: document.getElementById('editEmail').value,
-                telefono: document.getElementById('editTelefono').value,
-                id_rol: parseInt(document.getElementById('editRol').value, 10) // Asegurarse que es número
-              };
-              
-              // Validación simple para id_rol
-              if (isNaN(data.id_rol)) {
-                DashboardAPI.showNotification('ID de Rol inválido. Debe ser un número.', 'error');
-                return;
-              }
+        // Guardar cambios
+        document.getElementById('formEditarUsuario').onsubmit = async function(e) {
+          e.preventDefault();
+          const id = document.getElementById('editIdUsuario').value;
+          const data = {
+            nombre: document.getElementById('editNombre').value,
+            apellido: document.getElementById('editApellido').value,
+            email: document.getElementById('editEmail').value,
+            telefono: document.getElementById('editTelefono').value,
+            id_rol: parseInt(document.getElementById('editRol').value, 10)
+          };
+          const token = localStorage.getItem('token');
+          const res = await fetch(`/api/users/internos/${id}`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+          if (res.ok) {
+            dashboardUI.showNotification('Usuario actualizado', 'success');
+            document.getElementById('modalEditarUsuario').style.display = 'none';
+            await this.cargarYRenderizarUsuariosInternos();
+          } else {
+            dashboardUI.showNotification('Error al actualizar usuario', 'error');
+          }
+        };
 
-              const token = localStorage.getItem('token');
-              if (!token) {
-                DashboardAPI.showNotification('Error de autenticación.', 'error');
-                return;
-              }
-
-              try {
-                const res = await fetch(`/api/users/internos/${id}`, {
-                  method: 'PUT',
-                  headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                  },
-                  body: JSON.stringify(data)
-                });
-                if (!res.ok) {
-                    const errorData = await res.json().catch(() => ({ message: `Error al actualizar usuario interno: ${res.statusText}` }));
-                    throw new Error(errorData.message);
-                }
-                DashboardAPI.showNotification('Usuario interno actualizado con éxito.', 'success');
-                document.getElementById('modalEditarUsuario').style.display = 'none';
-                await this.cargarYRenderizarUsuariosInternos(); // Usar la nueva función
-              } catch (error) {
-                console.error(error);
-                DashboardAPI.showNotification(error.message, 'error');
-              }
-            };
-        }
-
-        // ---- Funcionalidad Añadir Usuario Interno ----
-        const btnAnadirUsuarioInterno = document.getElementById('btnAnadirUsuarioInterno');
-        if (btnAnadirUsuarioInterno) {
-            btnAnadirUsuarioInterno.addEventListener('click', () => this.abrirModalAnadirUsuarioInterno());
-        }
-
-        const modalAnadirUsuarioInterno = document.getElementById('modalAnadirUsuarioInterno');
-        const formAnadirUsuarioInterno = document.getElementById('formAnadirUsuarioInterno');
-        const cerrarModalAnadirUsuarioInternoBtn = document.getElementById('cerrarModalAnadirUsuarioInterno');
-        const cancelarAnadirUsuarioInternoBtn = document.getElementById('cancelarAnadirUsuarioInterno');
-
-        if (modalAnadirUsuarioInterno) {
-            if (cerrarModalAnadirUsuarioInternoBtn) {
-                cerrarModalAnadirUsuarioInternoBtn.onclick = () => {
-                    modalAnadirUsuarioInterno.style.display = 'none';
-                    if (formAnadirUsuarioInterno) formAnadirUsuarioInterno.reset();
-                };
-            }
-            if (cancelarAnadirUsuarioInternoBtn) {
-                cancelarAnadirUsuarioInternoBtn.onclick = () => {
-                    modalAnadirUsuarioInterno.style.display = 'none';
-                    if (formAnadirUsuarioInterno) formAnadirUsuarioInterno.reset();
-                };
-            }
-            // Cierre de modal si se hace clic fuera
-            window.addEventListener('click', (event) => {
-                if (event.target === modalAnadirUsuarioInterno) {
-                    modalAnadirUsuarioInterno.style.display = 'none';
-                    if (formAnadirUsuarioInterno) formAnadirUsuarioInterno.reset();
-                }
-            });
-        }
-
-        if (formAnadirUsuarioInterno) {
-            formAnadirUsuarioInterno.onsubmit = async (e) => {
-                e.preventDefault();
-                this.showLoading();
-
-                const nombre = document.getElementById('anadirNombre').value.trim();
-                const apellido = document.getElementById('anadirApellido').value.trim();
-                const email = document.getElementById('anadirEmail').value.trim();
-                const contrasena = document.getElementById('anadirContrasena').value;
-                const telefono = document.getElementById('anadirTelefono').value.trim();
-                const idRol = document.getElementById('anadirRol').value; // Obtener valor del select
-
-                // Validación Frontend
-                if (!nombre || !email || !contrasena || !idRol) {
-                    DashboardAPI.showNotification('Por favor, complete todos los campos requeridos, incluyendo el rol.', 'error');
-                    this.hideLoading();
-                    return;
-                }
-                
-                if (!/^\S+@\S+\.\S+$/.test(email)) { // Validación simple de email
-                    DashboardAPI.showNotification('Formato de email inválido.', 'error');
-                    this.hideLoading();
-                    return;
-                }
-
-                // El valor del select ya es el ID, solo necesita ser parseado a Int.
-                // La validación de que idRol no esté vacío ya cubre el caso de "Seleccione un rol" (value="").
-                const id_rol_numerico = parseInt(idRol, 10);
-                if (isNaN(id_rol_numerico)) {
-                     // Esto no debería ocurrir si los values del select son números y se seleccionó uno.
-                    DashboardAPI.showNotification('Rol seleccionado inválido.', 'error');
-                    this.hideLoading();
-                    return;
-                }
-
-                const data = { 
-                    nombre, 
-                    apellido, 
-                    email, 
-                    contrasena, 
-                    telefono, 
-                    id_rol: id_rol_numerico // Usar el valor parseado
-                };
-                const token = localStorage.getItem('token');
-
-                if (!token) {
-                    DashboardAPI.showNotification('Error de autenticación. Por favor, inicie sesión de nuevo.', 'error');
-                    this.hideLoading();
-                    return;
-                }
-
-                try {
-                    const res = await fetch('/api/users/internos', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify(data)
-                    });
-
-                    if (!res.ok) {
-                        const errorData = await res.json().catch(() => ({ message: `Error al crear usuario: ${res.statusText}` }));
-                        throw new Error(errorData.message);
-                    }
-
-                    DashboardAPI.showNotification('Usuario interno creado con éxito.', 'success');
-                    modalAnadirUsuarioInterno.style.display = 'none';
-                    formAnadirUsuarioInterno.reset();
-                    await this.cargarYRenderizarUsuariosInternos();
-                } catch (error) {
-                    console.error('Error al crear usuario interno:', error);
-                    DashboardAPI.showNotification(error.message, 'error');
-                } finally {
-                    this.hideLoading();
-                }
-            };
-        }
-        // ---- Fin Funcionalidad Añadir Usuario Interno ----
         
 
         // Cerrar modal
@@ -506,20 +294,104 @@ class DashboardUI {
             DashboardAPI.showNotification('Error de red al intentar guardar el producto.', 'error');
           }
         };
+
+        // Listeners para el modal de Añadir Usuario Interno
+        const btnAnadirUsuario = document.getElementById('btnAnadirUsuarioInterno');
+        if (btnAnadirUsuario) {
+            btnAnadirUsuario.addEventListener('click', () => this.abrirModalAnadirUsuarioInterno());
+        }
+
+        const formAnadir = document.getElementById('formAnadirUsuarioInterno');
+        if (formAnadir) {
+            formAnadir.onsubmit = (event) => this.submitAnadirUsuarioInterno(event);
+        }
+
+        const cerrarModalAnadirBtn = document.getElementById('cerrarModalAnadir');
+        if (cerrarModalAnadirBtn) {
+            cerrarModalAnadirBtn.onclick = () => {
+                document.getElementById('modalAnadirUsuarioInterno').style.display = 'none';
+            };
+        }
+        const cancelarAnadirUsuarioBtn = document.getElementById('cancelarAnadirUsuario');
+        if (cancelarAnadirUsuarioBtn) {
+            cancelarAnadirUsuarioBtn.onclick = () => {
+                document.getElementById('modalAnadirUsuarioInterno').style.display = 'none';
+            };
+        }
+
+        // Listeners para Gestión de Roles
+        const btnAnadirRol = document.getElementById('btnAnadirRol');
+        if (btnAnadirRol) {
+            btnAnadirRol.addEventListener('click', () => this.abrirModalRol());
+        }
+
+        const cerrarModalRolBtn = document.getElementById('cerrarModalRol');
+        if (cerrarModalRolBtn) {
+            cerrarModalRolBtn.onclick = () => {
+                document.getElementById('modalGestionRol').style.display = 'none';
+            };
+        }
+
+        const cancelarGestionRolBtn = document.getElementById('cancelarGestionRol');
+        if (cancelarGestionRolBtn) {
+            cancelarGestionRolBtn.onclick = () => {
+                document.getElementById('modalGestionRol').style.display = 'none';
+            };
+        }
+
+        const formGestionRol = document.getElementById('formGestionRol');
+        if (formGestionRol) {
+            formGestionRol.onsubmit = (event) => this.submitFormRol(event);
+        }
+
+        const tablaRolesBodyEl = document.getElementById('tablaRolesBody');
+        if (tablaRolesBodyEl) {
+            tablaRolesBodyEl.addEventListener('click', async (event) => {
+                const target = event.target;
+                const btnEditar = target.closest('.btn-editar-rol');
+                const btnEliminar = target.closest('.btn-eliminar-rol');
+
+                if (btnEditar) {
+                    const rolId = btnEditar.dataset.id;
+                    const rolData = this.listaRoles ? this.listaRoles.find(r => r.id_rol == rolId) : null;
+                    if (rolData) {
+                        this.abrirModalRol(rolData);
+                    } else {
+                        this.showNotification('Datos del rol no encontrados localmente.', 'warning');
+                        // Opcional: Fetch individual del rol si no se encuentra o this.listaRoles es null
+                        // try {
+                        //     this.showLoading();
+                        //     const token = localStorage.getItem('token');
+                        //     const res = await fetch(`/api/roles/${rolId}`, { headers: {'Authorization': `Bearer ${token}`}});
+                        //     if (res.ok) { const rol = await res.json(); this.abrirModalRol(rol); } 
+                        //     else { throw new Error('Rol no encontrado'); }
+                        // } catch (err) { this.showNotification('Error al obtener datos del rol.', 'error');} 
+                        // finally { this.hideLoading(); }
+                    }
+                } else if (btnEliminar) {
+                    const rolId = btnEliminar.dataset.id;
+                    await this.eliminarRol(rolId);
+                }
+            });
+        }
+        
+        // Asegurar que el cierre de modales genérico también aplique al nuevo modal si se hace clic fuera
+        // Esta es una forma de hacerlo, aunque ya hay un listener global que podría cubrirlo si modalGestionRol tiene la clase 'modal'
+        // No es estrictamente necesario duplicar si el listener global ya funciona para 'modalGestionRol'
+        // window.addEventListener('click', (event) => {
+        //     const modalGestionRol = document.getElementById('modalGestionRol');
+        //     if (event.target === modalGestionRol) {
+        //         modalGestionRol.style.display = 'none';
+        //     }
+        // });
     }
 
     // Navigation Methods
     handleNavigation(e) {
-        console.log('[handleNavigation] Event target:', e.target);
         e.preventDefault();
         
         const link = e.target.closest('.nav-link');
-        if (!link) {
-            console.error('[handleNavigation] No .nav-link found for event target:', e.target);
-            return;
-        }
         const page = link.dataset.page;
-        console.log('[handleNavigation] Navigating to pageId:', page);
         
         // Update active states
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
@@ -535,75 +407,43 @@ class DashboardUI {
     }
 
     showPage(pageId) {
-        console.log(`[showPage] Attempting to show pageId: '${pageId}'`);
+        console.log('Mostrando página:', pageId); // <-- agrega esto
         // Hide all pages
-        document.querySelectorAll('.page').forEach(p => {
-            p.classList.remove('active');
-            p.style.display = 'none'; // Asegurar que todas las páginas están ocultas
+        document.querySelectorAll('.page').forEach(page => {
+            page.classList.remove('active');
         });
         
+        // Show target page
         const targetPage = document.getElementById(`${pageId}-page`);
-        
         if (targetPage) {
-            console.log(`[showPage] Found target page element for ID: ${pageId}-page`, targetPage);
             targetPage.classList.add('active');
-            targetPage.style.display = 'block'; // Establecer explícitamente para mostrar
             this.currentPage = pageId;
-            console.log(`[showPage] Current page set to: '${this.currentPage}'`);
             
-            this.onPageShow(pageId); // 'this' se refiere a la instancia de DashboardUI
-        } else {
-            console.error(`[showPage] Target page element NOT FOUND for ID: '${pageId}-page'. Check HTML structure and pageId spelling.`);
+            // Trigger page-specific initialization
+            this.onPageShow(pageId);
         }
     }
 
     onPageShow(pageId) {
-        console.log(`[onPageShow] Initializing content for page: '${pageId}'`);
+        console.log(`[onPageShow] Started. pageId: '${pageId}' (type: ${typeof pageId})`); // Log entry and type
         
         if (pageId === 'productos') {
-            const productosTableBody = document.getElementById('tablaProductosBody');
-            if (productosTableBody) {
-                try {
-                    console.log("[onPageShow] 'tablaProductosBody' found. Attempting to call cargarProductos().");
-                    if (typeof cargarProductos === 'function') {
-                        cargarProductos();
-                    } else {
-                        console.error("[onPageShow] global function 'cargarProductos' is not defined or not a function.");
-                    }
-                } catch (error) {
-                    console.error("[onPageShow] Error executing cargarProductos():", error);
-                }
-            } else {
-                console.error("[onPageShow] HTML element 'tablaProductosBody' NOT FOUND for 'productos' page. Cannot load products.");
-            }
+            console.log("[onPageShow] Condition for 'productos' met. Calling cargarProductos().");
+            cargarProductos();
         } else if (pageId === 'paquetes') {
-            const paquetesTableBody = document.getElementById('tablaPaquetesBody');
-            if (paquetesTableBody) {
-                try {
-                    console.log("[onPageShow] 'tablaPaquetesBody' found. Attempting to call cargarPaquetes().");
-                    if (typeof cargarPaquetes === 'function') {
-                        cargarPaquetes();
-                    } else {
-                        console.error("[onPageShow] global function 'cargarPaquetes' is not defined or not a function.");
-                    }
-                } catch (error) {
-                    console.error("[onPageShow] Error executing cargarPaquetes():", error);
-                }
-            } else {
-                console.error("[onPageShow] HTML element 'tablaPaquetesBody' NOT FOUND for 'paquetes' page. Cannot load paquetes.");
-            }
-        } else if (pageId === 'usuarios') {
-             console.log("[onPageShow] Matched 'usuarios'. Logic for this page (e.g., clicking default tab) is handled in setupEventListeners or tab click handlers.");
-             // No es necesario hacer click en la pestaña aquí si ya se maneja al cambiar this.currentPage
+            console.log("[onPageShow] Condition for 'paquetes' met. Calling cargarPaquetes()."); // Key log
+            cargarPaquetes();
+        } else if (pageId === 'roles') {
+            this.cargarYRenderizarPaginaRoles();
         } else {
-            console.log(`[onPageShow] No specific on-page-show action defined for pageId '${pageId}'.`);
+            console.log(`[onPageShow] pageId '${pageId}' did not match 'productos', 'paquetes', or 'roles'.`);
         }
         
-        console.log(`[onPageShow] Dispatching 'pageChanged' event for pageId: '${pageId}'.`);
+        console.log(`[onPageShow] Dispatching pageChanged event for pageId: '${pageId}'.`);
         document.dispatchEvent(new CustomEvent('pageChanged', { 
             detail: { page: pageId } 
         }));
-        console.log(`[onPageShow] Finished processing for pageId: '${pageId}'.`);
+        console.log("[onPageShow] Finished.");
     }
 
     toggleSidebar() {
@@ -718,14 +558,10 @@ class DashboardUI {
     renderUsuariosInternosTable(data) {
         const tbody = document.getElementById('usuariosInternosTableBody');
         tbody.innerHTML = '';
-        this.usuariosInternosData.clear(); // Limpiar datos anteriores
         data.forEach(u => {
-            const userId = u.id_usuario; // Asegurar que usamos el ID correcto
-            this.usuariosInternosData.set(String(userId), u); // Almacenar datos del usuario para edición
-
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${userId}</td>
+                <td>${u.id_usuario}</td>
                 <td>${u.nombre}</td>
                 <td>${u.apellido || ''}</td>
                 <td>${u.email}</td>
@@ -733,301 +569,58 @@ class DashboardUI {
                 <td>${u.activo ? 'Sí' : 'No'}</td>
                 <td>${u.id_rol || ''}</td>
                 <td>
-                    <button class="btn btn-sm btn-info btn-editar-usuario-interno" data-id="${u.id_usuario}">Editar</button>
-                    <button class="btn btn-sm ${u.activo ? 'btn-warning' : 'btn-success'} btn-toggle-usuario-interno" data-id="${u.id_usuario}" data-activo="${u.activo}">
-                        ${u.activo ? 'Desactivar' : 'Activar'}
+                    <button class="btn-editar btn btn-sm btn-info" data-id="${u.id_usuario}" title="Editar">
+                        <i class="fas fa-edit"></i> Editar
                     </button>
-                    <button class="btn btn-sm btn-danger btn-eliminar-usuario-interno" data-id="${u.id_usuario}">Eliminar</button>
+                    <button class="btn-activar btn btn-sm ${u.activo ? 'btn-warning' : 'btn-success'}" data-id="${u.id_usuario}" data-activo="${u.activo}" title="${u.activo ? 'Desactivar' : 'Activar'}">
+                        ${u.activo ? '<i class="fas fa-ban"></i> Desactivar' : '<i class="fas fa-check-circle"></i> Activar'}
+                    </button>
+                    <button class="btn-eliminar btn btn-sm btn-danger" data-id="${u.id_usuario}" title="Eliminar">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </button>
                 </td>
             `;
             tbody.appendChild(tr);
+        });
+
+        // Listeners para los botones
+        tbody.querySelectorAll('.btn-editar').forEach(btn => {
+            btn.onclick = (e) => {
+                const id = btn.getAttribute('data-id');
+                this.abrirModalEditarUsuario(id);
+            };
+        });
+        tbody.querySelectorAll('.btn-activar').forEach(btn => {
+            btn.onclick = (e) => {
+                const id = btn.getAttribute('data-id');
+                const activo = btn.getAttribute('data-activo') === 'true';
+                this.toggleUsuarioInternoActivo(id, !activo);
+            };
+        });
+        tbody.querySelectorAll('.btn-eliminar').forEach(btn => {
+            btn.onclick = (e) => {
+                const id = btn.getAttribute('data-id');
+                this.eliminarUsuarioInterno(id);
+            };
         });
     }
 
     renderClientesTable(data) {
         const tbody = document.getElementById('clientesTableBody');
         tbody.innerHTML = '';
-        this.clientesData.clear(); // Limpiar datos anteriores
-        data.forEach(cliente => {
-            const clienteId = cliente.id_cliente || cliente.id; // Asegurar que usamos el ID correcto
-            this.clientesData.set(String(clienteId), cliente); // Almacenar datos del cliente para edición
-
+        data.forEach(u => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-              <td>${clienteId}</td>
-              <td>${cliente.nombre}</td>
-              <td>${cliente.apellido || ''}</td>
-              <td>${cliente.email}</td>
-              <td>${cliente.telefono || ''}</td>
-              <td>${cliente.direccion || ''}</td>
-              <td>${cliente.fecha_registro ? new Date(cliente.fecha_registro).toLocaleDateString() : ''}</td>
-              <td>${cliente.activo ? 'Sí' : 'No'}</td>
-              <td>${cliente.email_verificado ? 'Sí' : 'No'}</td>
-              <td>
-                <button class="btn btn-sm btn-info btn-editar-cliente" data-id="${clienteId}">Editar</button>
-                <button class="btn btn-sm ${cliente.activo ? 'btn-warning' : 'btn-success'} btn-toggle-cliente" data-id="${clienteId}" data-activo="${cliente.activo}">
-                  ${cliente.activo ? 'Desactivar' : 'Activar'}
-                </button>
-                <button class="btn btn-sm btn-danger btn-eliminar-cliente" data-id="${clienteId}">Eliminar</button>
-              </td>
+              <td>${u.id}</td>
+              <td>${u.nombre}</td>
+              <td>${u.apellido || ''}</td>
+              <td>${u.email}</td>
+              <td>${u.telefono || ''}</td>
+              <td>${u.activo ? 'Sí' : 'No'}</td>
             `;
             tbody.appendChild(tr);
         });
     }
-
-    // --- Manejadores de eventos para acciones en tablas de usuarios ---
-    handleUsuariosInternosTableClick(event) {
-        const target = event.target;
-        const userId = target.dataset.id;
-
-        if (target.classList.contains('btn-editar-usuario-interno')) {
-            this.handleEditarUsuarioInternoClick(userId, event);
-        } else if (target.classList.contains('btn-toggle-usuario-interno')) {
-            const isActive = target.dataset.activo === 'true';
-            this.handleToggleUsuarioInternoClick(userId, !isActive, event);
-        } else if (target.classList.contains('btn-eliminar-usuario-interno')) {
-            this.handleEliminarUsuarioInternoClick(userId, event);
-        }
-    }
-
-    handleClientesTableClick(event) {
-        const target = event.target;
-        const clienteId = target.dataset.id;
-
-        if (target.classList.contains('btn-editar-cliente')) {
-            this.handleEditarClienteClick(clienteId, event);
-        } else if (target.classList.contains('btn-toggle-cliente')) {
-            const isActive = target.dataset.activo === 'true';
-            this.handleToggleClienteClick(clienteId, !isActive, event);
-        } else if (target.classList.contains('btn-eliminar-cliente')) {
-            this.handleEliminarClienteClick(clienteId, event);
-        }
-    }
-
-    // --- Funciones de acción para Usuarios Internos ---
-    abrirModalAnadirUsuarioInterno() {
-        const modal = document.getElementById('modalAnadirUsuarioInterno');
-        const form = document.getElementById('formAnadirUsuarioInterno');
-        if (form) {
-            form.reset(); // Limpiar el formulario
-        }
-        if (modal) {
-            modal.style.display = 'block'; // Mostrar el modal
-        }
-    }
-
-    async abrirModalEditarUsuarioInterno(userId) {
-        const usuario = this.usuariosInternosData.get(String(userId));
-        if (!usuario) {
-            DashboardAPI.showNotification('Error: No se pudieron obtener los datos del usuario interno para editar.', 'error');
-            console.error(`Usuario interno con ID ${userId} no encontrado en this.usuariosInternosData`);
-            return;
-        }
-
-        document.getElementById('editIdUsuario').value = usuario.id_usuario;
-        document.getElementById('editNombre').value = usuario.nombre || '';
-        document.getElementById('editApellido').value = usuario.apellido || '';
-        document.getElementById('editEmail').value = usuario.email || '';
-        document.getElementById('editTelefono').value = usuario.telefono || '';
-        document.getElementById('editRol').value = usuario.id_rol || ''; // id_rol es un número
-        
-        document.getElementById('modalEditarUsuario').style.display = 'block';
-    }
-
-    handleEditarUsuarioInternoClick(userId, event) {
-        console.log(`Intentando abrir modal para editar usuario interno ID: ${userId}`, event);
-        this.abrirModalEditarUsuarioInterno(userId);
-    }
-
-    async cargarYRenderizarUsuariosInternos() {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            DashboardAPI.showNotification('Error de autenticación.', 'error');
-            return;
-        }
-        try {
-            this.showLoading();
-            const res = await fetch('/api/users/internos', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!res.ok) {
-                 const errorData = await res.json().catch(() => ({ message: `Error al cargar usuarios internos: ${res.statusText}` }));
-                 throw new Error(errorData.message);
-            }
-            const data = await res.json();
-            this.renderUsuariosInternosTable(data);
-        } catch (error) {
-            console.error(error);
-            DashboardAPI.showNotification(error.message, 'error');
-        } finally {
-            this.hideLoading();
-        }
-    }
-
-    async handleToggleUsuarioInternoClick(userId, newActiveState, event) {
-        console.log(`Cambiando estado activo a ${newActiveState} para usuario interno ID: ${userId}`, event);
-        const token = localStorage.getItem('token');
-        if (!token) {
-            DashboardAPI.showNotification('Error de autenticación.', 'error');
-            return;
-        }
-        try {
-            const res = await fetch(`/api/users/internos/${userId}/activo`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ activo: newActiveState })
-            });
-             if (!res.ok) {
-                const errorData = await res.json().catch(() => ({ message: `Error al cambiar estado: ${res.statusText}` }));
-                throw new Error(errorData.message);
-            }
-            DashboardAPI.showNotification(`Usuario interno ${newActiveState ? 'activado' : 'desactivado'} con éxito.`, 'success');
-            await this.cargarYRenderizarUsuariosInternos();
-        } catch (error) {
-            console.error(error);
-            DashboardAPI.showNotification(error.message || 'Error al cambiar estado del usuario interno.', 'error');
-        }
-    }
-
-    async handleEliminarUsuarioInternoClick(userId, event) {
-        console.log(`Eliminar usuario interno ID: ${userId}`, event);
-        if (confirm(`¿Estás seguro de que deseas eliminar al usuario interno ID: ${userId}? Esta acción no se puede deshacer.`)) {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                DashboardAPI.showNotification('Error de autenticación.', 'error');
-                return;
-            }
-            try {
-                const res = await fetch(`/api/users/internos/${userId}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!res.ok) {
-                    const errorData = await res.json().catch(() => ({ message: `Error al eliminar: ${res.statusText}` }));
-                    throw new Error(errorData.message);
-                }
-                DashboardAPI.showNotification('Usuario interno eliminado con éxito.', 'success');
-                await this.cargarYRenderizarUsuariosInternos();
-            } catch (error) {
-                console.error(error);
-                DashboardAPI.showNotification(error.message || 'Error al eliminar el usuario interno.', 'error');
-            }
-        }
-    }
-
-    // --- Funciones de acción para Clientes ---
-    async abrirModalEditarCliente(clienteId) {
-        const cliente = this.clientesData.get(String(clienteId));
-        if (!cliente) {
-            DashboardAPI.showNotification('Error: No se pudieron obtener los datos del cliente para editar.', 'error');
-            console.error(`Cliente con ID ${clienteId} no encontrado en this.clientesData`);
-            return;
-        }
-
-        document.getElementById('editIdCliente').value = cliente.id_cliente || cliente.id;
-        document.getElementById('editNombreCliente').value = cliente.nombre || '';
-        document.getElementById('editApellidoCliente').value = cliente.apellido || '';
-        document.getElementById('editEmailCliente').value = cliente.email || '';
-        document.getElementById('editTelefonoCliente').value = cliente.telefono || '';
-        document.getElementById('editDireccionCliente').value = cliente.direccion || '';
-        
-        document.getElementById('modalEditarCliente').style.display = 'block';
-    }
-    
-    handleEditarClienteClick(clienteId, event) {
-        console.log(`Intentando abrir modal para editar cliente ID: ${clienteId}`, event);
-        this.abrirModalEditarCliente(clienteId);
-    }
-
-    async cargarYRenderizarClientes() {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            DashboardAPI.showNotification('Error de autenticación.', 'error');
-            return;
-        }
-        try {
-            this.showLoading(); // Asumiendo que tienes un método showLoading
-            const res = await fetch('/api/users/clientes', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (!res.ok) {
-                 const errorData = await res.json().catch(() => ({ message: `Error al cargar clientes: ${res.statusText}` }));
-                 throw new Error(errorData.message);
-            }
-            const data = await res.json();
-            this.renderClientesTable(data);
-        } catch (error) {
-            console.error(error);
-            DashboardAPI.showNotification(error.message, 'error');
-        } finally {
-            this.hideLoading(); // Asumiendo que tienes un método hideLoading
-        }
-    }
-
-    async handleToggleClienteClick(clienteId, newActiveState, event) {
-        console.log(`Cambiando estado activo a ${newActiveState} para cliente ID: ${clienteId}`, event);
-        const token = localStorage.getItem('token');
-        if (!token) {
-            DashboardAPI.showNotification('Error de autenticación.', 'error');
-            return;
-        }
-
-        try {
-            const res = await fetch(`/api/users/clientes/${clienteId}/activo`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ activo: newActiveState })
-            });
-
-            if (!res.ok) {
-                const errorData = await res.json().catch(() => ({ message: `Error al cambiar estado: ${res.statusText}` }));
-                throw new Error(errorData.message);
-            }
-            DashboardAPI.showNotification(`Cliente ${newActiveState ? 'activado' : 'desactivado'} con éxito.`, 'success');
-            await this.cargarYRenderizarClientes(); // Recargar y renderizar la tabla de clientes
-        } catch (error) {
-            console.error(error);
-            DashboardAPI.showNotification(error.message || 'Error al cambiar estado del cliente.', 'error');
-            // Si falla, podríamos querer revertir el estado visual del botón si lo hubiéramos cambiado optimistamente
-        }
-    }
-
-    async handleEliminarClienteClick(clienteId, event) {
-        console.log(`Eliminar cliente ID: ${clienteId}`, event);
-        if (confirm(`¿Estás seguro de que deseas eliminar al cliente ID: ${clienteId}? Esta acción no se puede deshacer.`)) {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                DashboardAPI.showNotification('Error de autenticación.', 'error');
-                return;
-            }
-
-            try {
-                const res = await fetch(`/api/users/clientes/${clienteId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (!res.ok) {
-                    const errorData = await res.json().catch(() => ({ message: `Error al eliminar: ${res.statusText}` }));
-                    throw new Error(errorData.message);
-                }
-                DashboardAPI.showNotification('Cliente eliminado con éxito.', 'success');
-                await this.cargarYRenderizarClientes(); // Recargar y renderizar la tabla de clientes
-            } catch (error) {
-                console.error(error);
-                DashboardAPI.showNotification(error.message || 'Error al eliminar el cliente.', 'error');
-            }
-        }
-    }
-
 
     setupResponsiveHandlers() {
         // Handle responsive behavior
@@ -1172,6 +765,407 @@ class DashboardUI {
             });
             tbody.appendChild(tr);
         });
+    }
+
+    async toggleUsuarioInternoActivo(id, nuevoEstado) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            this.showNotification('Error de autenticación.', 'error');
+            return;
+        }
+        try {
+            const res = await fetch(`/api/users/internos/${id}/activo`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ activo: nuevoEstado })
+            });
+            if (res.ok) {
+                this.showNotification(`Usuario ${nuevoEstado ? 'activado' : 'desactivado'} correctamente.`, 'success');
+                await this.cargarYRenderizarUsuariosInternos();
+            } else {
+                const errorData = await res.json().catch(() => ({ message: 'Error desconocido.' }));
+                this.showNotification(`Error al cambiar estado: ${errorData.message}`, 'error');
+            }
+        } catch (error) {
+            this.showNotification('Error de red al cambiar estado.', 'error');
+            console.error('Error en toggleUsuarioInternoActivo:', error);
+        }
+    }
+
+    async eliminarUsuarioInterno(id) {
+        if (!confirm('¿Seguro que deseas eliminar este usuario interno?')) return;
+        const token = localStorage.getItem('token');
+        if (!token) {
+            this.showNotification('Error de autenticación.', 'error');
+            return;
+        }
+        try {
+            const res = await fetch(`/api/users/internos/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                this.showNotification('Usuario interno eliminado correctamente.', 'success');
+                await this.cargarYRenderizarUsuariosInternos();
+            } else {
+                const errorData = await res.json().catch(() => ({ message: 'Error desconocido.' }));
+                this.showNotification(`Error al eliminar usuario: ${errorData.message}`, 'error');
+            }
+        } catch (error) {
+            this.showNotification('Error de red al eliminar usuario.', 'error');
+            console.error('Error en eliminarUsuarioInterno:', error);
+        }
+    }
+
+    async abrirModalEditarUsuario(id) {
+        await this.cargarYRenderizarRoles();
+        const token = localStorage.getItem('token');
+        if (!token) {
+            this.showNotification('Error de autenticación.', 'error');
+            return;
+        }
+        try {
+            const res = await fetch(`/api/users/internos/${id}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) {
+                throw new Error('Error al obtener datos del usuario.');
+            }
+            const usuario = await res.json();
+
+            document.getElementById('editIdUsuario').value = usuario.id_usuario;
+            document.getElementById('editNombre').value = usuario.nombre;
+            document.getElementById('editApellido').value = usuario.apellido || '';
+            document.getElementById('editEmail').value = usuario.email;
+            document.getElementById('editTelefono').value = usuario.telefono || '';
+            
+            // Manejar el select del rol
+            const rolSelect = document.getElementById('editRol');
+            if (rolSelect) {
+                // Aquí podrías optar por cargar dinámicamente los roles desde una API si fuera necesario,
+                // pero para este ejemplo, se asume que las opciones ya están en el HTML.
+                // Simplemente establecemos el valor.
+                rolSelect.value = usuario.id_rol || ''; 
+            }
+            
+            document.getElementById('modalEditarUsuario').style.display = 'block';
+
+        } catch (error) {
+            this.showNotification('Error al abrir modal para editar usuario.', 'error');
+            console.error('Error en abrirModalEditarUsuario:', error);
+        }
+    }
+
+    async cargarYRenderizarUsuariosInternos() {
+        try {
+            this.showLoading();
+            const token = localStorage.getItem('token');
+            if (!token) {
+                this.showNotification('Token no encontrado. Por favor, inicie sesión.', 'error');
+                this.hideLoading();
+                return;
+            }
+            const res = await fetch('/api/users/internos', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.message || `Error al cargar usuarios: ${res.statusText}`);
+            }
+            const data = await res.json();
+            this.renderUsuariosInternosTable(data);
+        } catch (err) {
+            console.error('Error en cargarYRenderizarUsuariosInternos:', err);
+            this.showNotification(err.message || 'Error al cargar usuarios internos.', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    async abrirModalAnadirUsuarioInterno() {
+        await this.cargarYRenderizarRoles();
+        const modal = document.getElementById('modalAnadirUsuarioInterno');
+        const form = document.getElementById('formAnadirUsuarioInterno');
+        if (form) {
+            form.reset(); // Limpiar el formulario
+        }
+        const anadirRolSelect = document.getElementById('anadirRol');
+        if (anadirRolSelect) {
+            anadirRolSelect.value = ""; // Asegura que la opción "-- Seleccione un Rol --" (con value="") esté seleccionada
+        }
+        if (modal) {
+            modal.style.display = 'block'; // Mostrar el modal
+        }
+    }
+
+    async submitAnadirUsuarioInterno(event) {
+        event.preventDefault();
+        const nombre = document.getElementById('anadirNombre').value;
+        const apellido = document.getElementById('anadirApellido').value;
+        const email = document.getElementById('anadirEmail').value;
+        const telefono = document.getElementById('anadirTelefono').value;
+        const contrasena = document.getElementById('anadirContrasena').value;
+        const id_rol_val = document.getElementById('anadirRol').value;
+
+        if (!nombre || !email || !contrasena || !id_rol_val) {
+            this.showNotification('Por favor, complete todos los campos requeridos (Nombre, Email, Contraseña, Rol).', 'error');
+            return;
+        }
+
+        const data = { nombre, apellido, email, telefono, contrasena, id_rol: parseInt(id_rol_val, 10) };
+        const token = localStorage.getItem('token');
+
+        try {
+            this.showLoading();
+            const res = await fetch('/api/users/internos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (res.ok) {
+                this.showNotification('Usuario interno añadido con éxito.', 'success');
+                document.getElementById('modalAnadirUsuarioInterno').style.display = 'none';
+                // Recargar la tabla de usuarios internos
+                await this.cargarYRenderizarUsuariosInternos();
+            } else {
+                const errorData = await res.json().catch(() => ({ message: 'Error desconocido al añadir usuario.' }));
+                this.showNotification(`Error al añadir usuario: ${errorData.message || res.statusText}`, 'error');
+            }
+        } catch (error) {
+            this.showNotification(`Error de red o excepción: ${error.message}`, 'error');
+            console.error("Error en submitAnadirUsuarioInterno:", error);
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    async cargarYRenderizarRoles() {
+        const anadirRolSelect = document.getElementById('anadirRol');
+        const editRolSelect = document.getElementById('editRol');
+
+        if (this.listaRoles !== null) { // Roles ya están en caché
+            // console.log('Usando roles de caché para selects.');
+            this.poblarSelectsDeRolConLista(this.listaRoles, anadirRolSelect, editRolSelect);
+            return;
+        }
+
+        try {
+            // this.showLoading(); // Opcional
+            const token = localStorage.getItem('token');
+            if (!token) {
+                this.showNotification('Token no encontrado para cargar roles.', 'error');
+                return;
+            }
+            const res = await fetch('/api/roles', { 
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.message || `Error al cargar roles: ${res.statusText}`);
+            }
+            
+            const roles = await res.json();
+            this.listaRoles = roles; // Guardar los roles en la instancia
+            this.poblarSelectsDeRolConLista(this.listaRoles, anadirRolSelect, editRolSelect);
+            
+            // La siguiente validación de roles vacíos ya se maneja en poblarSelectsDeRolConLista
+            // if (!roles || roles.length === 0) {
+            //     this.showNotification('No se encontraron roles para cargar.', 'warning');
+            //     return;
+            // }
+
+        } catch (err) {
+            console.error('Error en cargarYRenderizarRoles:', err);
+            this.showNotification(err.message || 'Error al cargar roles.', 'error');
+        } finally {
+            // this.hideLoading();
+        }
+    }
+
+    async cargarYRenderizarPaginaRoles() {
+        await this.cargarYRenderizarTablaRoles();
+    }
+
+    async cargarYRenderizarTablaRoles() {
+        const tablaRolesBody = document.getElementById('tablaRolesBody');
+        if (!tablaRolesBody) {
+            console.error('Elemento tablaRolesBody no encontrado.');
+            return;
+        }
+
+        try {
+            this.showLoading();
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/roles', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.message || `Error al cargar roles: ${res.statusText}`);
+            }
+            const roles = await res.json();
+            
+            this.listaRoles = roles; 
+
+            tablaRolesBody.innerHTML = ''; 
+            if (roles && roles.length > 0) {
+                roles.forEach(rol => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${rol.id_rol}</td>
+                        <td>${rol.nombre}</td>
+                        <td>${rol.descripcion || ''}</td>
+                        <td>
+                            <button class="btn btn-sm btn-info btn-editar-rol" data-id="${rol.id_rol}" title="Editar Rol">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger btn-eliminar-rol" data-id="${rol.id_rol}" title="Eliminar Rol">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tablaRolesBody.appendChild(tr);
+                });
+            } else {
+                tablaRolesBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay roles definidos.</td></tr>';
+            }
+        } catch (err) {
+            console.error('Error en cargarYRenderizarTablaRoles:', err);
+            this.showNotification(err.message || 'Error al cargar la tabla de roles.', 'error');
+            if (tablaRolesBody) tablaRolesBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Error al cargar roles.</td></tr>';
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    abrirModalRol(rolData = null) {
+        const modal = document.getElementById('modalGestionRol');
+        const form = document.getElementById('formGestionRol');
+        const modalTitulo = document.getElementById('modalRolTitulo');
+        const rolIdInput = document.getElementById('gestionRolId');
+        const rolNombreInput = document.getElementById('gestionRolNombre');
+        const rolDescripcionInput = document.getElementById('gestionRolDescripcion');
+
+        form.reset(); 
+
+        if (rolData) { 
+            modalTitulo.textContent = 'Editar Rol';
+            rolIdInput.value = rolData.id_rol;
+            rolNombreInput.value = rolData.nombre;
+            rolDescripcionInput.value = rolData.descripcion || '';
+        } else { 
+            modalTitulo.textContent = 'Añadir Nuevo Rol';
+            rolIdInput.value = ''; 
+        }
+        modal.style.display = 'block';
+    }
+
+    async submitFormRol(event) {
+        event.preventDefault();
+        const rolId = document.getElementById('gestionRolId').value;
+        const nombre = document.getElementById('gestionRolNombre').value;
+        const descripcion = document.getElementById('gestionRolDescripcion').value;
+
+        if (!nombre) {
+            this.showNotification('El nombre del rol es requerido.', 'error');
+            return;
+        }
+
+        const token = localStorage.getItem('token');
+        const url = rolId ? `/api/roles/${rolId}` : '/api/roles';
+        const method = rolId ? 'PUT' : 'POST';
+
+        try {
+            this.showLoading();
+            const res = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ nombre, descripcion })
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.message || `Error al guardar el rol: ${res.statusText}`);
+            }
+            
+            this.showNotification(`Rol ${rolId ? 'actualizado' : 'creado'} con éxito.`, 'success');
+            document.getElementById('modalGestionRol').style.display = 'none';
+            await this.cargarYRenderizarTablaRoles(); 
+            this.listaRoles = null; 
+            await this.cargarYRenderizarRoles(); 
+        } catch (err) {
+            console.error('Error en submitFormRol:', err);
+            this.showNotification(err.message || 'Error al guardar el rol.', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    async eliminarRol(idRol) {
+        if (!confirm(`¿Estás seguro de que quieres eliminar el rol ID: ${idRol}? Esta acción podría afectar a usuarios asignados si el backend no lo previene.`)) {
+            return;
+        }
+
+        const token = localStorage.getItem('token');
+        try {
+            this.showLoading();
+            const res = await fetch(`/api/roles/${idRol}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({ message: `Error HTTP ${res.status}` }));
+                throw new Error(errorData.message || `Error al eliminar el rol: ${res.statusText}`);
+            }
+            
+            this.showNotification('Rol eliminado con éxito.', 'success');
+            await this.cargarYRenderizarTablaRoles(); 
+            this.listaRoles = null; 
+            await this.cargarYRenderizarRoles();
+        } catch (err) {
+            console.error('Error en eliminarRol:', err);
+            this.showNotification(err.message || 'Error al eliminar el rol.', 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    poblarSelectsDeRolConLista(roles, anadirRolSelect, editRolSelect) {
+        [anadirRolSelect, editRolSelect].forEach(select => {
+            if (!select) return;
+            // const currentValue = select.value; 
+            let primeraOpcion = select.options.length > 0 && select.options[0].value === "" ? select.options[0] : null;
+            select.innerHTML = '';
+            if (primeraOpcion) {
+                select.appendChild(primeraOpcion);
+            } else {
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.textContent = "-- Seleccione un Rol --";
+                select.appendChild(defaultOption);
+            }
+        });
+
+        if (roles && roles.length > 0) {
+            roles.forEach(rol => {
+                const optionHtml = `<option value="${rol.id_rol}">${rol.nombre}</option>`;
+                if (anadirRolSelect) anadirRolSelect.insertAdjacentHTML('beforeend', optionHtml);
+                if (editRolSelect) editRolSelect.insertAdjacentHTML('beforeend', optionHtml);
+            });
+        }
     }
 }; // <-- End of DashboardUI class
 

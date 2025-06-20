@@ -54,6 +54,12 @@
                 <li><a id="tabProductos" class="nav-link" data-page="productos">Productos</a></li>
 <li><a id="tabUsuarios" class="nav-link" data-page="usuarios">Usuarios</a></li>
 <li><a id="tabPaquetes" class="nav-link" data-page="paquetes">Paquetes</a></li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="roles">
+                        <i class="fas fa-user-shield"></i>
+                        <span>Gestión de Roles</span>
+                    </a>
+                </li>
             </ul>
         </nav>
 
@@ -213,16 +219,11 @@
                         <button id="tabUsuariosInternos" class="active">Usuarios Internos</button>
                         <button id="tabClientes">Clientes</button>
                     </div>
-                    <div id="usuariosInternosContent"> <!-- Contenedor para botón y tabla -->
-                        <div style="margin-bottom: 1rem; text-align: right;">
-                            <button id="btnAnadirUsuarioInterno" class="btn btn-primary">
-                                <i class="fas fa-plus"></i> Añadir Usuario Interno
-                            </button>
-                        </div>
-                        <div id="usuariosInternosTable">
-                            <table>
-                                <thead>
-                                    <tr>
+                    <div id="usuariosInternosTable">
+                        <button id="btnAnadirUsuarioInterno" class="btn btn-primary" style="margin-bottom: 15px; margin-top: 10px;"><i class="fas fa-plus"></i> Añadir Usuario Interno</button>
+                        <table>
+                            <thead>
+                                <tr>
                                     <th>ID</th>
                                     <th>Nombre</th>
                                     <th>Apellido</th>
@@ -381,6 +382,43 @@
                 </div>
             </div>
 
+            <!-- Roles Page -->
+            <div id="roles-page" class="page">
+                <div class="page-title">
+                    <h1>Gestión de Roles</h1>
+                    <div class="breadcrumb">Inicio / Roles</div>
+                </div>
+                <div class="page-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Lista de Roles</h3>
+                            <div class="card-actions">
+                                <button class="btn btn-sm btn-primary" id="btnAnadirRol">
+                                    <i class="fas fa-plus"></i> Añadir Nuevo Rol
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID Rol</th>
+                                            <th>Nombre</th>
+                                            <th>Descripción</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaRolesBody">
+                                        <!-- Los roles se cargarán aquí por JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Dynamic Content Area -->
             <div id="dashboardContent" class="dashboard-content">
                 <!-- Default content or loading spinner can go here -->
@@ -462,10 +500,7 @@
             </div>
             <form id="formEditarUsuario">
                 <div class="modal-body">
-                    <div class="form-group" style="margin-bottom: 1rem;">
-                        <label for="editIdUsuario">ID Usuario:</label>
-                        <input type="text" id="editIdUsuario" name="id_usuario" class="form-control" readonly>
-                    </div>
+                    <input type="hidden" id="editIdUsuario">
                     <div class="form-group" style="margin-bottom: 1rem;">
                         <label for="editNombre">Nombre:</label>
                         <input type="text" id="editNombre" class="form-control" required>
@@ -483,9 +518,13 @@
                         <input type="tel" id="editTelefono" class="form-control">
                     </div>
                     <div class="form-group" style="margin-bottom: 1rem;">
-                        <label for="editRol">Rol (ID):</label>
-                        <input type="number" id="editRol" class="form-control">
-                        <!-- Consider making this a select dropdown if roles are predefined -->
+                        <label for="editRol">Rol:</label>
+                        <select id="editRol" class="form-control" required>
+                            <option value="">Seleccione un rol</option>
+                            <option value="1">Admin</option>
+                            <option value="2">Empleado</option>
+                            <option value="3">Otro Rol</option> 
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -496,88 +535,48 @@
         </div>
     </div>
 
-    <!-- Client Edit Modal -->
-    <div id="modalEditarCliente" class="modal" style="display:none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Editar Cliente</h3>
-                <button class="close-btn" id="cerrarModalEditarCliente">&times;</button>
-            </div>
-            <form id="formEditarCliente">
-                <div class="modal-body">
-                    <input type="hidden" id="editIdCliente">
-                    <div class="form-group" style="margin-bottom: 1rem;">
-                        <label for="editNombreCliente">Nombre:</label>
-                        <input type="text" id="editNombreCliente" class="form-control" required>
-                    </div>
-                    <div class="form-group" style="margin-bottom: 1rem;">
-                        <label for="editApellidoCliente">Apellido:</label>
-                        <input type="text" id="editApellidoCliente" class="form-control">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 1rem;">
-                        <label for="editEmailCliente">Email:</label>
-                        <input type="email" id="editEmailCliente" class="form-control" required>
-                    </div>
-                    <div class="form-group" style="margin-bottom: 1rem;">
-                        <label for="editTelefonoCliente">Teléfono:</label>
-                        <input type="tel" id="editTelefonoCliente" class="form-control">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 1rem;">
-                        <label for="editDireccionCliente">Dirección:</label>
-                        <input type="text" id="editDireccionCliente" class="form-control">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="cancelarEditarCliente">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="guardarEditarCliente">Guardar Cambios</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Add Internal User Modal -->
+    <!-- Add User Modal -->
     <div id="modalAnadirUsuarioInterno" class="modal" style="display:none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Añadir Nuevo Usuario Interno</h3>
-                <button class="close-btn" id="cerrarModalAnadirUsuarioInterno">&times;</button>
+                <h3>Añadir Usuario Interno</h3>
+                <button class="close-btn" id="cerrarModalAnadir">&times;</button>
             </div>
             <form id="formAnadirUsuarioInterno">
                 <div class="modal-body">
                     <div class="form-group" style="margin-bottom: 1rem;">
                         <label for="anadirNombre">Nombre:</label>
-                        <input type="text" id="anadirNombre" name="nombre" class="form-control" required>
+                        <input type="text" id="anadirNombre" class="form-control" required>
                     </div>
                     <div class="form-group" style="margin-bottom: 1rem;">
                         <label for="anadirApellido">Apellido:</label>
-                        <input type="text" id="anadirApellido" name="apellido" class="form-control">
+                        <input type="text" id="anadirApellido" class="form-control">
                     </div>
                     <div class="form-group" style="margin-bottom: 1rem;">
                         <label for="anadirEmail">Email:</label>
-                        <input type="email" id="anadirEmail" name="email" class="form-control" required>
-                    </div>
-                    <div class="form-group" style="margin-bottom: 1rem;">
-                        <label for="anadirContrasena">Contraseña:</label>
-                        <input type="password" id="anadirContrasena" name="contrasena" class="form-control" required>
+                        <input type="email" id="anadirEmail" class="form-control" required>
                     </div>
                     <div class="form-group" style="margin-bottom: 1rem;">
                         <label for="anadirTelefono">Teléfono:</label>
-                        <input type="tel" id="anadirTelefono" name="telefono" class="form-control">
+                        <input type="tel" id="anadirTelefono" class="form-control">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="anadirContrasena">Contraseña:</label>
+                        <input type="password" id="anadirContrasena" class="form-control" required autocomplete="new-password">
                     </div>
                     <div class="form-group" style="margin-bottom: 1rem;">
                         <label for="anadirRol">Rol:</label>
-                        <select id="anadirRol" name="id_rol" class="form-control" required>
-                            <option value="" disabled selected>Seleccione un rol</option>
-                            <option value="1">ADMIN</option>
-                            <option value="2">JEFE_VENTAS</option>
-                            <!-- Se podrían añadir más roles dinámicamente o tenerlos predefinidos si son estáticos -->
-                            <option value="3">VENDEDOR</option> 
+                        <select id="anadirRol" class="form-control" required>
+                            <option value="">Seleccione un rol</option>
+                            <option value="1">Admin</option>
+                            <option value="2">Empleado</option>
+                            <option value="3">Otro Rol</option>
                         </select>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="cancelarAnadirUsuarioInterno">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="guardarAnadirUsuarioInterno">Guardar</button>
+                    <button type="button" class="btn btn-secondary" id="cancelarAnadirUsuario">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Añadir Usuario</button>
                 </div>
             </form>
         </div>
@@ -612,6 +611,33 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="btnCerrarGestionComponentes">Cerrar</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal para Añadir/Editar Rol -->
+    <div id="modalGestionRol" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalRolTitulo">Añadir Rol</h3> <!-- Título cambiará dinámicamente -->
+                <button class="close-btn" id="cerrarModalRol">&times;</button>
+            </div>
+            <form id="formGestionRol">
+                <div class="modal-body">
+                    <input type="hidden" id="gestionRolId"> <!-- Para ID del rol al editar -->
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="gestionRolNombre">Nombre del Rol:</label>
+                        <input type="text" id="gestionRolNombre" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="gestionRolDescripcion">Descripción:</label>
+                        <textarea id="gestionRolDescripcion" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelarGestionRol">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Rol</button>
+                </div>
+            </form>
         </div>
     </div>
 

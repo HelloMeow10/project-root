@@ -13,6 +13,9 @@ import paymentRoutes from './routes/paymentRoutes';
 import { errorHandler } from './middlewares/errorHandler';
 import path from 'path';
 import dashboardRoutes from './routes/dashboardRoutes';
+// ... otras importaciones
+import roleRoutes from './routes/roleRoutes'; // Ajusta la ruta
+
 
 const app: Application = express();
 const port = process.env.PORT || 3000;
@@ -21,7 +24,7 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
-
+app.use('/api/roles', roleRoutes); // Añade esta línea
 // Servir archivos estáticos de la carpeta css
 app.use('/css', express.static(path.join(__dirname, '../css')));
 // Servir archivos estáticos de la carpeta html
