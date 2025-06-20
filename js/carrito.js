@@ -91,7 +91,7 @@ class CartUI {
       const tipo = localStorage.getItem('tipo');
       if (!token || tipo !== 'cliente') {
         this.showNotification('Debes iniciar sesión como cliente para actualizar la cantidad', 'error');
-        setTimeout(() => window.location.href = tipo === 'admin' ? '/admin.html' : '/login.html', 1500);
+        setTimeout(() => window.location.href = tipo === 'admin' ? '/dashboard.html' : '/login.html', 1500);
         return;
       }
 
@@ -141,7 +141,7 @@ class CartUI {
       const tipo = localStorage.getItem('tipo');
       if (!token || tipo !== 'cliente') {
         this.showNotification('Debes iniciar sesión como cliente para actualizar la cantidad', 'error');
-        setTimeout(() => window.location.href = tipo === 'admin' ? '/admin.html' : '/login.html', 1500);
+        setTimeout(() => window.location.href = tipo === 'admin' ? '/dashboard.html' : '/login.html', 1500);
         return;
       }
 
@@ -264,7 +264,7 @@ class CartUI {
           const tipo = localStorage.getItem('tipo');
           if (!token || tipo !== 'cliente') {
             this.showNotification('Debes iniciar sesión como cliente para eliminar el producto', 'error');
-            setTimeout(() => window.location.href = tipo === 'admin' ? '/admin.html' : '/login.html', 1500);
+            setTimeout(() => window.location.href = tipo === 'admin' ? '/dashboard.html' : '/login.html', 1500);
             return;
           }
 
@@ -328,7 +328,7 @@ class CartUI {
           const tipo = localStorage.getItem('tipo');
           if (!token || tipo !== 'cliente') {
             this.showNotification('Debes iniciar sesión como cliente para vaciar el carrito', 'error');
-            setTimeout(() => window.location.href = tipo === 'admin' ? '/admin.html' : '/login.html', 1500);
+            setTimeout(() => window.location.href = tipo === 'admin' ? '/dashboard.html' : '/login.html', 1500);
             return;
           }
 
@@ -413,7 +413,7 @@ class CartUI {
     const tipo = localStorage.getItem('tipo');
     if (!token || tipo !== 'cliente') {
       this.showNotification('Debes iniciar sesión como cliente para comprar', 'error');
-      setTimeout(() => window.location.href = tipo === 'admin' ? '/admin.html' : '/login.html', 1500);
+      setTimeout(() => window.location.href = tipo === 'admin' ? '/dashboard.html' : '/login.html', 1500);
       return;
     }
 
@@ -603,7 +603,7 @@ class CartUI {
       const tipo = localStorage.getItem('tipo');
       if (!token || tipo !== 'cliente') {
         this.showNotification('Debes iniciar sesión como cliente para actualizar el carrito', 'error');
-        setTimeout(() => window.location.href = tipo === 'admin' ? '/admin.html' : '/login.html', 1500);
+        setTimeout(() => window.location.href = tipo === 'admin' ? '/dashboard.html' : '/login.html', 1500);
         return;
       }
 
@@ -804,10 +804,10 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
   if (tipo !== 'cliente') {
-    console.log('Invalid user type, redirecting to:', tipo === 'admin' ? 'admin.html' : 'index.html');
+    console.log('Invalid user type, redirecting to:', tipo === 'admin' ? 'dashboard.html' : 'index.html');
     hideAccessOverlay();
     window.CartAPI.showNotification('Solo los clientes pueden acceder al carrito', 'error');
-    setTimeout(() => window.location.href = tipo === 'admin' ? '/admin.html' : '/index.html', 3000);
+    setTimeout(() => window.location.href = tipo === 'admin' ? '/dashboard.html' : '/index.html', 3000);
     return;
   }
 
@@ -880,7 +880,7 @@ document.getElementById('confirmarCompraBtn')?.addEventListener('click', async f
 
   if (!token || tipo !== 'cliente') {
     window.CartAPI.showNotification('Debes iniciar sesión como cliente para comprar', 'error');
-    setTimeout(() => window.location.href = tipo === 'admin' ? '/admin.html' : '/login.html', 1500);
+    setTimeout(() => window.locatiadmin.htmlon.href = tipo === 'admin' ? '/' : '/login.html', 1500);
     return;
   }
 
