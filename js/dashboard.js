@@ -12,6 +12,8 @@ class DashboardUI {
         this.sortDirection = {};
         this.currentPage = 1;
         this.itemsPerPage = 10;
+        this.clientesData = new Map(); // Para almacenar datos de clientes para edición
+        this.usuariosInternosData = new Map(); // Para almacenar datos de usuarios internos
         
         this.init();
     }
@@ -100,37 +102,48 @@ class DashboardUI {
         // Window resize
         window.addEventListener('resize', () => this.handleResize());
 
-            // Close Manage Components Modal
-            const cerrarModalGestionarComponentesBtn = document.getElementById('cerrarModalGestionarComponentes');
-            if (cerrarModalGestionarComponentesBtn) {
-                cerrarModalGestionarComponentesBtn.onclick = () => {
-                    document.getElementById('modalGestionarComponentes').style.display = 'none';
-                };
-            }
-            const btnCerrarGestionComponentes = document.getElementById('btnCerrarGestionComponentes');
-            if (btnCerrarGestionComponentes) {
-                btnCerrarGestionComponentes.onclick = () => {
-                    document.getElementById('modalGestionarComponentes').style.display = 'none';
-                };
-            }
+        // Close Manage Components Modal
+        const cerrarModalGestionarComponentesBtn = document.getElementById('cerrarModalGestionarComponentes');
+        if (cerrarModalGestionarComponentesBtn) {
+            cerrarModalGestionarComponentesBtn.onclick = () => {
+                document.getElementById('modalGestionarComponentes').style.display = 'none';
+            };
+        }
+        const btnCerrarGestionComponentes = document.getElementById('btnCerrarGestionComponentes');
+        if (btnCerrarGestionComponentes) {
+            btnCerrarGestionComponentes.onclick = () => {
+                document.getElementById('modalGestionarComponentes').style.display = 'none';
+            };
+        }
 
-            // Search input for Manage Package Components Modal
-            const buscarProductoIndividualInput = document.getElementById('buscarProductoIndividual');
-            if (buscarProductoIndividualInput) {
-                buscarProductoIndividualInput.addEventListener('input', (e) => this.handleProductSearch(e));
-            }
+        // Search input for Manage Package Components Modal
+        const buscarProductoIndividualInput = document.getElementById('buscarProductoIndividual');
+        if (buscarProductoIndividualInput) {
+            buscarProductoIndividualInput.addEventListener('input', (e) => this.handleProductSearch(e));
+        }
 
-            // Event delegation for adding components in Manage Package Components Modal
-            const listaDisponiblesDiv = document.getElementById('listaProductosIndividualesDisponibles');
-            if (listaDisponiblesDiv) {
-                listaDisponiblesDiv.addEventListener('click', handleAddComponent);
-            }
+        // Event delegation for adding components in Manage Package Components Modal
+        const listaDisponiblesDiv = document.getElementById('listaProductosIndividualesDisponibles');
+        if (listaDisponiblesDiv) {
+            listaDisponiblesDiv.addEventListener('click', handleAddComponent);
+        }
 
-            // Event delegation for removing components in Manage Package Components Modal
-            const listaActualesDiv = document.getElementById('listaComponentesActuales');
-            if (listaActualesDiv) {
-                listaActualesDiv.addEventListener('click', handleRemoveComponent);
-            }
+        // Event delegation for removing components in Manage Package Components Modal
+        const listaActualesDiv = document.getElementById('listaComponentesActuales');
+        if (listaActualesDiv) {
+            listaActualesDiv.addEventListener('click', handleRemoveComponent);
+        }
+
+        // Delegación de eventos para tablas de usuarios
+        const usuariosInternosTableBody = document.getElementById('usuariosInternosTableBody');
+        if (usuariosInternosTableBody) {
+            usuariosInternosTableBody.addEventListener('click', (e) => this.handleUsuariosInternosTableClick(e));
+        }
+
+        const clientesTableBody = document.getElementById('clientesTableBody');
+        if (clientesTableBody) {
+            clientesTableBody.addEventListener('click', (e) => this.handleClientesTableClick(e));
+        }
 
         // Alternar pestañas de usuarios
         const tabUsuariosInternos = document.getElementById('tabUsuariosInternos');
@@ -140,33 +153,95 @@ class DashboardUI {
 
         if (tabUsuariosInternos && tabClientes && usuariosInternosTable && clientesTable) {
           tabUsuariosInternos.onclick = async () => {
+            console.log("Cambiando a pestaña Usuarios Internos. Limpiando contexto...");
+            const tableSearchInput = document.getElementById('tableSearch');
+            if (tableSearchInput) tableSearchInput.value = ''; // Limpiar búsqueda de tabla
+
             tabUsuariosInternos.classList.add('active');
             tabClientes.classList.remove('active');
             usuariosInternosTable.style.display = '';
             clientesTable.style.display = 'none';
-            // Usa el método de tu clase para renderizar
-            const token = localStorage.getItem('token');
-            const res = await fetch('/api/users/internos', {
-              headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            this.renderUsuariosInternosTable(data);
+            
+            await this.cargarYRenderizarUsuariosInternos(); // Usar la nueva función
           };
-          tabClientes.onclick = async () => {
+          tabClientes.onclick = async () => { 
+            console.log("Cambiando a pestaña Clientes. Limpiando contexto...");
+            const tableSearchInput = document.getElementById('tableSearch');
+            if (tableSearchInput) tableSearchInput.value = ''; // Limpiar búsqueda de tabla
+
             tabClientes.classList.add('active');
             tabUsuariosInternos.classList.remove('active');
             usuariosInternosTable.style.display = 'none';
             clientesTable.style.display = '';
-            const token = localStorage.getItem('token');
-            const res = await fetch('/api/users/clientes', {
-              headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            this.renderClientesTable(data);
+            
+            await this.cargarYRenderizarClientes(); // Usamos la nueva función
           };
-          // Mostrar por defecto usuarios internos
-          tabUsuariosInternos.click();
+          // Mostrar por defecto usuarios internos al cargar la página de gestión de usuarios
+          if (this.currentPage === 'usuarios') { 
+            tabUsuariosInternos.click();
+          }
         }
+
+        // Modal Editar Cliente
+        const modalEditarCliente = document.getElementById('modalEditarCliente');
+        const formEditarCliente = document.getElementById('formEditarCliente');
+        const cerrarModalEditarClienteBtn = document.getElementById('cerrarModalEditarCliente');
+        const cancelarEditarClienteBtn = document.getElementById('cancelarEditarCliente');
+
+        if (modalEditarCliente) {
+            if (cerrarModalEditarClienteBtn) {
+                cerrarModalEditarClienteBtn.onclick = () => modalEditarCliente.style.display = 'none';
+            }
+            if (cancelarEditarClienteBtn) {
+                cancelarEditarClienteBtn.onclick = () => modalEditarCliente.style.display = 'none';
+            }
+            // Cierre de modal si se hace clic fuera
+            window.addEventListener('click', (event) => {
+                if (event.target === modalEditarCliente) {
+                    modalEditarCliente.style.display = 'none';
+                }
+            });
+        }
+        
+        if (formEditarCliente) {
+            formEditarCliente.onsubmit = async (e) => {
+                e.preventDefault();
+                const idCliente = document.getElementById('editIdCliente').value;
+                const data = {
+                    nombre: document.getElementById('editNombreCliente').value,
+                    apellido: document.getElementById('editApellidoCliente').value,
+                    email: document.getElementById('editEmailCliente').value,
+                    telefono: document.getElementById('editTelefonoCliente').value,
+                    direccion: document.getElementById('editDireccionCliente').value,
+                };
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    DashboardAPI.showNotification('Error de autenticación.', 'error');
+                    return;
+                }
+                try {
+                    const res = await fetch(`/api/users/clientes/${idCliente}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    if (!res.ok) {
+                        const errorData = await res.json().catch(() => ({ message: `Error al actualizar cliente: ${res.statusText}` }));
+                        throw new Error(errorData.message);
+                    }
+                    DashboardAPI.showNotification('Cliente actualizado con éxito.', 'success');
+                    modalEditarCliente.style.display = 'none';
+                    await this.cargarYRenderizarClientes();
+                } catch (error) {
+                    console.error(error);
+                    DashboardAPI.showNotification(error.message, 'error');
+                }
+            };
+        }
+
 
         document.getElementById('formAgregarPaquete').onsubmit = async function(e) {
           e.preventDefault();
@@ -198,37 +273,167 @@ class DashboardUI {
           document.getElementById('modalEditarUsuario').style.display = 'none';
         };
 
-        // Guardar cambios
-        document.getElementById('formEditarUsuario').onsubmit = async function(e) {
-          e.preventDefault();
-          const id = document.getElementById('editIdUsuario').value;
-          const data = {
-            nombre: document.getElementById('editNombre').value,
-            apellido: document.getElementById('editApellido').value,
-            email: document.getElementById('editEmail').value,
-            telefono: document.getElementById('editTelefono').value,
-            id_rol: document.getElementById('editRol').value
-          };
-          const token = localStorage.getItem('token');
-          const res = await fetch(`/api/users/internos/${id}`, {
-            method: 'PUT',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-          });
-          if (res.ok) {
-            dashboardUI.showNotification('Usuario actualizado', 'success');
-            document.getElementById('modalEditarUsuario').style.display = 'none';
-            // Recarga la tabla de usuarios internos
-            const tabUsuariosInternos = document.getElementById('tabUsuariosInternos');
-            if (tabUsuariosInternos) tabUsuariosInternas.click();
-          } else {
-            dashboardUI.showNotification('Error al actualizar usuario', 'error');
-          }
-        };
+        // Guardar cambios Usuario Interno
+        const formEditarUsuario = document.getElementById('formEditarUsuario');
+        if (formEditarUsuario) {
+            formEditarUsuario.onsubmit = async (e) => { 
+              e.preventDefault();
+              const id = document.getElementById('editIdUsuario').value;
+              const data = {
+                nombre: document.getElementById('editNombre').value,
+                apellido: document.getElementById('editApellido').value,
+                email: document.getElementById('editEmail').value,
+                telefono: document.getElementById('editTelefono').value,
+                id_rol: parseInt(document.getElementById('editRol').value, 10) // Asegurarse que es número
+              };
+              
+              // Validación simple para id_rol
+              if (isNaN(data.id_rol)) {
+                DashboardAPI.showNotification('ID de Rol inválido. Debe ser un número.', 'error');
+                return;
+              }
 
+              const token = localStorage.getItem('token');
+              if (!token) {
+                DashboardAPI.showNotification('Error de autenticación.', 'error');
+                return;
+              }
+
+              try {
+                const res = await fetch(`/api/users/internos/${id}`, {
+                  method: 'PUT',
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify(data)
+                });
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({ message: `Error al actualizar usuario interno: ${res.statusText}` }));
+                    throw new Error(errorData.message);
+                }
+                DashboardAPI.showNotification('Usuario interno actualizado con éxito.', 'success');
+                document.getElementById('modalEditarUsuario').style.display = 'none';
+                await this.cargarYRenderizarUsuariosInternos(); // Usar la nueva función
+              } catch (error) {
+                console.error(error);
+                DashboardAPI.showNotification(error.message, 'error');
+              }
+            };
+        }
+
+        // ---- Funcionalidad Añadir Usuario Interno ----
+        const btnAnadirUsuarioInterno = document.getElementById('btnAnadirUsuarioInterno');
+        if (btnAnadirUsuarioInterno) {
+            btnAnadirUsuarioInterno.addEventListener('click', () => this.abrirModalAnadirUsuarioInterno());
+        }
+
+        const modalAnadirUsuarioInterno = document.getElementById('modalAnadirUsuarioInterno');
+        const formAnadirUsuarioInterno = document.getElementById('formAnadirUsuarioInterno');
+        const cerrarModalAnadirUsuarioInternoBtn = document.getElementById('cerrarModalAnadirUsuarioInterno');
+        const cancelarAnadirUsuarioInternoBtn = document.getElementById('cancelarAnadirUsuarioInterno');
+
+        if (modalAnadirUsuarioInterno) {
+            if (cerrarModalAnadirUsuarioInternoBtn) {
+                cerrarModalAnadirUsuarioInternoBtn.onclick = () => {
+                    modalAnadirUsuarioInterno.style.display = 'none';
+                    if (formAnadirUsuarioInterno) formAnadirUsuarioInterno.reset();
+                };
+            }
+            if (cancelarAnadirUsuarioInternoBtn) {
+                cancelarAnadirUsuarioInternoBtn.onclick = () => {
+                    modalAnadirUsuarioInterno.style.display = 'none';
+                    if (formAnadirUsuarioInterno) formAnadirUsuarioInterno.reset();
+                };
+            }
+            // Cierre de modal si se hace clic fuera
+            window.addEventListener('click', (event) => {
+                if (event.target === modalAnadirUsuarioInterno) {
+                    modalAnadirUsuarioInterno.style.display = 'none';
+                    if (formAnadirUsuarioInterno) formAnadirUsuarioInterno.reset();
+                }
+            });
+        }
+
+        if (formAnadirUsuarioInterno) {
+            formAnadirUsuarioInterno.onsubmit = async (e) => {
+                e.preventDefault();
+                this.showLoading();
+
+                const nombre = document.getElementById('anadirNombre').value.trim();
+                const apellido = document.getElementById('anadirApellido').value.trim();
+                const email = document.getElementById('anadirEmail').value.trim();
+                const contrasena = document.getElementById('anadirContrasena').value;
+                const telefono = document.getElementById('anadirTelefono').value.trim();
+                const idRol = document.getElementById('anadirRol').value; // Obtener valor del select
+
+                // Validación Frontend
+                if (!nombre || !email || !contrasena || !idRol) {
+                    DashboardAPI.showNotification('Por favor, complete todos los campos requeridos, incluyendo el rol.', 'error');
+                    this.hideLoading();
+                    return;
+                }
+                
+                if (!/^\S+@\S+\.\S+$/.test(email)) { // Validación simple de email
+                    DashboardAPI.showNotification('Formato de email inválido.', 'error');
+                    this.hideLoading();
+                    return;
+                }
+
+                // El valor del select ya es el ID, solo necesita ser parseado a Int.
+                // La validación de que idRol no esté vacío ya cubre el caso de "Seleccione un rol" (value="").
+                const id_rol_numerico = parseInt(idRol, 10);
+                if (isNaN(id_rol_numerico)) {
+                     // Esto no debería ocurrir si los values del select son números y se seleccionó uno.
+                    DashboardAPI.showNotification('Rol seleccionado inválido.', 'error');
+                    this.hideLoading();
+                    return;
+                }
+
+                const data = { 
+                    nombre, 
+                    apellido, 
+                    email, 
+                    contrasena, 
+                    telefono, 
+                    id_rol: id_rol_numerico // Usar el valor parseado
+                };
+                const token = localStorage.getItem('token');
+
+                if (!token) {
+                    DashboardAPI.showNotification('Error de autenticación. Por favor, inicie sesión de nuevo.', 'error');
+                    this.hideLoading();
+                    return;
+                }
+
+                try {
+                    const res = await fetch('/api/users/internos', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (!res.ok) {
+                        const errorData = await res.json().catch(() => ({ message: `Error al crear usuario: ${res.statusText}` }));
+                        throw new Error(errorData.message);
+                    }
+
+                    DashboardAPI.showNotification('Usuario interno creado con éxito.', 'success');
+                    modalAnadirUsuarioInterno.style.display = 'none';
+                    formAnadirUsuarioInterno.reset();
+                    await this.cargarYRenderizarUsuariosInternos();
+                } catch (error) {
+                    console.error('Error al crear usuario interno:', error);
+                    DashboardAPI.showNotification(error.message, 'error');
+                } finally {
+                    this.hideLoading();
+                }
+            };
+        }
+        // ---- Fin Funcionalidad Añadir Usuario Interno ----
         
 
         // Cerrar modal
@@ -305,10 +510,16 @@ class DashboardUI {
 
     // Navigation Methods
     handleNavigation(e) {
+        console.log('[handleNavigation] Event target:', e.target);
         e.preventDefault();
         
         const link = e.target.closest('.nav-link');
+        if (!link) {
+            console.error('[handleNavigation] No .nav-link found for event target:', e.target);
+            return;
+        }
         const page = link.dataset.page;
+        console.log('[handleNavigation] Navigating to pageId:', page);
         
         // Update active states
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
@@ -324,41 +535,75 @@ class DashboardUI {
     }
 
     showPage(pageId) {
-        console.log('Mostrando página:', pageId); // <-- agrega esto
+        console.log(`[showPage] Attempting to show pageId: '${pageId}'`);
         // Hide all pages
-        document.querySelectorAll('.page').forEach(page => {
-            page.classList.remove('active');
+        document.querySelectorAll('.page').forEach(p => {
+            p.classList.remove('active');
+            p.style.display = 'none'; // Asegurar que todas las páginas están ocultas
         });
         
-        // Show target page
         const targetPage = document.getElementById(`${pageId}-page`);
+        
         if (targetPage) {
+            console.log(`[showPage] Found target page element for ID: ${pageId}-page`, targetPage);
             targetPage.classList.add('active');
+            targetPage.style.display = 'block'; // Establecer explícitamente para mostrar
             this.currentPage = pageId;
+            console.log(`[showPage] Current page set to: '${this.currentPage}'`);
             
-            // Trigger page-specific initialization
-            this.onPageShow(pageId);
+            this.onPageShow(pageId); // 'this' se refiere a la instancia de DashboardUI
+        } else {
+            console.error(`[showPage] Target page element NOT FOUND for ID: '${pageId}-page'. Check HTML structure and pageId spelling.`);
         }
     }
 
     onPageShow(pageId) {
-        console.log(`[onPageShow] Started. pageId: '${pageId}' (type: ${typeof pageId})`); // Log entry and type
+        console.log(`[onPageShow] Initializing content for page: '${pageId}'`);
         
         if (pageId === 'productos') {
-            console.log("[onPageShow] Condition for 'productos' met. Calling cargarProductos().");
-            cargarProductos();
+            const productosTableBody = document.getElementById('tablaProductosBody');
+            if (productosTableBody) {
+                try {
+                    console.log("[onPageShow] 'tablaProductosBody' found. Attempting to call cargarProductos().");
+                    if (typeof cargarProductos === 'function') {
+                        cargarProductos();
+                    } else {
+                        console.error("[onPageShow] global function 'cargarProductos' is not defined or not a function.");
+                    }
+                } catch (error) {
+                    console.error("[onPageShow] Error executing cargarProductos():", error);
+                }
+            } else {
+                console.error("[onPageShow] HTML element 'tablaProductosBody' NOT FOUND for 'productos' page. Cannot load products.");
+            }
         } else if (pageId === 'paquetes') {
-            console.log("[onPageShow] Condition for 'paquetes' met. Calling cargarPaquetes()."); // Key log
-            cargarPaquetes();
+            const paquetesTableBody = document.getElementById('tablaPaquetesBody');
+            if (paquetesTableBody) {
+                try {
+                    console.log("[onPageShow] 'tablaPaquetesBody' found. Attempting to call cargarPaquetes().");
+                    if (typeof cargarPaquetes === 'function') {
+                        cargarPaquetes();
+                    } else {
+                        console.error("[onPageShow] global function 'cargarPaquetes' is not defined or not a function.");
+                    }
+                } catch (error) {
+                    console.error("[onPageShow] Error executing cargarPaquetes():", error);
+                }
+            } else {
+                console.error("[onPageShow] HTML element 'tablaPaquetesBody' NOT FOUND for 'paquetes' page. Cannot load paquetes.");
+            }
+        } else if (pageId === 'usuarios') {
+             console.log("[onPageShow] Matched 'usuarios'. Logic for this page (e.g., clicking default tab) is handled in setupEventListeners or tab click handlers.");
+             // No es necesario hacer click en la pestaña aquí si ya se maneja al cambiar this.currentPage
         } else {
-            console.log(`[onPageShow] pageId '${pageId}' did not match 'productos' or 'paquetes'.`);
+            console.log(`[onPageShow] No specific on-page-show action defined for pageId '${pageId}'.`);
         }
         
-        console.log(`[onPageShow] Dispatching pageChanged event for pageId: '${pageId}'.`);
+        console.log(`[onPageShow] Dispatching 'pageChanged' event for pageId: '${pageId}'.`);
         document.dispatchEvent(new CustomEvent('pageChanged', { 
             detail: { page: pageId } 
         }));
-        console.log("[onPageShow] Finished.");
+        console.log(`[onPageShow] Finished processing for pageId: '${pageId}'.`);
     }
 
     toggleSidebar() {
@@ -473,10 +718,14 @@ class DashboardUI {
     renderUsuariosInternosTable(data) {
         const tbody = document.getElementById('usuariosInternosTableBody');
         tbody.innerHTML = '';
+        this.usuariosInternosData.clear(); // Limpiar datos anteriores
         data.forEach(u => {
+            const userId = u.id_usuario; // Asegurar que usamos el ID correcto
+            this.usuariosInternosData.set(String(userId), u); // Almacenar datos del usuario para edición
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${u.id_usuario}</td>
+                <td>${userId}</td>
                 <td>${u.nombre}</td>
                 <td>${u.apellido || ''}</td>
                 <td>${u.email}</td>
@@ -484,47 +733,301 @@ class DashboardUI {
                 <td>${u.activo ? 'Sí' : 'No'}</td>
                 <td>${u.id_rol || ''}</td>
                 <td>
-                    <button class="btn-activar" data-id="${u.id_usuario}" data-activo="${u.activo}">
+                    <button class="btn btn-sm btn-info btn-editar-usuario-interno" data-id="${u.id_usuario}">Editar</button>
+                    <button class="btn btn-sm ${u.activo ? 'btn-warning' : 'btn-success'} btn-toggle-usuario-interno" data-id="${u.id_usuario}" data-activo="${u.activo}">
                         ${u.activo ? 'Desactivar' : 'Activar'}
                     </button>
-                    <button class="btn-eliminar" data-id="${u.id_usuario}">Eliminar</button>
+                    <button class="btn btn-sm btn-danger btn-eliminar-usuario-interno" data-id="${u.id_usuario}">Eliminar</button>
                 </td>
             `;
             tbody.appendChild(tr);
-        });
-
-        // Listeners para los botones
-        tbody.querySelectorAll('.btn-activar').forEach(btn => {
-            btn.onclick = (e) => {
-                const id = btn.getAttribute('data-id');
-                const activo = btn.getAttribute('data-activo') === 'true';
-                this.toggleUsuarioInternoActivo(id, !activo);
-            };
-        });
-        tbody.querySelectorAll('.btn-eliminar').forEach(btn => {
-            btn.onclick = (e) => {
-                const id = btn.getAttribute('data-id');
-                this.eliminarUsuarioInterno(id);
-            };
         });
     }
 
     renderClientesTable(data) {
         const tbody = document.getElementById('clientesTableBody');
         tbody.innerHTML = '';
-        data.forEach(u => {
+        this.clientesData.clear(); // Limpiar datos anteriores
+        data.forEach(cliente => {
+            const clienteId = cliente.id_cliente || cliente.id; // Asegurar que usamos el ID correcto
+            this.clientesData.set(String(clienteId), cliente); // Almacenar datos del cliente para edición
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
-              <td>${u.id}</td>
-              <td>${u.nombre}</td>
-              <td>${u.apellido || ''}</td>
-              <td>${u.email}</td>
-              <td>${u.telefono || ''}</td>
-              <td>${u.activo ? 'Sí' : 'No'}</td>
+              <td>${clienteId}</td>
+              <td>${cliente.nombre}</td>
+              <td>${cliente.apellido || ''}</td>
+              <td>${cliente.email}</td>
+              <td>${cliente.telefono || ''}</td>
+              <td>${cliente.direccion || ''}</td>
+              <td>${cliente.fecha_registro ? new Date(cliente.fecha_registro).toLocaleDateString() : ''}</td>
+              <td>${cliente.activo ? 'Sí' : 'No'}</td>
+              <td>${cliente.email_verificado ? 'Sí' : 'No'}</td>
+              <td>
+                <button class="btn btn-sm btn-info btn-editar-cliente" data-id="${clienteId}">Editar</button>
+                <button class="btn btn-sm ${cliente.activo ? 'btn-warning' : 'btn-success'} btn-toggle-cliente" data-id="${clienteId}" data-activo="${cliente.activo}">
+                  ${cliente.activo ? 'Desactivar' : 'Activar'}
+                </button>
+                <button class="btn btn-sm btn-danger btn-eliminar-cliente" data-id="${clienteId}">Eliminar</button>
+              </td>
             `;
             tbody.appendChild(tr);
         });
     }
+
+    // --- Manejadores de eventos para acciones en tablas de usuarios ---
+    handleUsuariosInternosTableClick(event) {
+        const target = event.target;
+        const userId = target.dataset.id;
+
+        if (target.classList.contains('btn-editar-usuario-interno')) {
+            this.handleEditarUsuarioInternoClick(userId, event);
+        } else if (target.classList.contains('btn-toggle-usuario-interno')) {
+            const isActive = target.dataset.activo === 'true';
+            this.handleToggleUsuarioInternoClick(userId, !isActive, event);
+        } else if (target.classList.contains('btn-eliminar-usuario-interno')) {
+            this.handleEliminarUsuarioInternoClick(userId, event);
+        }
+    }
+
+    handleClientesTableClick(event) {
+        const target = event.target;
+        const clienteId = target.dataset.id;
+
+        if (target.classList.contains('btn-editar-cliente')) {
+            this.handleEditarClienteClick(clienteId, event);
+        } else if (target.classList.contains('btn-toggle-cliente')) {
+            const isActive = target.dataset.activo === 'true';
+            this.handleToggleClienteClick(clienteId, !isActive, event);
+        } else if (target.classList.contains('btn-eliminar-cliente')) {
+            this.handleEliminarClienteClick(clienteId, event);
+        }
+    }
+
+    // --- Funciones de acción para Usuarios Internos ---
+    abrirModalAnadirUsuarioInterno() {
+        const modal = document.getElementById('modalAnadirUsuarioInterno');
+        const form = document.getElementById('formAnadirUsuarioInterno');
+        if (form) {
+            form.reset(); // Limpiar el formulario
+        }
+        if (modal) {
+            modal.style.display = 'block'; // Mostrar el modal
+        }
+    }
+
+    async abrirModalEditarUsuarioInterno(userId) {
+        const usuario = this.usuariosInternosData.get(String(userId));
+        if (!usuario) {
+            DashboardAPI.showNotification('Error: No se pudieron obtener los datos del usuario interno para editar.', 'error');
+            console.error(`Usuario interno con ID ${userId} no encontrado en this.usuariosInternosData`);
+            return;
+        }
+
+        document.getElementById('editIdUsuario').value = usuario.id_usuario;
+        document.getElementById('editNombre').value = usuario.nombre || '';
+        document.getElementById('editApellido').value = usuario.apellido || '';
+        document.getElementById('editEmail').value = usuario.email || '';
+        document.getElementById('editTelefono').value = usuario.telefono || '';
+        document.getElementById('editRol').value = usuario.id_rol || ''; // id_rol es un número
+        
+        document.getElementById('modalEditarUsuario').style.display = 'block';
+    }
+
+    handleEditarUsuarioInternoClick(userId, event) {
+        console.log(`Intentando abrir modal para editar usuario interno ID: ${userId}`, event);
+        this.abrirModalEditarUsuarioInterno(userId);
+    }
+
+    async cargarYRenderizarUsuariosInternos() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            DashboardAPI.showNotification('Error de autenticación.', 'error');
+            return;
+        }
+        try {
+            this.showLoading();
+            const res = await fetch('/api/users/internos', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) {
+                 const errorData = await res.json().catch(() => ({ message: `Error al cargar usuarios internos: ${res.statusText}` }));
+                 throw new Error(errorData.message);
+            }
+            const data = await res.json();
+            this.renderUsuariosInternosTable(data);
+        } catch (error) {
+            console.error(error);
+            DashboardAPI.showNotification(error.message, 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    async handleToggleUsuarioInternoClick(userId, newActiveState, event) {
+        console.log(`Cambiando estado activo a ${newActiveState} para usuario interno ID: ${userId}`, event);
+        const token = localStorage.getItem('token');
+        if (!token) {
+            DashboardAPI.showNotification('Error de autenticación.', 'error');
+            return;
+        }
+        try {
+            const res = await fetch(`/api/users/internos/${userId}/activo`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ activo: newActiveState })
+            });
+             if (!res.ok) {
+                const errorData = await res.json().catch(() => ({ message: `Error al cambiar estado: ${res.statusText}` }));
+                throw new Error(errorData.message);
+            }
+            DashboardAPI.showNotification(`Usuario interno ${newActiveState ? 'activado' : 'desactivado'} con éxito.`, 'success');
+            await this.cargarYRenderizarUsuariosInternos();
+        } catch (error) {
+            console.error(error);
+            DashboardAPI.showNotification(error.message || 'Error al cambiar estado del usuario interno.', 'error');
+        }
+    }
+
+    async handleEliminarUsuarioInternoClick(userId, event) {
+        console.log(`Eliminar usuario interno ID: ${userId}`, event);
+        if (confirm(`¿Estás seguro de que deseas eliminar al usuario interno ID: ${userId}? Esta acción no se puede deshacer.`)) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                DashboardAPI.showNotification('Error de autenticación.', 'error');
+                return;
+            }
+            try {
+                const res = await fetch(`/api/users/internos/${userId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({ message: `Error al eliminar: ${res.statusText}` }));
+                    throw new Error(errorData.message);
+                }
+                DashboardAPI.showNotification('Usuario interno eliminado con éxito.', 'success');
+                await this.cargarYRenderizarUsuariosInternos();
+            } catch (error) {
+                console.error(error);
+                DashboardAPI.showNotification(error.message || 'Error al eliminar el usuario interno.', 'error');
+            }
+        }
+    }
+
+    // --- Funciones de acción para Clientes ---
+    async abrirModalEditarCliente(clienteId) {
+        const cliente = this.clientesData.get(String(clienteId));
+        if (!cliente) {
+            DashboardAPI.showNotification('Error: No se pudieron obtener los datos del cliente para editar.', 'error');
+            console.error(`Cliente con ID ${clienteId} no encontrado en this.clientesData`);
+            return;
+        }
+
+        document.getElementById('editIdCliente').value = cliente.id_cliente || cliente.id;
+        document.getElementById('editNombreCliente').value = cliente.nombre || '';
+        document.getElementById('editApellidoCliente').value = cliente.apellido || '';
+        document.getElementById('editEmailCliente').value = cliente.email || '';
+        document.getElementById('editTelefonoCliente').value = cliente.telefono || '';
+        document.getElementById('editDireccionCliente').value = cliente.direccion || '';
+        
+        document.getElementById('modalEditarCliente').style.display = 'block';
+    }
+    
+    handleEditarClienteClick(clienteId, event) {
+        console.log(`Intentando abrir modal para editar cliente ID: ${clienteId}`, event);
+        this.abrirModalEditarCliente(clienteId);
+    }
+
+    async cargarYRenderizarClientes() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            DashboardAPI.showNotification('Error de autenticación.', 'error');
+            return;
+        }
+        try {
+            this.showLoading(); // Asumiendo que tienes un método showLoading
+            const res = await fetch('/api/users/clientes', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) {
+                 const errorData = await res.json().catch(() => ({ message: `Error al cargar clientes: ${res.statusText}` }));
+                 throw new Error(errorData.message);
+            }
+            const data = await res.json();
+            this.renderClientesTable(data);
+        } catch (error) {
+            console.error(error);
+            DashboardAPI.showNotification(error.message, 'error');
+        } finally {
+            this.hideLoading(); // Asumiendo que tienes un método hideLoading
+        }
+    }
+
+    async handleToggleClienteClick(clienteId, newActiveState, event) {
+        console.log(`Cambiando estado activo a ${newActiveState} para cliente ID: ${clienteId}`, event);
+        const token = localStorage.getItem('token');
+        if (!token) {
+            DashboardAPI.showNotification('Error de autenticación.', 'error');
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/users/clientes/${clienteId}/activo`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ activo: newActiveState })
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({ message: `Error al cambiar estado: ${res.statusText}` }));
+                throw new Error(errorData.message);
+            }
+            DashboardAPI.showNotification(`Cliente ${newActiveState ? 'activado' : 'desactivado'} con éxito.`, 'success');
+            await this.cargarYRenderizarClientes(); // Recargar y renderizar la tabla de clientes
+        } catch (error) {
+            console.error(error);
+            DashboardAPI.showNotification(error.message || 'Error al cambiar estado del cliente.', 'error');
+            // Si falla, podríamos querer revertir el estado visual del botón si lo hubiéramos cambiado optimistamente
+        }
+    }
+
+    async handleEliminarClienteClick(clienteId, event) {
+        console.log(`Eliminar cliente ID: ${clienteId}`, event);
+        if (confirm(`¿Estás seguro de que deseas eliminar al cliente ID: ${clienteId}? Esta acción no se puede deshacer.`)) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                DashboardAPI.showNotification('Error de autenticación.', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/users/clientes/${clienteId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({ message: `Error al eliminar: ${res.statusText}` }));
+                    throw new Error(errorData.message);
+                }
+                DashboardAPI.showNotification('Cliente eliminado con éxito.', 'success');
+                await this.cargarYRenderizarClientes(); // Recargar y renderizar la tabla de clientes
+            } catch (error) {
+                console.error(error);
+                DashboardAPI.showNotification(error.message || 'Error al eliminar el cliente.', 'error');
+            }
+        }
+    }
+
 
     setupResponsiveHandlers() {
         // Handle responsive behavior
