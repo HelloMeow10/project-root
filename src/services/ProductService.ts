@@ -174,30 +174,12 @@ export class ProductService {
     const paqueteProducto = await this.repo.findById(id_paquete); // Renamed 'paquete' to 'paqueteProducto' for clarity with logs
 
     console.log(`[Svc AddComp Detail] Start validation for id_paquete ${id_paquete}.`);
-
-
+    
     if (!paqueteProducto) {
         console.error(`[Svc AddComp Detail] VALIDATION FAIL: paqueteProducto (id: ${id_paquete}) NOT FOUND.`);
         throw new Error('Paquete base no encontrado o el ID proporcionado no corresponde a un paquete.');
     }
     console.log(`[Svc AddComp Detail] paqueteProducto IS found. Name: ${paqueteProducto.nombre}`);
-
-    if (!paqueteProducto.tipoProducto) {
-        console.error(`[Svc AddComp Detail] VALIDATION FAIL: paqueteProducto.tipoProducto IS UNDEFINED/NULL for id_paquete ${id_paquete}. Full object:`, JSON.stringify(paqueteProducto, null, 2));
-        throw new Error('Paquete base no encontrado o el ID proporcionado no corresponde a un paquete.');
-    }
-    console.log(`[Svc AddComp Detail] paqueteProducto.tipoProducto IS found. Name: ${paqueteProducto.tipoProducto.nombre}`);
-
-    // Assuming tipoProducto.nombre is already a string, no need for .toLowerCase() if the comparison is exact
-    const isCorrectType = paqueteProducto.tipoProducto.nombre === 'paquete';
-    console.log(`[Svc AddComp Detail] Is correct type ('paqueteProducto.tipoProducto.nombre === "paquete"'): ${isCorrectType}`);
-
-    if (!isCorrectType) {
-        console.error(`[Svc AddComp Detail] VALIDATION FAIL: Type is NOT 'paquete'. Actual type: '${paqueteProducto.tipoProducto.nombre}'.`);
-        throw new Error('Paquete base no encontrado o el ID proporcionado no corresponde a un paquete.');
-    }
-
-    console.log(`[Svc AddComp Detail] All validations passed for id_paquete ${id_paquete}.`);
 
     if (!paqueteProducto.tipoProducto) {
         console.error(`[Svc AddComp Detail] VALIDATION FAIL: paqueteProducto.tipoProducto IS UNDEFINED/NULL for id_paquete ${id_paquete}. Full object:`, JSON.stringify(paqueteProducto, null, 2));
