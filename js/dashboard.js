@@ -17,7 +17,6 @@ class DashboardUI {
         this.usuariosInternosData = new Map();
 
         
-        this.handleProductSearch = this.handleProductSearch.bind(this); // Bind here
         this.init();
     }
 
@@ -117,25 +116,46 @@ class DashboardUI {
         window.addEventListener('resize', () => this.handleResize());
 
 
+        const cerrarModalGestionarComponentesBtn = document.getElementById('cerrarModalGestionarComponentes');
+        if (cerrarModalGestionarComponentesBtn) {
+            cerrarModalGestionarComponentesBtn.onclick = () => {
+                document.getElementById('modalGestionarComponentes').style.display = 'none';
+            };
+        }
+        const btnCerrarGestionComponentes = document.getElementById('btnCerrarGestionComponentes');
+        if (btnCerrarGestionComponentes) {
+            btnCerrarGestionComponentes.onclick = () => {
+                document.getElementById('modalGestionarComponentes').style.display = 'none';
+            };
+        }
 
-            // Search input for Manage Package Components Modal
-            const buscarProductoIndividualInput = document.getElementById('buscarProductoIndividual');
-            if (buscarProductoIndividualInput) {
-                buscarProductoIndividualInput.addEventListener('input', this.handleProductSearch);
-            }
 
-            // Event delegation for adding components in Manage Package Components Modal
-            const listaDisponiblesDiv = document.getElementById('listaProductosIndividualesDisponibles');
-            if (listaDisponiblesDiv) {
-                listaDisponiblesDiv.addEventListener('click', handleAddComponent);
-            }
+        const buscarProductoIndividualInput = document.getElementById('buscarProductoIndividual');
+        if (buscarProductoIndividualInput) {
+            buscarProductoIndividualInput.addEventListener('input', (e) => this.handleProductSearch(e));
+        }
 
-            // Event delegation for removing components in Manage Package Components Modal
-            const listaActualesDiv = document.getElementById('listaComponentesActuales');
-            if (listaActualesDiv) {
-                listaActualesDiv.addEventListener('click', handleRemoveComponent);
-            }
 
+        const listaDisponiblesDiv = document.getElementById('listaProductosIndividualesDisponibles');
+        if (listaDisponiblesDiv) {
+            listaDisponiblesDiv.addEventListener('click', handleAddComponent); // Global
+        }
+
+        const listaActualesDiv = document.getElementById('listaComponentesActuales');
+        if (listaActualesDiv) {
+            listaActualesDiv.addEventListener('click', handleRemoveComponent); // Global
+        }
+
+
+        const usuariosInternosTableBody = document.getElementById('usuariosInternosTableBody');
+        if (usuariosInternosTableBody) {
+            usuariosInternosTableBody.addEventListener('click', (e) => this.handleUsuariosInternosTableClick(e));
+        }
+
+        const clientesTableBody = document.getElementById('clientesTableBody');
+        if (clientesTableBody) {
+            clientesTableBody.addEventListener('click', (e) => this.handleClientesTableClick(e));
+        }
 
         const tabUsuariosInternos = document.getElementById('tabUsuariosInternos');
         const tabClientes = document.getElementById('tabClientes');
@@ -529,23 +549,6 @@ class DashboardUI {
 
         console.log(`[onPageShow] Finished processing for pageId: '${pageId}'.`);
     }
-
-    handleProductSearch(event) {
-        const searchTerm = event.target.value.toLowerCase();
-        // _globalAllAvailableIndividualProductsForModal and renderAvailableIndividualProducts are still global
-        const filteredProducts = _globalAllAvailableIndividualProductsForModal.filter(prod =>
-            prod.nombre.toLowerCase().includes(searchTerm) ||
-            (prod.tipo && prod.tipo.toLowerCase().includes(searchTerm))
-        );
-        renderAvailableIndividualProducts(filteredProducts);
-    }
-
-} // End of DashboardUI class definition
-
-// Instantiated AFTER class definition
-const dashboardUI = new DashboardUI();
-
-// Sidebar Methods
 
     toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
@@ -1039,23 +1042,8 @@ const dashboardUI = new DashboardUI();
 
 const dashboardUI = new DashboardUI(); // Instancia global
 
-
-const dashboardUI = new DashboardUI(); // MOVED HERE
-
-// Ejemplo de función para cargar productos
-function cargarVistaProductos() {
-  document.getElementById('dashboardContent').innerHTML = '<h2>Productos</h2>';
-  // Aquí puedes cargar la tabla de productos...
-}
-function cargarVistaUsuarios() {
-  document.getElementById('dashboardContent').innerHTML = '<h2>Usuarios</h2>';
-  // Aquí puedes cargar la tabla de usuarios...
-}
-function cargarVistaPaquetes() {
-  document.getElementById('dashboardContent').innerHTML = '<h2>Paquetes</h2>';
-  // Aquí puedes cargar la tabla de paquetes...
-}
-
+// ------------------- GLOBAL API & UTILS -------------------
+// (El objeto window.DashboardAPI y las funciones globales como eliminarProducto, etc., permanecen aquí por ahora)
 
 window.DashboardAPI = {
   // ... (métodos existentes que llaman a dashboardUI.metodo())
@@ -1141,119 +1129,6 @@ async function agregarUsuarioInterno(data) { // Esta es la función global, no e
 function cerrarModalProducto() {
   document.getElementById('modalProducto').style.display = 'none';
 }
-
-
-async function handleRemoveComponent(event) {
-  if (!event.target.classList.contains('btn-remove-component')) {
-    return;
-  }
-
-  const packageId = document.getElementById('idPaqueteGestionActual').value;
-  const componentProductId = event.target.dataset.componentId;
-
-  if (!packageId || !componentProductId || isNaN(Number(packageId)) || isNaN(Number(componentProductId))) {
-    DashboardAPI.showNotification('Error: IDs de paquete o componente inválidos para eliminación.', 'error');
-    console.error('Invalid packageId or componentProductId for handleRemoveComponent');
-    return;
-  }
-
-  console.log(`Removing component ${componentProductId} from package ${packageId}`);
-
-  try {
-    DashboardAPI.showLoading();
-    const token = localStorage.getItem('token');
-    if (!token) {
-        DashboardAPI.showNotification('Error de autenticación: Token no encontrado.', 'error');
-        DashboardAPI.hideLoading();
-        return;
-    }
-
-    const res = await fetch(`/api/paquetes/${packageId}/details/${componentProductId}?_=${Date.now()}`, {
-        method: 'DELETE',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    });
-
-    if (res.ok) {
-        DashboardAPI.showNotification('Componente eliminado del paquete con éxito.', 'success');
-        // Refresh modal content by re-calling gestionarComponentesPaquete
-        await gestionarComponentesPaquete(packageId);
-    } else {
-        const errorData = await res.json().catch(() => ({ message: 'Error desconocido al procesar la respuesta del servidor.' }));
-        DashboardAPI.showNotification(`Error al eliminar componente: ${errorData.message || res.statusText}`, 'error');
-        console.error('Error removing component:', res.status, res.statusText, errorData);
-    }
-  } catch (err) {
-    console.error('Fetch error in handleRemoveComponent:', err);
-    DashboardAPI.showNotification('Error de red al eliminar componente.', 'error');
-  } finally {
-    DashboardAPI.hideLoading();
-  }
-}
-
-async function handleAddComponent(event) {
-  if (!event.target.classList.contains('btn-add-component')) {
-    return;
-  }
-
-  const packageId = document.getElementById('idPaqueteGestionActual').value;
-  const componentProductId = event.target.dataset.productId;
-
-  const itemDiv = event.target.closest('.producto-individual-item');
-  const quantityInput = itemDiv ? itemDiv.querySelector('.componente-cantidad') : null;
-  const quantity = Number(quantityInput ? quantityInput.value : 1);
-
-  if (!packageId || !componentProductId || isNaN(Number(packageId)) || isNaN(Number(componentProductId))) {
-    DashboardAPI.showNotification('Error: IDs de paquete o componente inválidos.', 'error');
-    console.error('Invalid packageId or componentProductId for handleAddComponent');
-    return;
-  }
-  if (isNaN(quantity) || quantity <= 0) {
-    DashboardAPI.showNotification('Error: Cantidad inválida. Debe ser un número positivo.', 'error');
-    console.error('Invalid quantity for handleAddComponent');
-    return;
-  }
-
-  console.log(`Adding component ${componentProductId} (qty: ${quantity}) to package ${packageId}`);
-
-  try {
-    DashboardAPI.showLoading();
-    const token = localStorage.getItem('token');
-    if (!token) {
-        DashboardAPI.showNotification('Error de autenticación: Token no encontrado.', 'error');
-        DashboardAPI.hideLoading();
-        return;
-    }
-
-    const res = await fetch(`/api/paquetes/${packageId}/details`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ id_producto: Number(componentProductId), cantidad: quantity })
-    });
-
-    if (res.ok) {
-        DashboardAPI.showNotification('Componente agregado al paquete con éxito.', 'success');
-        // Refresh modal content by re-calling gestionarComponentesPaquete
-        await gestionarComponentesPaquete(packageId);
-    } else {
-        const errorData = await res.json().catch(() => ({ message: 'Error desconocido al procesar la respuesta del servidor.' }));
-        DashboardAPI.showNotification(`Error al agregar componente: ${errorData.message || res.statusText}`, 'error');
-        console.error('Error adding component:', res.status, res.statusText, errorData);
-    }
-  } catch (err) {
-    console.error('Fetch error in handleAddComponent:', err);
-    DashboardAPI.showNotification('Error de red al agregar componente.', 'error');
-  } finally {
-    DashboardAPI.hideLoading();
-  }
-}
-
-// const dashboardUI = new DashboardUI(); // Ensuring this is removed if it was here
-
 
 async function abrirModalEditarProducto(id) {
   // ... (lógica existente, usa DashboardAPI.showNotification que a su vez usa dashboardUI)
