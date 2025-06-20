@@ -68,3 +68,33 @@ INSERT INTO "PaqueteDetalle" (id_paquete, id_producto) VALUES
 ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Ushuaia Premium'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Ushuaia')),
 ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Ushuaia Premium'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Hotel Austral')),
 ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Ushuaia Premium'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Auto Familiar Ushuaia'));
+
+-- Insertar tipos de asiento
+INSERT INTO "TipoAsiento" (nombre, descripcion) VALUES
+('Económica', 'Asiento estándar en clase económica'),
+('Premium Economy', 'Asiento con mayor espacio y servicios mejorados'),
+('Business', 'Asiento en clase ejecutiva, reclinable y con más comodidades'),
+('Primera', 'Asiento de primera clase, máximo confort')
+ON CONFLICT (nombre) DO NOTHING;
+
+-- Insertar roles
+INSERT INTO "Rol" (nombre, descripcion) VALUES
+('ADMIN', 'Administrador del sistema'),
+('JEFE_VENTAS', 'Jefe de ventas'),
+('VENDEDOR', 'Empleado vendedor')
+ON CONFLICT (nombre) DO NOTHING;
+
+-- Para obtener el hash de las contraseñas en Node.js puedes usar bcrypt:
+--
+-- const bcrypt = require('bcrypt');
+-- const hash = await bcrypt.hash('admin123', 10);
+-- console.log(hash);
+--
+-- Reemplaza las contraseñas de abajo por los hashes generados.
+
+-- Insertar empleados internos (usuarios internos)
+INSERT INTO "UsuarioInterno" (nombre, apellido, email, contrasena, telefono, activo, id_rol) VALUES
+('Admin', 'Principal', 'admin@empresa.com', '$2b$10$adminhash', '1111111111', true, (SELECT id_rol FROM "Rol" WHERE nombre = 'ADMIN')),
+('Jefe', 'Ventas', 'jefe.ventas@empresa.com', '$2b$10$jefehash', '2222222222', true, (SELECT id_rol FROM "Rol" WHERE nombre = 'JEFE_VENTAS')),
+('Empleado', 'Vendedor', 'empleado@empresa.com', '$2b$10$empleadohash', '3333333333', true, (SELECT id_rol FROM "Rol" WHERE nombre = 'VENDEDOR'))
+ON CONFLICT (email) DO NOTHING;
