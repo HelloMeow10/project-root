@@ -68,3 +68,9 @@ INSERT INTO "PaqueteDetalle" (id_paquete, id_producto) VALUES
 ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Ushuaia Premium'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Ushuaia')),
 ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Ushuaia Premium'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Hotel Austral')),
 ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Ushuaia Premium'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Auto Familiar Ushuaia'));
+
+INSERT INTO "TipoAsiento" (nombre, descripcion) VALUES
+('ventana', 'Asiento junto a la ventana'),
+('pasillo', 'Asiento junto al pasillo'),
+('medio', 'Asiento entre ventana y pasillo');
+('Ejecutivo', 'Lo mejor de lo mejor');
