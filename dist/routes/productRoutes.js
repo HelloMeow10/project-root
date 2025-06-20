@@ -76,13 +76,32 @@ router.get('/paquetes', async (req, res) => {
         res.status(500).json({ message: 'Error al obtener paquetes', error: err.message });
     }
 });
-// Endpoint para obtener solo los vuelos
+// Endpoint para obtener solo los vuelos (CORREGIDO)
 router.get('/vuelos', async (req, res) => {
-    const vuelos = await prisma.producto.findMany({
-        where: { id_tipo: 2, activo: true },
-        include: { pasaje: true }
-    });
-    res.json(vuelos);
+    try {
+        const tipoVuelo = await prisma.tipoProducto.findUnique({
+            where: { nombre: 'vuelo' },
+        });
+        if (!tipoVuelo) {
+            return res.status(404).json({ message: "Tipo de producto 'vuelo' no configurado." });
+        }
+        const vuelos = await prisma.producto.findMany({
+            where: { id_tipo: tipoVuelo.id_tipo, activo: true },
+            include: {
+                pasaje: {
+                    include: {
+                        tipoAsiento: true
+                    }
+                }
+            }
+        });
+        res.json(vuelos);
+    }
+    catch (err) {
+        console.error('Error al obtener vuelos:', err);
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        res.status(500).json({ message: 'Error al obtener vuelos', error: errorMessage });
+    }
 });
 // Endpoint para obtener solo los hoteles
 router.get('/hoteles', async (req, res) => {

@@ -188,24 +188,7 @@ export class ProductService {
     }
     console.log(`[Svc AddComp Detail] paqueteProducto.tipoProducto IS found. Name: ${paqueteProducto.tipoProducto.nombre}`);
 
-    // Assuming tipoProducto.nombre is already a string, no need for .toLowerCase() if the comparison is exact
-    const isCorrectType = paqueteProducto.tipoProducto.nombre === 'paquete';
-    console.log(`[Svc AddComp Detail] Is correct type ('paqueteProducto.tipoProducto.nombre === "paquete"'): ${isCorrectType}`);
-
-    if (!isCorrectType) {
-        console.error(`[Svc AddComp Detail] VALIDATION FAIL: Type is NOT 'paquete'. Actual type: '${paqueteProducto.tipoProducto.nombre}'.`);
-        throw new Error('Paquete base no encontrado o el ID proporcionado no corresponde a un paquete.');
-    }
-
-    console.log(`[Svc AddComp Detail] All validations passed for id_paquete ${id_paquete}.`);
-
-    if (!paqueteProducto.tipoProducto) {
-        console.error(`[Svc AddComp Detail] VALIDATION FAIL: paqueteProducto.tipoProducto IS UNDEFINED/NULL for id_paquete ${id_paquete}. Full object:`, JSON.stringify(paqueteProducto, null, 2));
-        throw new Error('Paquete base no encontrado o el ID proporcionado no corresponde a un paquete.');
-    }
-    console.log(`[Svc AddComp Detail] paqueteProducto.tipoProducto IS found. Name: ${paqueteProducto.tipoProducto.nombre}`);
-
-    // Assuming tipoProducto.nombre is already a string, no need for .toLowerCase() if the comparison is exact
+    // Solo una declaración de isCorrectType
     const isCorrectType = paqueteProducto.tipoProducto.nombre === 'paquete'; 
     console.log(`[Svc AddComp Detail] Is correct type ('paqueteProducto.tipoProducto.nombre === "paquete"'): ${isCorrectType}`);
 
@@ -215,7 +198,27 @@ export class ProductService {
     }
 
     console.log(`[Svc AddComp Detail] All validations passed for id_paquete ${id_paquete}.`);
-    
+
+    // Elimina el bloque duplicado a continuación:
+    /*
+    if (!paqueteProducto.tipoProducto) {
+        console.error(`[Svc AddComp Detail] VALIDATION FAIL: paqueteProducto.tipoProducto IS UNDEFINED/NULL for id_paquete ${id_paquete}. Full object:`, JSON.stringify(paqueteProducto, null, 2));
+        throw new Error('Paquete base no encontrado o el ID proporcionado no corresponde a un paquete.');
+    }
+    console.log(`[Svc AddComp Detail] paqueteProducto.tipoProducto IS found. Name: ${paqueteProducto.tipoProducto.nombre}`);
+
+    // Solo una declaración de isCorrectType
+    const isCorrectType = paqueteProducto.tipoProducto.nombre === 'paquete'; 
+    console.log(`[Svc AddComp Detail] Is correct type ('paqueteProducto.tipoProducto.nombre === "paquete"'): ${isCorrectType}`);
+
+    if (!isCorrectType) {
+        console.error(`[Svc AddComp Detail] VALIDATION FAIL: Type is NOT 'paquete'. Actual type: '${paqueteProducto.tipoProducto.nombre}'.`);
+        throw new Error('Paquete base no encontrado o el ID proporcionado no corresponde a un paquete.');
+    }
+
+    console.log(`[Svc AddComp Detail] All validations passed for id_paquete ${id_paquete}.`);
+    */
+
     // Fetch the component product to ensure it exists and is NOT a package
     const componente = await this.repo.findById(id_producto_componente);
     if (!componente) {
