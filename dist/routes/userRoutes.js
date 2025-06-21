@@ -16,4 +16,5 @@ router.delete('/internos/:id', authMiddleware_1.authMiddleware, adminOnly_1.admi
 router.get('/internos/:id', authMiddleware_1.authMiddleware, adminOnly_1.adminOnly, UserController_1.obtenerUsuarioInternoPorId);
 // Editar usuario interno
 router.put('/internos/:id', authMiddleware_1.authMiddleware, adminOnly_1.adminOnly, UserController_1.editarUsuarioInterno);
+router.get('/me', authMiddleware_1.authMiddleware, UserController_1.getAuthenticatedUserData);
 exports.default = router;
