@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAllUsuariosInternos, getAllClientes, createUsuarioInterno, toggleActivoUsuarioInterno, eliminarUsuarioInterno, obtenerUsuarioInternoPorId, editarUsuarioInterno } from '../controllers/UserController';
+import { getAllUsuariosInternos, getAllClientes, createUsuarioInterno, toggleActivoUsuarioInterno, eliminarUsuarioInterno, obtenerUsuarioInternoPorId, editarUsuarioInterno, getAuthenticatedUserData } from '../controllers/UserController';
 import { authMiddleware } from '../middlewares/authMiddleware';
 import { adminOnly } from '../middlewares/adminOnly';
 
@@ -16,5 +16,7 @@ router.delete('/internos/:id', authMiddleware, adminOnly, eliminarUsuarioInterno
 router.get('/internos/:id', authMiddleware, adminOnly, obtenerUsuarioInternoPorId);
 // Editar usuario interno
 router.put('/internos/:id', authMiddleware, adminOnly, editarUsuarioInterno);
+
+router.get('/me', authMiddleware, getAuthenticatedUserData);
 
 export default router;

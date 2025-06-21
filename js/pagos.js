@@ -16,10 +16,88 @@ class CheckoutManager {
     this.init();
   }
 
-  init() {
+  async init() {
+    await this.loadUserData(); // Asegurarse de que se complete antes de continuar
     this.setupEventListeners();
     this.setupFormValidation();
     this.loadOrderSummary();
+  }
+
+  async loadUserData() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('Usuario no autenticado, no se cargarán datos personales.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/users/me', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        console.error('Error al cargar datos del usuario:', response.status, await response.text());
+        return;
+      }
+
+      const userData = await response.json();
+
+      const firstNameInput = document.getElementById('firstName');
+      const lastNameInput = document.getElementById('lastName');
+      const emailInput = document.getElementById('email');
+      const phoneInput = document.getElementById('phone');
+      const addressInput = document.getElementById('address');
+
+      if (firstNameInput && userData.nombre) {
+        firstNameInput.value = userData.nombre;
+        firstNameInput.disabled = true;
+        this.validatePersonalField(firstNameInput);
+      }
+
+      if (lastNameInput && userData.apellido) {
+        lastNameInput.value = userData.apellido;
+        lastNameInput.disabled = true;
+      } else if (lastNameInput) {
+        lastNameInput.value = ''; // Limpiar si no hay dato pero el campo existe
+        lastNameInput.disabled = true;
+      }
+      // Validar siempre el campo si existe, incluso si no vino el dato y se limpió
+      if (lastNameInput) this.validatePersonalField(lastNameInput);
+
+
+      if (emailInput && userData.email) {
+        emailInput.value = userData.email;
+        emailInput.disabled = true;
+        this.validatePersonalField(emailInput);
+      }
+
+      if (phoneInput) {
+        if (userData.telefono) { // Si hay un número de teléfono en los datos del usuario
+            phoneInput.value = userData.telefono;
+            phoneInput.disabled = true;
+        } else { // No hay número de teléfono, o es una cadena vacía
+            phoneInput.value = ''; // Asegurar que esté vacío si no hay dato
+            phoneInput.disabled = false; // El campo permanece editable
+        }
+        this.validatePersonalField(phoneInput); // Validar el campo después de modificarlo
+      }
+
+      if (addressInput) {
+        if (userData.direccion) { // Si hay una dirección en los datos del usuario
+            addressInput.value = userData.direccion;
+            addressInput.disabled = true;
+        } else { // No hay dirección, o es una cadena vacía
+            addressInput.value = ''; // Asegurar que esté vacío si no hay dato
+            addressInput.disabled = false; // El campo permanece editable
+        }
+        this.validatePersonalField(addressInput); // Validar el campo después de modificarlo
+      }
+      
+      this.updateFormValidation(); // Actualizar estado general del formulario
+
+    } catch (error) {
+      console.error('Error en loadUserData:', error);
+    }
   }
 
   setupEventListeners() {

@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.obtenerUsuarios = exports.editarUsuarioInterno = exports.obtenerUsuarioInternoPorId = exports.eliminarUsuarioInterno = exports.toggleActivoUsuarioInterno = exports.createUsuarioInterno = exports.getAllClientes = exports.getAllUsuariosInternos = void 0;
+exports.getAuthenticatedUserData = getAuthenticatedUserData;
 const UserService_1 = require("../services/UserService");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const prismaClient_1 = require("../prismaClient");
@@ -121,3 +122,29 @@ const obtenerUsuarios = async (req, res) => {
     }
 };
 exports.obtenerUsuarios = obtenerUsuarios;
+async function getAuthenticatedUserData(req, res) {
+    try {
+        const { userId, tipo } = req.user;
+        if (tipo !== 'cliente') {
+            return res.status(403).json({ error: 'Acceso denegado. Solo los clientes pueden acceder a esta información.' });
+        }
+        const cliente = await prismaClient_1.prisma.cliente.findUnique({
+            where: { id_cliente: userId },
+            select: {
+                nombre: true,
+                apellido: true,
+                email: true,
+                telefono: true,
+                direccion: true,
+            },
+        });
+        if (!cliente) {
+            return res.status(404).json({ error: 'Cliente no encontrado.' });
+        }
+        return res.status(200).json(cliente);
+    }
+    catch (error) {
+        console.error('Error al obtener datos del usuario autenticado:', error);
+        return res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+}

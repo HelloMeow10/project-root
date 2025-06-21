@@ -109,3 +109,33 @@ export const obtenerUsuarios = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Error al obtener usuarios' });
   }
 };
+
+export async function getAuthenticatedUserData(req: Request, res: Response) {
+  try {
+    const { userId, tipo } = req.user;
+
+    if (tipo !== 'cliente') {
+      return res.status(403).json({ error: 'Acceso denegado. Solo los clientes pueden acceder a esta información.' });
+    }
+
+    const cliente = await prisma.cliente.findUnique({
+      where: { id_cliente: userId },
+      select: {
+        nombre: true,
+        apellido: true,
+        email: true,
+        telefono: true,
+        direccion: true,
+      },
+    });
+
+    if (!cliente) {
+      return res.status(404).json({ error: 'Cliente no encontrado.' });
+    }
+
+    return res.status(200).json(cliente);
+  } catch (error) {
+    console.error('Error al obtener datos del usuario autenticado:', error);
+    return res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+}
