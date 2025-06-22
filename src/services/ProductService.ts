@@ -198,9 +198,9 @@ export class ProductService {
               destino: data.pasaje.destino,
               fecha_salida: data.pasaje.fecha_salida ? new Date(data.pasaje.fecha_salida) : null,
               fecha_regreso: data.pasaje.fecha_regreso ? new Date(data.pasaje.fecha_regreso) : null,
-              asientos_disponibles: data.pasaje.asientos_disponibles ? parseInt(data.pasaje.asientos_disponibles, 10) : null,
-              aerolinea: data.pasaje.aerolinea
-              // id_tipo_asiento removed
+              // asientos_disponibles: data.pasaje.asientos_disponibles ? parseInt(data.pasaje.asientos_disponibles, 10) : null, // Campo eliminado del schema
+              aerolinea: data.pasaje.aerolinea,
+              id_avion_config: data.pasaje.id_avion_config ? parseInt(data.pasaje.id_avion_config, 10) : null // Asegurarse que se pueda asignar
             }
           });
           break;
