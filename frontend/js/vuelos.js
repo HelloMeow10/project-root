@@ -214,10 +214,351 @@ document.addEventListener('click', async function(e) {
 });
 
 // Funciones para cargar datos y renderizar (deberás implementarlas)
-async function cargarClasesServicio() { /* ... */ }
-async function cargarMapaAsientos() { /* ... */ }
-async function cargarOpcionesEquipaje() { /* ... */ }
-function recalcularPrecioTotalModal() { /* ... */ }
+// async function cargarClasesServicio() { /* ... */ }
+// async function cargarMapaAsientos() { /* ... */ }
+// async function cargarOpcionesEquipaje() { /* ... */ }
+// function recalcularPrecioTotalModal() { /* ... */ }
+
+
+// Variables globales para el modal (ya existentes y algunas nuevas)
+// let vueloSeleccionado = null; (ya existe)
+// let claseSeleccionada = null; (ya existe)
+// let asientoSeleccionado = null; (ya existe)
+// let equipajeSeleccionado = []; (ya existe)
+// let precioBaseVuelo = 0; (ya existe)
+// let precioAsiento = 0; (ya existe)
+// let multiplicadorClase = 1; (ya existe)
+
+let todasLasClasesServicio = [];
+let todasLasOpcionesEquipaje = [];
+let configuracionAvionActual = null;
+
+async function cargarClasesServicio() {
+  const selector = document.getElementById('claseServicioSelector');
+  if (!selector) {
+    console.warn("Elemento #claseServicioSelector no encontrado en el DOM del modal.");
+    return;
+  }
+  selector.innerHTML = '<option value="">Cargando clases...</option>';
+  selector.disabled = true;
+  try {
+    const response = await fetch('/api/products/clases-servicio');
+    if (!response.ok) throw new Error(`HTTP ${response.status}: No se pudieron cargar las clases de servicio`);
+    todasLasClasesServicio = await response.json();
+
+    if (!Array.isArray(todasLasClasesServicio)) {
+        throw new Error("La respuesta de clases de servicio no es un array.");
+    }
+
+    selector.innerHTML = '<option value="">Selecciona una clase</option>';
+    todasLasClasesServicio.forEach(clase => {
+      const option = document.createElement('option');
+      option.value = clase.id_tipo_asiento;
+      option.textContent = `${clase.nombre} (x${clase.multiplicador_precio})`;
+      option.dataset.multiplicador = clase.multiplicador_precio;
+      option.dataset.nombre = clase.nombre;
+      selector.appendChild(option);
+    });
+    selector.disabled = false;
+
+    selector.removeEventListener('change', handleClaseChange); // Prevenir duplicados
+    selector.addEventListener('change', handleClaseChange);
+
+  } catch (error) {
+    console.error('Error cargando clases de servicio:', error);
+    selector.innerHTML = `<option value="">Error: ${error.message}</option>`;
+    showNotification(error.message || 'Error al cargar clases de servicio.', 'error');
+  }
+}
+
+function handleClaseChange() {
+    const selector = document.getElementById('claseServicioSelector');
+    const selectedOption = selector.options[selector.selectedIndex];
+    if (selectedOption && selectedOption.value) {
+      claseSeleccionada = {
+        id: parseInt(selectedOption.value),
+        nombre: selectedOption.dataset.nombre,
+        multiplicador: parseFloat(selectedOption.dataset.multiplicador)
+      };
+      multiplicadorClase = claseSeleccionada.multiplicador;
+    } else {
+      claseSeleccionada = null;
+      multiplicadorClase = 1;
+    }
+    recalcularPrecioTotalModal();
+}
+
+async function cargarMapaAsientos() {
+  const container = document.getElementById('asientosContainer');
+  const infoSeleccion = document.getElementById('modalAsientoSeleccionado');
+  const costoAdicionalInfo = document.getElementById('modalCostoAdicionalAsiento');
+
+  if (!container) { console.warn("#asientosContainer no encontrado"); return; }
+  if (!infoSeleccion) { console.warn("#modalAsientoSeleccionado no encontrado"); return; }
+  if (!costoAdicionalInfo) { console.warn("#modalCostoAdicionalAsiento no encontrado"); return; }
+
+  container.innerHTML = 'Cargando mapa de asientos...';
+  infoSeleccion.textContent = 'Ninguno';
+  costoAdicionalInfo.textContent = '$0.00';
+  asientoSeleccionado = null;
+  precioAsiento = 0;
+
+  if (!vueloSeleccionado || !vueloSeleccionado.id_producto) {
+    container.innerHTML = '<p>Error: No se ha seleccionado un vuelo para personalizar.</p>';
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/products/pasajes/${vueloSeleccionado.id_producto}/mapa-asientos`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const defaultMessage = `Error ${response.status} al cargar el mapa de asientos.`;
+      if (response.status === 404) {
+         throw new Error(errorData.message || 'Mapa de asientos no disponible para este vuelo (verifique config de avión en BD).');
+      }
+      throw new Error(errorData.message || defaultMessage);
+    }
+    configuracionAvionActual = await response.json();
+
+    if (!configuracionAvionActual || !configuracionAvionActual.asientosConDisponibilidad || configuracionAvionActual.asientosConDisponibilidad.length === 0) {
+      container.innerHTML = '<p>No hay asientos definidos o disponibles para este avión.</p>';
+      return;
+    }
+
+    container.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'asientos-grid';
+
+    const filas = {};
+    configuracionAvionActual.asientosConDisponibilidad.forEach(asiento => {
+        if (!filas[asiento.fila]) filas[asiento.fila] = [];
+        filas[asiento.fila].push(asiento);
+    });
+
+    for (const numFila in filas) {
+        const filaDiv = document.createElement('div');
+        filaDiv.className = 'asiento-fila';
+        const labelFila = document.createElement('span');
+        labelFila.className = 'fila-label';
+        labelFila.textContent = `Fila ${numFila}`;
+        filaDiv.appendChild(labelFila);
+
+        filas[numFila].sort((a, b) => a.columna.localeCompare(b.columna)).forEach(asiento => {
+            const asientoBtn = document.createElement('button');
+            asientoBtn.className = 'asiento-btn';
+            asientoBtn.textContent = `${asiento.columna}`;
+            asientoBtn.dataset.idAsiento = asiento.id_asiento;
+            asientoBtn.dataset.precioAdicional = asiento.precio_adicional_base || 0;
+            asientoBtn.disabled = !asiento.disponible;
+
+            asientoBtn.title = `Asiento ${numFila}${asiento.columna}`;
+            if (!asiento.disponible) {
+                asientoBtn.classList.add('ocupado');
+                asientoBtn.title += ' (Ocupado)';
+            } else {
+                 asientoBtn.title += ` - $${(asiento.precio_adicional_base || 0).toFixed(2)} extra`;
+            }
+
+            asientoBtn.addEventListener('click', function() {
+                const actualSeleccionadoDOM = container.querySelector('.asiento-btn.seleccionado');
+                if (actualSeleccionadoDOM) {
+                    actualSeleccionadoDOM.classList.remove('seleccionado');
+                }
+
+                if (asientoSeleccionado && asientoSeleccionado.id === parseInt(asiento.id_asiento)) {
+                    asientoSeleccionado = null;
+                    precioAsiento = 0;
+                    infoSeleccion.textContent = 'Ninguno';
+                } else {
+                    this.classList.add('seleccionado');
+                    asientoSeleccionado = {
+                        id: parseInt(asiento.id_asiento),
+                        display: `${numFila}${asiento.columna}`,
+                        precio: parseFloat(this.dataset.precioAdicional)
+                    };
+                    precioAsiento = asientoSeleccionado.precio;
+                    infoSeleccion.textContent = asientoSeleccionado.display;
+                }
+                costoAdicionalInfo.textContent = `$${precioAsiento.toFixed(2)}`;
+                recalcularPrecioTotalModal();
+            });
+            filaDiv.appendChild(asientoBtn);
+        });
+        grid.appendChild(filaDiv);
+    }
+    container.appendChild(grid);
+
+  } catch (error) {
+    console.error('Error cargando mapa de asientos:', error);
+    container.innerHTML = `<p style="color:red;">${error.message}</p>`;
+    showNotification(error.message || 'Error al cargar el mapa de asientos.', 'error');
+  }
+}
+
+async function cargarOpcionesEquipaje() {
+  const container = document.getElementById('equipajeContainer');
+   if (!container) { console.warn("#equipajeContainer no encontrado"); return;}
+  container.innerHTML = 'Cargando opciones de equipaje...';
+  equipajeSeleccionado = [];
+
+  try {
+    const response = await fetch('/api/products/opciones-equipaje');
+    if (!response.ok) throw new Error(`HTTP ${response.status}: No se pudieron cargar las opciones de equipaje`);
+    todasLasOpcionesEquipaje = await response.json();
+
+    if (!Array.isArray(todasLasOpcionesEquipaje)) {
+        throw new Error("La respuesta de opciones de equipaje no es un array.");
+    }
+
+    if (todasLasOpcionesEquipaje.length === 0) {
+        container.innerHTML = '<p>No hay opciones de equipaje adicionales disponibles.</p>';
+        return;
+    }
+
+    container.innerHTML = '';
+    todasLasOpcionesEquipaje.forEach(opcion => {
+      const div = document.createElement('div');
+      div.className = 'equipaje-opcion';
+      div.innerHTML = `
+        <label>
+          <input type="checkbox" data-id-opcion="${opcion.id_opcion_equipaje}" data-precio="${opcion.precio_adicional}" data-nombre="${opcion.nombre}">
+          ${opcion.nombre} (${opcion.descripcion || ''}) - $${parseFloat(opcion.precio_adicional).toFixed(2)}
+        </label>
+        <input type="number" value="1" min="1" max="5" class="equipaje-cantidad" style="display:none;" data-id-opcion-cantidad="${opcion.id_opcion_equipaje}">
+      `;
+      container.appendChild(div);
+
+      const checkbox = div.querySelector('input[type="checkbox"]');
+      const cantidadInput = div.querySelector('.equipaje-cantidad');
+
+      checkbox.addEventListener('change', function() {
+        cantidadInput.style.display = this.checked ? 'inline-block' : 'none';
+        actualizarSeleccionEquipaje(
+            parseInt(opcion.id_opcion_equipaje),
+            this.checked,
+            parseInt(cantidadInput.value),
+            parseFloat(this.dataset.precio),
+            this.dataset.nombre
+        );
+      });
+      cantidadInput.addEventListener('change', function() {
+         if (checkbox.checked) {
+            actualizarSeleccionEquipaje(
+                parseInt(opcion.id_opcion_equipaje),
+                true,
+                parseInt(this.value),
+                parseFloat(checkbox.dataset.precio),
+                checkbox.dataset.nombre
+            );
+         }
+      });
+    });
+  } catch (error) {
+    console.error('Error cargando opciones de equipaje:', error);
+    container.innerHTML = `<p style="color:red;">Error al cargar opciones de equipaje: ${error.message}</p>`;
+    showNotification(error.message || 'Error al cargar opciones de equipaje.', 'error');
+  }
+}
+
+function actualizarSeleccionEquipaje(idOpcion, seleccionado, cantidad, precioUnitario, nombreOpcion) {
+    const indiceExistente = equipajeSeleccionado.findIndex(eq => eq.id === idOpcion);
+    if (seleccionado) {
+        if (indiceExistente > -1) {
+            equipajeSeleccionado[indiceExistente].cantidad = cantidad;
+            equipajeSeleccionado[indiceExistente].precioTotal = precioUnitario * cantidad;
+        } else {
+            equipajeSeleccionado.push({
+                id: idOpcion, // Este es el id_opcion_equipaje
+                nombre: nombreOpcion,
+                cantidad: cantidad,
+                precioUnitario: precioUnitario,
+                precioTotal: precioUnitario * cantidad
+            });
+        }
+    } else {
+        if (indiceExistente > -1) {
+            equipajeSeleccionado.splice(indiceExistente, 1);
+        }
+    }
+    recalcularPrecioTotalModal();
+}
+
+function recalcularPrecioTotalModal() {
+  const precioBaseElem = document.getElementById('modalPrecioBaseVuelo');
+  const precioTotalEstimadoElem = document.getElementById('modalPrecioTotalEstimadoVuelo');
+
+  if (!precioBaseElem || !precioTotalEstimadoElem) {
+      console.warn("Elementos de precio no encontrados en el modal para recalcular.");
+      return;
+  }
+
+  const precioBase = parseFloat(precioBaseElem.textContent) || 0;
+  const costoClase = precioBase * (multiplicadorClase - 1);
+  const costoAsiento = precioAsiento || 0;
+
+  let costoEquipaje = 0;
+  equipajeSeleccionado.forEach(eq => {
+    costoEquipaje += eq.precioTotal;
+  });
+
+  const precioTotalEstimado = precioBase + costoClase + costoAsiento + costoEquipaje;
+
+  precioTotalEstimadoElem.textContent = precioTotalEstimado.toFixed(2);
+}
+
+// Asegurarse de resetear estado del modal al cerrarlo
+const modalCloseBtn = document.querySelector('#vueloOpcionesModal .modal-close-btn');
+if (modalCloseBtn) {
+    modalCloseBtn.addEventListener('click', function() {
+        const modal = document.getElementById('vueloOpcionesModal');
+        if(modal) modal.style.display = 'none';
+        resetearEstadoModalVuelo();
+    });
+}
+
+// Cerrar modal si se hace clic fuera de él
+const modalVuelo = document.getElementById('vueloOpcionesModal');
+if (modalVuelo) {
+    modalVuelo.addEventListener('click', function(event) {
+        if (event.target === modalVuelo) { // Si el clic es en el fondo del modal
+            modalVuelo.style.display = 'none';
+            resetearEstadoModalVuelo();
+        }
+    });
+}
+
+
+function resetearEstadoModalVuelo() {
+    vueloSeleccionado = null;
+    claseSeleccionada = null;
+    asientoSeleccionado = null;
+    equipajeSeleccionado = [];
+    precioBaseVuelo = 0;
+    precioAsiento = 0;
+    multiplicadorClase = 1;
+
+    const selectorClase = document.getElementById('claseServicioSelector');
+    if (selectorClase) selectorClase.innerHTML = '<option value="">Selecciona una clase</option>'; // Limpiar y poner placeholder
+
+    const asientosContainer = document.getElementById('asientosContainer');
+    if (asientosContainer) asientosContainer.innerHTML = 'Cargando mapa de asientos...';
+
+    const equipajeContainer = document.getElementById('equipajeContainer');
+    if (equipajeContainer) equipajeContainer.innerHTML = 'Cargando opciones de equipaje...';
+
+    const modalAsientoSel = document.getElementById('modalAsientoSeleccionado');
+    if(modalAsientoSel) modalAsientoSel.textContent = 'Ninguno';
+
+    const modalCostoAdAs = document.getElementById('modalCostoAdicionalAsiento');
+    if(modalCostoAdAs) modalCostoAdAs.textContent = '$0.00';
+
+    const modalPrecioBase = document.getElementById('modalPrecioBaseVuelo');
+    if(modalPrecioBase) modalPrecioBase.textContent = '0.00';
+
+    const modalPrecioTotal = document.getElementById('modalPrecioTotalEstimadoVuelo');
+    if(modalPrecioTotal) modalPrecioTotal.textContent = '0.00';
+}
+
 
 // Confirmar y añadir al carrito
 document.getElementById('modalConfirmarBtn').addEventListener('click', async function() {
