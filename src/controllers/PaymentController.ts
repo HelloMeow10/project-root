@@ -158,6 +158,24 @@ export async function processPayment(req: Request, res: Response) {
       return res.status(403).json({ message: 'No autorizado para pagar este pedido.' });
     }
 
+    // Validar que todos los productos en el pedido estén activos
+    for (const item of pedido.items) {
+      // El 'include' en la consulta del pedido ya debería traer el producto.
+      // Si no, necesitaríamos consultar cada producto aquí.
+      // Asumiendo que item.producto ya tiene el estado 'activo' más reciente.
+      // Si 'item.producto' no es la versión más actualizada, se necesitaría:
+      const productoActual = await prisma.producto.findUnique({
+        where: { id_producto: item.producto.id_producto },
+        select: { activo: true, nombre: true }
+      });
+
+      if (!productoActual || !productoActual.activo) {
+        return res.status(400).json({
+          message: `El producto "${item.producto.nombre}" ya no está disponible. Por favor, revisa tu pedido.`
+        });
+      }
+    }
+
     // 2. Procesar pago (Simulación - Stripe está siendo eliminado)
     // ** ADVERTENCIA DE SEGURIDAD IMPORTANTE **
     // El siguiente bloque SIMULA un procesamiento de pago.

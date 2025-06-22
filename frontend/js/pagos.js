@@ -1,5 +1,13 @@
+document.addEventListener("DOMContentLoaded", () => {
+  console.log('DEBUG: pagos.js - DOMContentLoaded disparado');
+  new CheckoutManager(); // Esta línea es la que crea el objeto
+  console.log('DEBUG: pagos.js - new CheckoutManager() instanciado DESPUÉS de DOMContentLoaded');
+});
+console.log('DEBUG: pagos.js - Script cargado globalmente');
 class CheckoutManager {
   constructor() {
+    console.log('DEBUG: pagos.js - CheckoutManager constructor() llamado');
+    // ...resto del constructor...
     this.orderData = {
       items: [],
       subtotal: 0,
@@ -29,6 +37,8 @@ class CheckoutManager {
   }
 
   async init() {
+    console.log('DEBUG: pagos.js - CheckoutManager init() llamado');
+    // ...resto del método init...
     await this.loadUserData();
     this.setupEventListeners();
     this.setupFormValidation();
@@ -41,6 +51,8 @@ class CheckoutManager {
   async loadOrderDetailsFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     const pedidoId = urlParams.get('pedidoId');
+    console.log('DEBUG: pagos.js - pedidoId obtenido de URL:', pedidoId); // <--- Añade este log
+  // ...resto de la función...
     // const totalFromCart = urlParams.get('total'); // Total de la URL es menos fiable, preferir el del pedido
 
     const orderItemsContainer = document.getElementById("orderItems");
@@ -90,17 +102,43 @@ class CheckoutManager {
 
         let subtotalCalculado = 0;
         if (orderItemsContainer) {
+            let hayProductosInactivos = false;
             orderItemsContainer.innerHTML = this.orderData.items.map(item => {
                 const itemTotal = item.precio * item.cantidad;
-                subtotalCalculado += itemTotal;
+                subtotalCalculado += itemTotal; // Sumar al subtotal independientemente de si está activo, el backend lo validará
+                
+                let itemHtmlClass = "order-item";
+                let estadoProductoInfo = "";
+
+                // item.producto.activo debería venir del backend gracias al include en OrderService
+                if (item.producto && typeof item.producto.activo !== 'undefined' && !item.producto.activo) {
+                    itemHtmlClass += " item-inactivo"; // Clase para estilizar productos inactivos
+                    estadoProductoInfo = ` <span class="item-status-tag">(No disponible)</span>`;
+                    hayProductosInactivos = true;
+                }
+
                 return `
-                  <div class="order-item">
-                    <div class="item-name">${item.nombre}</div>
+                  <div class="${itemHtmlClass}">
+                    <div class="item-name">${item.nombre}${estadoProductoInfo}</div>
                     <div class="item-qty">x${item.cantidad}</div>
                     <div class="item-price">$${itemTotal.toFixed(2)}</div>
                   </div>
                 `;
             }).join("");
+
+            if (hayProductosInactivos) {
+                this.showNotification('Algunos productos en tu pedido ya no están disponibles. No podrás completar la compra hasta que se resuelva.', 'warning', 8000);
+                const purchaseBtn = document.getElementById("completePurchaseBtn");
+                if (purchaseBtn) {
+                    purchaseBtn.disabled = true;
+                    purchaseBtn.title = "La compra está deshabilitada porque algunos productos no están disponibles.";
+                }
+                 // También podrías añadir un mensaje más persistente en la UI
+                const persistentWarningDiv = document.createElement('div');
+                persistentWarningDiv.className = 'checkout-warning-persistent';
+                persistentWarningDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Algunos productos en tu pedido ya no están disponibles. El pago no podrá ser procesado. Por favor, contacta a soporte o modifica tu pedido.';
+                orderItemsContainer.insertAdjacentElement('beforebegin', persistentWarningDiv);
+            }
         }
         
         const totalPedidoBackend = parseFloat(pedido.total);
@@ -409,35 +447,6 @@ class CheckoutManager {
       console.error('Error en loadSavedBillingAddresses:', error);
       if(selectElement) selectElement.innerHTML = '<option value="">Error al cargar</option>';
     }
-  }
-
-  /* displayOrderSummary(items) { // Comentado o eliminado ya que la lógica se movió
-    const orderItemsContainer = document.getElementById("orderItems");
-    let subtotal = 0;
-
-    orderItemsContainer.innerHTML = items.map(item => {
-      const producto = item.producto;
-      const cantidad = item.cantidad;
-      const itemTotal = Number(producto.precio) * cantidad;
-      subtotal += itemTotal;
-      return `
-        <div class="order-item">
-          <div class="item-name">${producto.nombre}</div>
-          <div class="item-qty">x${cantidad}</div>
-          <div class="item-price">$${itemTotal.toFixed(2)}</div>
-        </div>
-      `;
-    }).join("");
-
-    const tax = subtotal * 0.21;
-    const total = subtotal + tax;
-
-    document.getElementById("subtotalAmount").textContent = `$${subtotal.toFixed(2)}`;
-    document.getElementById("taxAmount").textContent = `$${tax.toFixed(2)}`;
-    document.getElementById("totalAmount").textContent = `$${total.toFixed(2)}`;
-    document.getElementById("btnAmount").textContent = `$${total.toFixed(2)}`;
-
-    this.orderData = { items, subtotal, tax, total };
   }
 
   setupFormValidation() {
@@ -1121,9 +1130,4 @@ class CheckoutManager {
     };
     return icons[type] || 'info-circle';
   }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  new CheckoutManager();
-});*/
 }
