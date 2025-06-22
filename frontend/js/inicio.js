@@ -1,8 +1,22 @@
-// Burger menu logic
-let burger = document.getElementById("burger");
-let overlay = document.querySelector("section");
-let heroImage = document.querySelector(".hero-image");
-let showMenu = false;
+// Nuevo JS para el menú de hamburguesa (adaptado de autos.js o similar)
+const navToggle = document.querySelector(".nav-toggle");
+const navMenu = document.querySelector(".nav-menu");
+
+if (navToggle && navMenu) {
+  navToggle.addEventListener("click", () => {
+    navMenu.classList.toggle("active");
+    // Opcional: animar el ícono de hamburguesa si se añaden clases para el toggle
+    // navToggle.classList.toggle("active");
+  });
+}
+
+// La lógica original de GSAP y Lenis scroll se mantiene abajo,
+// pero la interacción con el menú anterior (burger, overlay) se elimina o comenta.
+
+// let burger = document.getElementById("burger"); // Eliminado
+// let overlay = document.querySelector("section"); // El overlay ahora es .nav-menu
+// let heroImage = document.querySelector(".hero-image"); // No se usa en la lógica del menú nuevo
+let showMenu = false; // No es necesario para el nuevo menú
 let del = 3;
 let i = 1;
 
@@ -12,38 +26,39 @@ let tl = gsap.timeline({
   ease: "expo.out"
 });
 
-overlay.style.display = "none";
+// overlay.style.display = "none"; // El nuevo menú se oculta con left: -100%
 
-// --- UNIFICA LA LÓGICA AQUÍ ---
-function toggleMenu() {
-  showMenu = !showMenu;
-  if (showMenu) {
-    burger.classList.add("active");
-    overlay.style.display = "block";
-    gsap.to(overlay, 1, {
-      clipPath: "polygon(0% 0%, 100% 0, 100% 100%, 0% 100%)",
-      ease: "expo.in"
-    });
-  } else {
-    burger.classList.remove("active");
-    gsap.to(overlay, 1, {
-      clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
-      ease: "expo.out",
-      onComplete: () => (overlay.style.display = "none")
-    });
-  }
-}
+// // --- Lógica toggleMenu anterior ---
+// function toggleMenu() {
+//   showMenu = !showMenu;
+//   if (showMenu) {
+//     // burger.classList.add("active"); // burger ya no existe
+//     // overlay.style.display = "block"; // .nav-menu usa left:0 para mostrarse
+//     // gsap.to(overlay, 1, {
+//     //   clipPath: "polygon(0% 0%, 100% 0, 100% 100%, 0% 100%)",
+//     //   ease: "expo.in"
+//     // });
+//   } else {
+//     // burger.classList.remove("active");
+//     // gsap.to(overlay, 1, {
+//     //   clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
+//     //   ease: "expo.out",
+//     //   onComplete: () => (overlay.style.display = "none")
+//     // });
+//   }
+// }
 
-burger.addEventListener("click", toggleMenu);
+// burger.addEventListener("click", toggleMenu); // burger ya no existe
 
-// --- AGREGA ESTA LÍNEA PARA EL TÍTULO ---
-document.addEventListener('DOMContentLoaded', function() {
-  const navTitle = document.querySelector('nav h1');
-  if (navTitle) {
-    navTitle.style.cursor = "pointer";
-    navTitle.addEventListener('click', toggleMenu);
-  }
-});
+// --- El click en el título para abrir el menú anterior se elimina,
+//     ya que ahora el .nav-toggle maneja esto.
+// document.addEventListener('DOMContentLoaded', function() {
+//   const navTitle = document.querySelector('nav h1'); // El selector de nav h1 cambiaría a .nav-logo a
+//   if (navTitle) {
+//     navTitle.style.cursor = "pointer";
+//     navTitle.addEventListener('click', toggleMenu); // toggleMenu ya no existe en la forma anterior
+//   }
+// });
 
 gsap.set(["#hero-1 h2, #hero-1 h1, #hero-1 h3"], {
   clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)"
