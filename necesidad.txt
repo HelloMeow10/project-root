@@ -6,6 +6,36 @@ INSERT INTO "TipoProducto" (nombre, descripcion) VALUES
 ('auto', 'Alquiler de autos')
 ON CONFLICT (nombre) DO NOTHING;
 
+-- Insertar tipos de asiento
+INSERT INTO "TipoAsiento" (nombre, descripcion, multiplicador_precio) VALUES
+('Económica', 'Asiento estándar en clase económica', 1.0),
+('Premium Economy', 'Asiento con mayor espacio y servicios mejorados', 1.2),
+('Business', 'Asiento en clase ejecutiva, reclinable y con más comodidades', 1.8),
+('Primera', 'Asiento de primera clase, máximo confort', 2.5)
+ON CONFLICT (nombre) DO NOTHING;
+
+-- Insertar roles
+INSERT INTO "Rol" (nombre, descripcion) VALUES
+('ADMIN', 'Administrador del sistema'),
+('JEFE_VENTAS', 'Jefe de ventas'),
+('VENDEDOR', 'Empleado vendedor')
+ON CONFLICT (nombre) DO NOTHING;
+
+-- Para obtener el hash de las contraseñas en Node.js puedes usar bcrypt:
+--
+-- const bcrypt = require('bcrypt');
+-- const hash = await bcrypt.hash('admin123', 10);
+-- console.log(hash);
+--
+-- Reemplaza las contraseñas de abajo por los hashes generados.
+
+-- Insertar empleados internos (usuarios internos)
+INSERT INTO "UsuarioInterno" (nombre, apellido, email, contrasena, telefono, activo, id_rol) VALUES
+('Admin', 'Principal', 'admin@empresa.com', '$2b$10$adminhash', '1111111111', true, (SELECT id_rol FROM "Rol" WHERE nombre = 'ADMIN')),
+('Jefe', 'Ventas', 'jefe.ventas@empresa.com', '$2b$10$jefehash', '2222222222', true, (SELECT id_rol FROM "Rol" WHERE nombre = 'JEFE_VENTAS')),
+('Empleado', 'Vendedor', 'empleado@empresa.com', '$2b$10$empleadohash', '3333333333', true, (SELECT id_rol FROM "Rol" WHERE nombre = 'VENDEDOR'))
+ON CONFLICT (email) DO NOTHING;
+
 -- Insertar productos individuales (vuelos)
 INSERT INTO "Producto" (nombre, descripcion, id_tipo, precio, stock, activo)
 VALUES
@@ -13,11 +43,11 @@ VALUES
 ('Vuelo Buenos Aires - Mendoza', 'Vuelo directo ida y vuelta', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'vuelo'), 95000, 40, true),
 ('Vuelo Buenos Aires - Ushuaia', 'Vuelo directo ida y vuelta', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'vuelo'), 150000, 30, true);
 
--- Insertar detalles de pasajes
-INSERT INTO "Pasaje" (id_producto, origen, destino, clase, asientos_disponibles) VALUES
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Bariloche'), 'Buenos Aires', 'Bariloche', 'Turista', 50),
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Mendoza'), 'Buenos Aires', 'Mendoza', 'Turista', 40),
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Ushuaia'), 'Buenos Aires', 'Ushuaia', 'Turista', 30);
+-- Insertar detalles de pasajes (sin clase ni asientos_disponibles, acorde a nuevo modelo)
+INSERT INTO "Pasaje" (id_producto, origen, destino, fecha_salida, fecha_regreso, aerolinea) VALUES
+((SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Bariloche'), 'Buenos Aires', 'Bariloche', NULL, NULL, 'Aerolineas Argentinas'),
+((SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Mendoza'), 'Buenos Aires', 'Mendoza', NULL, NULL, 'Aerolineas Argentinas'),
+((SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Ushuaia'), 'Buenos Aires', 'Ushuaia', NULL, NULL, 'Aerolineas Argentinas');
 
 -- Insertar productos individuales (hoteles)
 INSERT INTO "Producto" (nombre, descripcion, id_tipo, precio, stock, activo)
@@ -68,6 +98,13 @@ INSERT INTO "PaqueteDetalle" (id_paquete, id_producto) VALUES
 ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Ushuaia Premium'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Ushuaia')),
 ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Ushuaia Premium'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Hotel Austral')),
 ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Ushuaia Premium'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Auto Familiar Ushuaia'));
+
+-- Insertar opciones de equipaje (nuevas tablas)
+INSERT INTO "OpcionEquipaje" (nombre, descripcion, precio_adicional, peso_maximo_kg, dimensiones_maximas) VALUES
+('Maleta documentada 23kg', 'Maleta grande para bodega', 15000, 23, '158cm lineales'),
+('Equipaje de mano extra', 'Bolso adicional en cabina', 8000, 10, '55x40x20cm'),
+('Equipo deportivo', 'Equipo especial (ej. esquí, golf)', 20000, 25, '200cm lineales')
+ON CONFLICT (nombre) DO NOTHING;
 
 INSERT INTO "TipoAsiento" (nombre, descripcion) VALUES
 ('ventana', 'Asiento junto a la ventana'),

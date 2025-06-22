@@ -89,9 +89,7 @@ router.get('/vuelos', async (req, res) => {
             where: { id_tipo: tipoVuelo.id_tipo, activo: true },
             include: {
                 pasaje: {
-                    include: {
-                        tipoAsiento: true
-                    }
+                // Removed tipoAsiento include as it does not exist in the schema
                 }
             }
         });
@@ -199,4 +197,18 @@ router.post('/paquetes/:id_paquete/details', authMiddleware_1.authMiddleware, ad
 );
 router.delete('/paquetes/:id_paquete/details/:id_producto_componente', authMiddleware_1.authMiddleware, adminOnly_1.adminOnly, ProductController.eliminarComponenteDePaquete // New controller method
 );
+// --- NUEVAS RUTAS PARA FUNCIONALIDADES DE VUELO ---
+// Endpoint para obtener el mapa de asientos de un pasaje específico
+router.get('/pasajes/:idProductoPasaje/mapa-asientos', 
+// authMiddleware, // Descomentar si se requiere autenticación para ver el mapa
+ProductController.getAvionMapaAsientos);
+// Endpoint para obtener todas las opciones de equipaje activas
+router.get('/opciones-equipaje', 
+// authMiddleware, // Descomentar si se requiere autenticación
+ProductController.getOpcionesEquipaje);
+// Endpoint para obtener las clases de servicio (tipos de asiento) disponibles
+router.get('/clases-servicio', 
+// authMiddleware, // Descomentar si se requiere autenticación
+ProductController.getClasesServicio);
+// --- FIN DE NUEVAS RUTAS ---
 exports.default = router;

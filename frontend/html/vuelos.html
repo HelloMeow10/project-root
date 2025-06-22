@@ -63,7 +63,41 @@
         
     </div>
 
+    <!-- Modal de Personalización de Vuelo -->
+<div id="vueloOpcionesModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span class="close-button" onclick="document.getElementById('vueloOpcionesModal').style.display='none'">&times;</span>
+    <h2 id="modalTituloVuelo">Personalizar Vuelo</h2>
+    <div id="modalInfoVueloBase"></div>
+
+    <div>
+      <h4>Clase de Servicio:</h4>
+      <select id="modalClaseServicioSelect"></select>
+    </div>
+
+    <div>
+      <h4>Selecciona tu Asiento:</h4>
+      <div id="modalMapaAsientosContainer">
+        <p>Cargando mapa de asientos...</p>
+      </div>
+      <p>Asiento seleccionado: <span id="modalAsientoSeleccionado">Ninguno</span></p>
+      <p>Costo adicional asiento: $<span id="modalCostoAsiento">0.00</span></p>
+    </div>
+
+    <div>
+      <h4>Equipaje Adicional:</h4>
+      <div id="modalOpcionesEquipajeContainer">
+        <p>Cargando opciones de equipaje...</p>
+      </div>
+    </div>
+
+    <hr>
+    <p>Precio Base Vuelo: $<span id="modalPrecioBaseVuelo">0.00</span></p>
+    <p>Precio Total Estimado: $<span id="modalPrecioTotalEstimado">0.00</span></p>
     
+    <button id="modalConfirmarBtn" class="btn btn-primary">Confirmar y Añadir al Carrito</button>
+  </div>
+</div>
 
     <script src="../js/vuelos.js"></script>
 </body>

@@ -253,11 +253,50 @@ class DashboardUI {
           const formData = {
             nombre: document.getElementById('productoNombre').value,
             descripcion: document.getElementById('productoDescripcion').value,
-            tipo: document.getElementById('productoTipo').value, // This is the string e.g., "auto"
+            nombre_tipo_producto: document.getElementById('productoTipo').value,
             precio: Number(document.getElementById('productoPrecio').value),
-            stock: Number(document.getElementById('productoStock').value),
+            stock: document.getElementById('productoStock').value ? Number(document.getElementById('productoStock').value) : null,
             activo: document.getElementById('productoActivo').checked
           };
+
+          // Recolectar datos específicos del tipo
+          const tipoSeleccionado = formData.nombre_tipo_producto;
+          if (tipoSeleccionado === 'hospedaje') {
+            formData.hospedaje = {
+              ubicacion: document.getElementById('hospedajeUbicacion').value,
+              fecha_inicio: document.getElementById('hospedajeFechaInicio').value || null,
+              fecha_fin: document.getElementById('hospedajeFechaFin').value || null,
+              capacidad: document.getElementById('hospedajeCapacidad').value ? parseInt(document.getElementById('hospedajeCapacidad').value, 10) : null
+            };
+          } else if (tipoSeleccionado === 'pasaje') {
+            formData.pasaje = {
+              origen: document.getElementById('pasajeOrigen').value,
+              destino: document.getElementById('pasajeDestino').value,
+              fecha_salida: document.getElementById('pasajeFechaSalida').value || null,
+              fecha_regreso: document.getElementById('pasajeFechaRegreso').value || null,
+              clase: document.getElementById('pasajeClase').value,
+              asientos_disponibles: document.getElementById('pasajeAsientos').value ? parseInt(document.getElementById('pasajeAsientos').value, 10) : null,
+              aerolinea: document.getElementById('pasajeAerolinea').value,
+              id_tipo_asiento: parseInt(document.getElementById('pasajeTipoAsiento').value, 10)
+            };
+          } else if (tipoSeleccionado === 'alquiler') {
+            formData.alquiler = {
+              tipo_vehiculo: document.getElementById('alquilerTipoVehiculo').value,
+              ubicacion: document.getElementById('alquilerUbicacion').value,
+              fecha_inicio: document.getElementById('alquilerFechaInicio').value || null,
+              fecha_fin: document.getElementById('alquilerFechaFin').value || null,
+              cantidad: document.getElementById('alquilerCantidad').value ? parseInt(document.getElementById('alquilerCantidad').value, 10) : 0
+            };
+          } else if (tipoSeleccionado === 'auto') {
+            formData.auto = {
+              modelo: document.getElementById('autoModelo').value,
+              marca: document.getElementById('autoMarca').value,
+              capacidad: document.getElementById('autoCapacidad').value ? parseInt(document.getElementById('autoCapacidad').value, 10) : null,
+              ubicacion_actual: document.getElementById('autoUbicacion').value,
+              estado: document.getElementById('autoEstado').value
+            };
+          }
+          
           const token = localStorage.getItem('token');
 
           let method = 'POST';
@@ -384,7 +423,149 @@ class DashboardUI {
         //         modalGestionRol.style.display = 'none';
         //     }
         // });
+
+        // Listeners para filtros de pedidos
+        const filtroEstadoPedido = document.getElementById('filtroEstadoPedido');
+        if (filtroEstadoPedido) {
+            filtroEstadoPedido.addEventListener('change', () => this.cargarPedidosDashboard());
+        }
+        const filtroClientePedido = document.getElementById('filtroClientePedido');
+        if (filtroClientePedido) {
+            // Podríamos usar un debounce para no llamar a la API en cada tecleo
+            filtroClientePedido.addEventListener('input', () => this.cargarPedidosDashboard()); 
+        }
+
+        // Event delegation para botones de acción en la tabla de pedidos
+        const tablaPedidosBodyEl = document.getElementById('tablaPedidosBody');
+        if (tablaPedidosBodyEl) {
+            tablaPedidosBodyEl.addEventListener('click', async (event) => {
+                const target = event.target;
+                const btnActualizarEstado = target.closest('.btn-actualizar-estado-pedido');
+                
+                if (btnActualizarEstado) {
+                    const pedidoId = btnActualizarEstado.dataset.id;
+                    this.abrirModalActualizarEstadoPedido(pedidoId, btnActualizarEstado.dataset.estadoActual);
+                }
+            });
+        }
     }
+
+    abrirModalActualizarEstadoPedido(pedidoId, estadoActual) {
+        const modal = document.getElementById('modal'); // Usaremos el modal genérico
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        const modalFooter = document.getElementById('modalFooter');
+
+        modalTitle.textContent = `Actualizar Estado del Pedido #${pedidoId}`;
+        
+        const estadosPosibles = ["PENDIENTE_PAGO", "PAGADO", "EN_PROCESO", "ENVIADO", "ENTREGADO", "COMPLETADO", "CANCELADO"];
+        let selectHTML = '<label for="selectEstadoPedidoModal">Nuevo Estado:</label><select id="selectEstadoPedidoModal" class="form-control">';
+        estadosPosibles.forEach(estado => {
+            selectHTML += `<option value="${estado}" ${estado === estadoActual ? 'selected' : ''}>${estado.replace('_', ' ')}</option>`;
+        });
+        selectHTML += '</select>';
+        modalBody.innerHTML = selectHTML;
+
+        modalFooter.innerHTML = `
+            <button type="button" class="btn btn-secondary" id="btnCancelarModalEstado">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="btnConfirmarModalEstado">Guardar Estado</button>
+        `;
+
+        document.getElementById('btnCancelarModalEstado').onclick = () => this.closeModal();
+        document.getElementById('btnConfirmarModalEstado').onclick = async () => {
+            const nuevoEstado = document.getElementById('selectEstadoPedidoModal').value;
+            await this.actualizarEstadoPedido(pedidoId, nuevoEstado);
+            this.closeModal();
+        };
+        
+        modal.classList.add('show');
+    }
+
+    async actualizarEstadoPedido(pedidoId, nuevoEstado) {
+        this.showLoading();
+        const token = localStorage.getItem('token');
+        try {
+            const response = await fetch(`/api/orders/${pedidoId}`, {
+                method: 'PUT',
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ estado: nuevoEstado })
+            });
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.message || `Error ${response.status}`);
+            }
+            this.showNotification('Estado del pedido actualizado.', 'success');
+            this.cargarPedidosDashboard(); // Recargar
+        } catch (error) {
+            this.showNotification(`Error al actualizar estado: ${error.message}`, 'error');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+
+    async cargarPedidosDashboard() {
+        const tablaPedidosBody = document.getElementById('tablaPedidosBody');
+        if (!tablaPedidosBody) {
+            console.error('Elemento tablaPedidosBody no encontrado.');
+            return;
+        }
+        this.showLoading();
+        const token = localStorage.getItem('token');
+
+        const estadoFiltro = document.getElementById('filtroEstadoPedido')?.value || "";
+        const clienteIdFiltro = document.getElementById('filtroClientePedido')?.value || "";
+
+        let queryParams = new URLSearchParams();
+        if (estadoFiltro) queryParams.append('estado', estadoFiltro);
+        if (clienteIdFiltro && !isNaN(Number(clienteIdFiltro))) queryParams.append('id_cliente', clienteIdFiltro);
+        // TODO: Añadir ordenamiento si es necesario
+
+        try {
+            const res = await fetch(`/api/orders?${queryParams.toString()}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.message || `Error al cargar pedidos: ${res.statusText}`);
+            }
+            const pedidos = await res.json();
+            
+            tablaPedidosBody.innerHTML = '';
+            if (pedidos && pedidos.length > 0) {
+                pedidos.forEach(pedido => {
+                    const tr = document.createElement('tr');
+                    const clienteNombre = pedido.cliente ? `${pedido.cliente.nombre} ${pedido.cliente.apellido || ''} (ID: ${pedido.id_cliente})` : `Cliente ID: ${pedido.id_cliente}`;
+                    tr.innerHTML = `
+                        <td>${pedido.id_pedido}</td>
+                        <td>${clienteNombre}</td>
+                        <td>${new Date(pedido.fecha_pedido).toLocaleDateString()}</td>
+                        <td>$${parseFloat(pedido.total).toFixed(2)}</td>
+                        <td><span class="order-status status-${pedido.estado.toLowerCase()}">${pedido.estado.replace('_', ' ')}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-info btn-actualizar-estado-pedido" data-id="${pedido.id_pedido}" data-estado-actual="${pedido.estado}" title="Actualizar Estado">
+                                <i class="fas fa-edit"></i> Actualizar Estado
+                            </button>
+                            <!-- Podríamos añadir un botón para ver detalles del pedido si es necesario -->
+                        </td>
+                    `;
+                    tablaPedidosBody.appendChild(tr);
+                });
+            } else {
+                tablaPedidosBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No hay pedidos que coincidan con los filtros.</td></tr>';
+            }
+        } catch (err) {
+            console.error('Error en cargarPedidosDashboard:', err);
+            this.showNotification(err.message || 'Error al cargar la tabla de pedidos.', 'error');
+            if (tablaPedidosBody) tablaPedidosBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Error al cargar pedidos.</td></tr>';
+        } finally {
+            this.hideLoading();
+        }
+    }
+
 
     // Navigation Methods
     handleNavigation(e) {
@@ -433,7 +614,11 @@ class DashboardUI {
         } else if (pageId === 'paquetes') {
             console.log("[onPageShow] Condition for 'paquetes' met. Calling cargarPaquetes()."); // Key log
             cargarPaquetes();
-        } else if (pageId === 'roles') {
+        } else if (pageId === 'orders') {
+            console.log("[onPageShow] Condition for 'orders' met. Calling cargarPedidosDashboard().");
+            this.cargarPedidosDashboard();
+        }
+         else if (pageId === 'roles') {
             this.cargarYRenderizarPaginaRoles();
         } else {
             console.log(`[onPageShow] pageId '${pageId}' did not match 'productos', 'paquetes', or 'roles'.`);
@@ -1256,8 +1441,44 @@ window.DashboardAPI = {
         if (dashboardUI) {
             dashboardUI.updateUserInfo(userName);
         }
+    },
+    // Nueva función para manejar cambio de tipo de producto en el modal
+    handleProductoTipoChange: function(selectedTipo) {
+        if (dashboardUI) {
+            dashboardUI.mostrarCamposEspecificosPorTipo(selectedTipo);
+        }
     }
 };
+
+// Listener para el cambio en el select de tipo de producto
+document.addEventListener('DOMContentLoaded', () => {
+    const productoTipoSelect = document.getElementById('productoTipo');
+    if (productoTipoSelect) {
+        productoTipoSelect.addEventListener('change', (e) => {
+            DashboardAPI.handleProductoTipoChange(e.target.value);
+        });
+    }
+});
+
+
+// ----- Métodos de la clase DashboardUI que necesitan ser extendidos o añadidos -----
+
+DashboardUI.prototype.mostrarCamposEspecificosPorTipo = function(tipoSeleccionado) {
+    // Ocultar todos los contenedores de campos específicos
+    document.querySelectorAll('.tipo-especifico').forEach(div => {
+        div.style.display = 'none';
+    });
+
+    // Mostrar el contenedor correspondiente al tipo seleccionado
+    const camposDivId = `campos${tipoSeleccionado.charAt(0).toUpperCase() + tipoSeleccionado.slice(1)}`; // ej. camposHospedaje
+    const camposDiv = document.getElementById(camposDivId);
+    if (camposDiv) {
+        camposDiv.style.display = 'block';
+    }
+};
+
+// Modificar abrirModalEditarProducto y la función de agregar producto para usar mostrarCamposEspecificosPorTipo
+// y para pre-cargar/limpiar los campos específicos.
 
 async function eliminarProducto(id) {
   const token = localStorage.getItem('token');
@@ -1416,11 +1637,22 @@ const btnAgregarProducto = document.getElementById('btnAgregarProducto');
       
       // Explicitly set values for fields not fully handled by form.reset() or to ensure specific defaults
       document.getElementById('productoDescripcion').value = ''; 
-      document.getElementById('productoTipo').value = 'paquete'; // Default type
+      const productoTipoSelect = document.getElementById('productoTipo');
+      if (productoTipoSelect) productoTipoSelect.value = 'paquete'; // Default type
+      
       const stockInput = document.getElementById('productoStock');
-      if (stockInput) stockInput.value = '0'; // Default stock, ensure it's a string for .value
+      if (stockInput) stockInput.value = ''; // Default stock, ensure it's a string for .value
       document.getElementById('productoActivo').checked = true; // Default to active
 
+      // Limpiar campos específicos (una función helper sería útil aquí)
+      document.querySelectorAll('#modalProducto .tipo-especifico input, #modalProducto .tipo-especifico select').forEach(input => input.value = '');
+      document.querySelectorAll('#modalProducto .tipo-especifico input[type="date"]').forEach(input => input.value = '');
+      document.querySelectorAll('#modalProducto .tipo-especifico input[type="datetime-local"]').forEach(input => input.value = '');
+
+
+      // Mostrar campos para el tipo por defecto ('paquete', que no tiene campos específicos visibles)
+      DashboardAPI.handleProductoTipoChange(productoTipoSelect ? productoTipoSelect.value : 'paquete');
+      
       document.getElementById('modalProducto').style.display = 'block';
     };
   }
@@ -1906,10 +2138,50 @@ async function abrirModalEditarProducto(id) {
     document.getElementById('productoId').value = producto.id_producto;
     document.getElementById('productoNombre').value = producto.nombre || '';
     document.getElementById('productoDescripcion').value = producto.descripcion || '';
-    document.getElementById('productoTipo').value = producto.tipo || ''; // producto.tipo is the string name
+    
+    const productoTipoSelect = document.getElementById('productoTipo');
+    if (productoTipoSelect) {
+        productoTipoSelect.value = producto.tipo || 'paquete'; // producto.tipo es el nombre del tipo
+        // Disparar el cambio para mostrar/ocultar campos correctos
+        DashboardAPI.handleProductoTipoChange(producto.tipo || 'paquete');
+    }
+    
     document.getElementById('productoPrecio').value = producto.precio !== undefined ? producto.precio : '';
     document.getElementById('productoStock').value = producto.stock !== undefined ? producto.stock : '';
     document.getElementById('productoActivo').checked = producto.activo === true;
+
+    // Pre-cargar datos específicos del tipo (si existen en la respuesta del backend)
+    // El backend en ProductService->obtenerProductoPorId ya incluye estas relaciones
+    if (producto.hospedaje) {
+        document.getElementById('hospedajeUbicacion').value = producto.hospedaje.ubicacion || '';
+        document.getElementById('hospedajeFechaInicio').value = producto.hospedaje.fecha_inicio ? producto.hospedaje.fecha_inicio.split('T')[0] : '';
+        document.getElementById('hospedajeFechaFin').value = producto.hospedaje.fecha_fin ? producto.hospedaje.fecha_fin.split('T')[0] : '';
+        document.getElementById('hospedajeCapacidad').value = producto.hospedaje.capacidad || '';
+    }
+    if (producto.pasaje) {
+        document.getElementById('pasajeOrigen').value = producto.pasaje.origen || '';
+        document.getElementById('pasajeDestino').value = producto.pasaje.destino || '';
+        document.getElementById('pasajeFechaSalida').value = producto.pasaje.fecha_salida ? producto.pasaje.fecha_salida.slice(0,16) : '';
+        document.getElementById('pasajeFechaRegreso').value = producto.pasaje.fecha_regreso ? producto.pasaje.fecha_regreso.slice(0,16) : '';
+        document.getElementById('pasajeClase').value = producto.pasaje.clase || '';
+        document.getElementById('pasajeAsientos').value = producto.pasaje.asientos_disponibles || '';
+        document.getElementById('pasajeAerolinea').value = producto.pasaje.aerolinea || '';
+        document.getElementById('pasajeTipoAsiento').value = producto.pasaje.id_tipo_asiento || '';
+    }
+    if (producto.alquiler) {
+        document.getElementById('alquilerTipoVehiculo').value = producto.alquiler.tipo_vehiculo || '';
+        document.getElementById('alquilerUbicacion').value = producto.alquiler.ubicacion || '';
+        document.getElementById('alquilerFechaInicio').value = producto.alquiler.fecha_inicio ? producto.alquiler.fecha_inicio.split('T')[0] : '';
+        document.getElementById('alquilerFechaFin').value = producto.alquiler.fecha_fin ? producto.alquiler.fecha_fin.split('T')[0] : '';
+        document.getElementById('alquilerCantidad').value = producto.alquiler.cantidad || '0';
+    }
+    if (producto.Auto) { // El modelo es 'Auto' con 'A' mayúscula
+        document.getElementById('autoModelo').value = producto.Auto.modelo || '';
+        document.getElementById('autoMarca').value = producto.Auto.marca || '';
+        document.getElementById('autoCapacidad').value = producto.Auto.capacidad || '';
+        document.getElementById('autoUbicacion').value = producto.Auto.ubicacion_actual || '';
+        document.getElementById('autoEstado').value = producto.Auto.estado || '';
+    }
     
     document.getElementById('modalProductoTitulo').textContent = 'Editar Producto';
     document.getElementById('modalProducto').style.display = 'block';

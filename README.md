@@ -27,6 +27,7 @@
 5. Ejecuta las migraciones de Prisma:
    ```sh
    npx prisma migrate dev --name init
+   npx prisma migrate reset
    ```
 
 6. Genera el cliente de Prisma:

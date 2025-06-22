@@ -371,7 +371,7 @@ body {
 }
 
 .section-header h2 {
-  color:var(--red)
+  color: var(--red);
   font-size: 1.8rem;
   margin: 0;
 }
@@ -1059,4 +1059,35 @@ body {
   .section-header h2 {
     font-size: 1.4rem;
   }
+}
+
+/* Estilos para productos inactivos y advertencias */
+.order-item.item-inactivo .item-name {
+    text-decoration: line-through;
+    color: #888;
+}
+.item-status-tag {
+    font-size: 0.8em;
+    font-weight: bold;
+    color: #e74c3c; /* Rojo para indicar no disponible */
+    margin-left: 8px;
+    background-color: #fdd; /* Fondo ligeramente rojo */
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
+.checkout-warning-persistent {
+    background-color: #fff3cd; /* Amarillo claro para advertencia */
+    color: #856404; /* Texto oscuro para contraste */
+    padding: 15px;
+    border: 1px solid #ffeeba;
+    border-radius: var(--border-radius);
+    margin-bottom: 20px;
+    font-size: 0.95em;
+    display: flex;
+    align-items: center;
+}
+.checkout-warning-persistent i {
+    margin-right: 10px;
+    font-size: 1.2em;
 }

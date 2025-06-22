@@ -22,7 +22,7 @@ class ProductRepository {
             orderBy: { nombre: 'asc' }
         });
     }
-    // Busca un producto por su ID, incluyendo el tipo
+    // Busca un producto por su ID, incluyendo el tipo y, si es pasaje, toda la estructura de avión y asientos
     async findById(id_producto) {
         if (!id_producto || isNaN(Number(id_producto)))
             return null;
@@ -31,18 +31,31 @@ class ProductRepository {
             include: {
                 tipoProducto: true,
                 paqueteDetallesAsPaquete: {
-                    orderBy: { producto: { nombre: 'asc' } }, // Optional: order components by name
+                    orderBy: { producto: { nombre: 'asc' } },
                     include: {
                         producto: {
-                            select: {
-                                id_producto: true,
-                                nombre: true,
-                                // Optionally include component's type if needed for display:
-                                // tipoProducto: { select: { nombre: true } } 
+                            include: {
+                                tipoProducto: true // Ahora también incluye el tipo del componente
                             }
                         }
                     }
-                }
+                },
+                pasaje: {
+                    include: {
+                        avionConfig: {
+                            include: {
+                                asientos: {
+                                    include: {
+                                        tipoAsientoBase: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                hospedaje: true,
+                alquiler: true,
+                Auto: true
             }
         });
     }

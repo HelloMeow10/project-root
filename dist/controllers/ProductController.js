@@ -8,8 +8,20 @@ exports.createProduct = createProduct;
 exports.updateProduct = updateProduct;
 exports.deleteProduct = deleteProduct;
 exports.agregarComponenteAPaquete = agregarComponenteAPaquete;
+exports.getAvionMapaAsientos = getAvionMapaAsientos;
+exports.getOpcionesEquipaje = getOpcionesEquipaje;
+exports.getClasesServicio = getClasesServicio;
 const ProductService_1 = require("../services/ProductService");
 const productService = new ProductService_1.ProductService();
+/**
+ * Obtiene todos los productos.
+ * @async
+ * @function getAllProducts
+ * @param {Request} req - El objeto de solicitud de Express.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía una respuesta JSON con la lista de productos o un error.
+ */
 async function getAllProducts(req, res, next) {
     try {
         const productos = await productService.obtenerProductos();
@@ -19,6 +31,15 @@ async function getAllProducts(req, res, next) {
         next(err);
     }
 }
+/**
+ * Obtiene todos los productos que no son de tipo 'paquete' (productos individuales).
+ * @async
+ * @function getIndividualProducts
+ * @param {Request} req - El objeto de solicitud de Express.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía una respuesta JSON con la lista de productos individuales o un error.
+ */
 async function getIndividualProducts(req, res, next) {
     try {
         const productos = await productService.obtenerProductosIndividuales();
@@ -28,6 +49,15 @@ async function getIndividualProducts(req, res, next) {
         next(err);
     }
 }
+/**
+ * Elimina un producto componente de un paquete específico.
+ * @async
+ * @function eliminarComponenteDePaquete
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.params.id_paquete` y `req.params.id_producto_componente`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía una respuesta JSON con el paquete actualizado o un error.
+ */
 async function eliminarComponenteDePaquete(req, res, next) {
     try {
         const id_paquete = Number(req.params.id_paquete);
@@ -45,6 +75,15 @@ async function eliminarComponenteDePaquete(req, res, next) {
         next(err);
     }
 }
+/**
+ * Obtiene un producto específico por su ID.
+ * @async
+ * @function getProductById
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.params.id`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía una respuesta JSON con el producto o un error.
+ */
 async function getProductById(req, res, next) {
     try {
         const id = Number(req.params.id);
@@ -55,17 +94,58 @@ async function getProductById(req, res, next) {
         next(err);
     }
 }
-async function createProduct(req, res) {
+/**
+ * Crea un nuevo producto, incluyendo datos específicos del tipo si aplica (ej. Hospedaje, Pasaje).
+ * @async
+ * @function createProduct
+ * @param {Request} req - El objeto de solicitud de Express. Espera en `req.body` los datos del producto,
+ *                        incluyendo `nombre_tipo_producto` y opcionalmente objetos como `hospedaje`, `pasaje`, etc.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía una respuesta JSON con el nuevo producto creado o un error.
+ */
+async function createProduct(req, res, next) {
     try {
-        const { nombre, tipo, precio, activo } = req.body;
-        // Si no se envía activo, por defecto true
-        const nuevoProducto = await productService.crearProducto({ nombre, tipo, precio, activo: activo !== undefined ? activo : true });
+        // El cuerpo de la solicitud ahora puede contener datos específicos del tipo
+        // ej. req.body.hospedajeData, req.body.pasajeData, etc.
+        // El servicio se encargará de la lógica de creación detallada.
+        // Necesitamos pasar el 'nombre_tipo_producto' en lugar de 'tipo' (que era el id_tipo)
+        // El servicio buscará el id_tipo basado en el nombre_tipo_producto.
+        const { nombre, descripcion, precio, stock, activo, nombre_tipo_producto, hospedaje, pasaje, alquiler, auto } = req.body;
+        if (!nombre || precio === undefined || !nombre_tipo_producto) {
+            return res.status(400).json({ message: 'Nombre, precio y nombre_tipo_producto son requeridos.' });
+        }
+        const dataForService = {
+            nombre,
+            descripcion,
+            precio: parseFloat(precio),
+            stock: stock !== undefined ? parseInt(stock, 10) : null,
+            activo: activo !== undefined ? activo : true,
+            nombre_tipo_producto, // El servicio resolverá esto a id_tipo
+            hospedaje, // Objeto con datos de hospedaje o undefined
+            pasaje, // Objeto con datos de pasaje o undefined
+            alquiler, // Objeto con datos de alquiler o undefined
+            auto // Objeto con datos de auto o undefined
+        };
+        const nuevoProducto = await productService.crearProductoCompleto(dataForService);
         res.status(201).json(nuevoProducto);
     }
     catch (err) {
-        res.status(500).json({ message: 'Error al crear producto' });
+        if (err.message.includes('no encontrado') || err.message.includes('requerido') || err.message.includes('debe ser')) {
+            return res.status(400).json({ message: err.message });
+        }
+        next(err); // Para errores inesperados
     }
 }
+/**
+ * Actualiza un producto existente.
+ * @async
+ * @function updateProduct
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.params.id` y en `req.body` los campos a actualizar.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía una respuesta JSON con el producto actualizado o un error.
+ */
 async function updateProduct(req, res, next) {
     try {
         const id = Number(req.params.id);
@@ -81,6 +161,14 @@ async function updateProduct(req, res, next) {
         next(err); // Pass errors to the global error handler
     }
 }
+/**
+ * Elimina un producto por su ID.
+ * @async
+ * @function deleteProduct
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.params.id`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @returns {Promise<void>} Envía una respuesta con estado 204 (sin contenido) si tiene éxito, o un error.
+ */
 async function deleteProduct(req, res) {
     try {
         const id = Number(req.params.id);
@@ -101,6 +189,15 @@ async function deleteProduct(req, res) {
         res.status(500).json({ message: 'Error al eliminar producto' });
     }
 }
+/**
+ * Agrega un producto componente a un paquete existente.
+ * @async
+ * @function agregarComponenteAPaquete
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.params.id_paquete` y en `req.body`: `id_producto` (del componente) y `cantidad`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía una respuesta JSON con el paquete actualizado o un error.
+ */
 async function agregarComponenteAPaquete(req, res, next) {
     var _a;
     try {
@@ -118,6 +215,68 @@ async function agregarComponenteAPaquete(req, res, next) {
         }
         const paqueteActualizado = await productService.agregarComponenteAPaqueteServ(id_paquete, id_producto_componente, cantidad);
         res.status(201).json(paqueteActualizado); // 201 for created detail, or 200 if just updating package
+    }
+    catch (err) {
+        next(err);
+    }
+}
+/**
+ * Obtiene la configuración de asientos para un pasaje (vuelo) específico,
+ * incluyendo el estado de ocupación de cada asiento.
+ * @async
+ * @function getAvionMapaAsientos
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.params.idProductoPasaje`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía JSON con el mapa de asientos o un error.
+ */
+async function getAvionMapaAsientos(req, res, next) {
+    try {
+        const idProductoPasaje = Number(req.params.idProductoPasaje);
+        if (isNaN(idProductoPasaje)) {
+            return res.status(400).json({ message: 'ID de Pasaje (Producto) inválido.' });
+        }
+        const mapaAsientos = await productService.obtenerConfiguracionAvionConAsientosOcupados(idProductoPasaje);
+        if (!mapaAsientos) {
+            return res.status(404).json({ message: 'Mapa de asientos no disponible para este pasaje.' });
+        }
+        res.status(200).json(mapaAsientos);
+    }
+    catch (err) {
+        next(err);
+    }
+}
+/**
+ * Obtiene todas las opciones de equipaje activas.
+ * @async
+ * @function getOpcionesEquipaje
+ * @param {Request} req - El objeto de solicitud de Express.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía JSON con la lista de opciones de equipaje o un error.
+ */
+async function getOpcionesEquipaje(req, res, next) {
+    try {
+        const opciones = await productService.obtenerOpcionesEquipajeActivas();
+        res.status(200).json(opciones);
+    }
+    catch (err) {
+        next(err);
+    }
+}
+/**
+ * Obtiene las clases de servicio disponibles para los vuelos (basado en Tipos de Asiento).
+ * @async
+ * @function getClasesServicio
+ * @param {Request} req - El objeto de solicitud de Express.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía JSON con la lista de clases de servicio o un error.
+ */
+async function getClasesServicio(req, res, next) {
+    try {
+        const clases = await productService.obtenerClasesDeServicioDisponibles();
+        res.status(200).json(clases);
     }
     catch (err) {
         next(err);

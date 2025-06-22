@@ -42,9 +42,9 @@ class CartUI {
       promoForm.addEventListener('submit', (e) => this.handlePromoCode(e));
     }
 
-    const checkoutBtn = document.getElementById('checkoutBtn');
-    if (checkoutBtn) {
-      checkoutBtn.addEventListener('click', () => this.handleCheckout());
+    const confirmarCompraBtn = document.getElementById('confirmarCompraBtn');
+    if (confirmarCompraBtn) {
+      confirmarCompraBtn.addEventListener('click', () => this.handleCheckout());
     }
 
     document.addEventListener('click', (e) => {
@@ -91,12 +91,12 @@ class CartUI {
       const tipo = localStorage.getItem('tipo');
       if (!token || tipo !== 'cliente') {
         this.showNotification('Debes iniciar sesión como cliente para actualizar la cantidad', 'error');
-        setTimeout(() => window.location.href = tipo === 'admin' ? '/admin.html' : '/login.html', 1500);
+        setTimeout(() => window.location.href = tipo === 'admin' ? '/dashboard.html' : '/login.html', 1500);
         return;
       }
 
       const res = await fetch(`/api/cart/item/${itemId}`, {
-        method: 'PATCH',
+        method: 'PUT', // Cambiado de PATCH a PUT
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -141,12 +141,12 @@ class CartUI {
       const tipo = localStorage.getItem('tipo');
       if (!token || tipo !== 'cliente') {
         this.showNotification('Debes iniciar sesión como cliente para actualizar la cantidad', 'error');
-        setTimeout(() => window.location.href = tipo === 'admin' ? '/admin.html' : '/login.html', 1500);
+        setTimeout(() => window.location.href = tipo === 'admin' ? '/dashboard.html' : '/login.html', 1500);
         return;
       }
 
       const res = await fetch(`/api/cart/item/${itemId}`, {
-        method: 'PATCH',
+        method: 'PUT', // Cambiado de PATCH a PUT
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -264,7 +264,7 @@ class CartUI {
           const tipo = localStorage.getItem('tipo');
           if (!token || tipo !== 'cliente') {
             this.showNotification('Debes iniciar sesión como cliente para eliminar el producto', 'error');
-            setTimeout(() => window.location.href = tipo === 'admin' ? '/admin.html' : '/login.html', 1500);
+            setTimeout(() => window.location.href = tipo === 'admin' ? '/dashboard.html' : '/login.html', 1500);
             return;
           }
 
@@ -328,7 +328,7 @@ class CartUI {
           const tipo = localStorage.getItem('tipo');
           if (!token || tipo !== 'cliente') {
             this.showNotification('Debes iniciar sesión como cliente para vaciar el carrito', 'error');
-            setTimeout(() => window.location.href = tipo === 'admin' ? '/admin.html' : '/login.html', 1500);
+            setTimeout(() => window.location.href = tipo === 'admin' ? '/dashboard.html' : '/login.html', 1500);
             return;
           }
 
@@ -413,11 +413,76 @@ class CartUI {
     const tipo = localStorage.getItem('tipo');
     if (!token || tipo !== 'cliente') {
       this.showNotification('Debes iniciar sesión como cliente para comprar', 'error');
-      setTimeout(() => window.location.href = tipo === 'admin' ? '/admin.html' : '/login.html', 1500);
+      setTimeout(() => window.location.href = tipo === 'admin' ? '/dashboard.html' : '/login.html', 1500);
       return;
     }
+    this.showLoadingOverlay(); // Mostrar overlay de carga
 
-    window.location.href = 'pagos.html';
+    // Aquí podrías recolectar id_direccion_facturacion si tuvieras un selector en el HTML
+    // const idDireccionFacturacion = document.getElementById('direccionSelect')?.value;
+    // const bodyData = idDireccionFacturacion ? { id_direccion_facturacion: idDireccionFacturacion } : {};
+
+    fetch('/api/orders', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      // body: JSON.stringify(bodyData), // Enviar si es necesario
+    })
+    .then(res => {
+      if (res.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('tipo');
+        this.showNotification('Sesión inválida. Por favor, inicia sesión nuevamente.', 'error');
+        setTimeout(() => window.location.href = '/login.html', 1500);
+        throw new Error('Unauthorized'); // Para detener la ejecución
+      }
+      if (res.status === 403) { // Email no verificado
+         this.showNotification('Debes verificar tu email para crear un pedido.', 'error');
+         showEmailVerificationOverlay(); // Mostrar el overlay específico
+         throw new Error('Email not verified');
+      }
+      return res.json().then(data => {
+        if (!res.ok) {
+          // Arrojar un error con el mensaje del backend si está disponible
+          throw new Error(data.message || `Error ${res.status} al crear el pedido`);
+        }
+        return data; // Pedido creado
+      });
+    })
+    .then(pedidoCreado => {
+      if (pedidoCreado && pedidoCreado.id_pedido) {
+        this.showNotification('Pedido creado exitosamente. Redirigiendo al pago...', 'success');
+        // Vaciar el carrito localmente (la API ya lo hace en la BD)
+        this.cartItems = [];
+        this.renderCartItems([]); 
+        this.updateCartTotals();
+        
+        // Construir la URL para pagos.html
+        const params = new URLSearchParams({
+            pedidoId: pedidoCreado.id_pedido.toString(), // Asegurar que es string
+            // total: pedidoCreado.total // El total se obtendrá del pedido en pagos.js, es más fiable
+        });
+        // Log para depuración
+        console.log(`INFO: carrito.js - Redirigiendo a pagos.html con params: ${params.toString()}`);
+        window.location.href = `pagos.html?${params.toString()}`;
+
+      } else {
+        // Esto no debería ocurrir si la respuesta fue OK y tenía datos
+        console.error('ERROR: carrito.js - Respuesta de creación de pedido inválida o falta ID de pedido. Respuesta:', pedidoCreado);
+        throw new Error('Respuesta de creación de pedido inválida o falta ID de pedido.');
+      }
+    })
+    .catch(err => {
+      if (err.message !== 'Unauthorized' && err.message !== 'Email not verified') { // No mostrar doble notificación
+          this.showNotification(err.message || 'Error al procesar la compra.', 'error');
+      }
+      console.error('Checkout Error:', err);
+    })
+    .finally(() => {
+      this.hideLoadingOverlay(); // Ocultar overlay de carga
+    });
   }
 
   updateCartDisplay() {
@@ -603,7 +668,7 @@ class CartUI {
       const tipo = localStorage.getItem('tipo');
       if (!token || tipo !== 'cliente') {
         this.showNotification('Debes iniciar sesión como cliente para actualizar el carrito', 'error');
-        setTimeout(() => window.location.href = tipo === 'admin' ? '/admin.html' : '/login.html', 1500);
+        setTimeout(() => window.location.href = tipo === 'admin' ? '/dashboard.html' : '/login.html', 1500);
         return;
       }
 
@@ -686,12 +751,50 @@ class CartUI {
         return;
       }
 
-      const precio = parseFloat(item.producto.precio);
-      if (isNaN(precio)) {
-        console.warn(`Invalid price for item ${item.producto.nombre}:`, item.producto.precio);
-        invalidItemDetails.push(`Item ${item.id_item}: Invalid price (${item.producto.precio})`);
-        return;
+      // --- NUEVO: Mostrar detalles de vuelo enriquecidos si existen ---
+      let detallesVueloHTML = '';
+      if (item.producto.tipoProducto?.nombre?.toLowerCase() === 'vuelo') {
+        if (item.detalles_vuelo_populados && Object.keys(item.detalles_vuelo_populados).length > 0) {
+          detallesVueloHTML += '<div class="vuelo-detalles-extra">';
+          if (item.detalles_vuelo_populados.nombre_clase_servicio) {
+            detallesVueloHTML += `<div><b>Clase seleccionada:</b> ${item.detalles_vuelo_populados.nombre_clase_servicio}</div>`;
+          }
+          if (item.detalles_vuelo_populados.info_asiento_seleccionado) {
+            detallesVueloHTML += `<div><b>Asiento seleccionado:</b> ${item.detalles_vuelo_populados.info_asiento_seleccionado}</div>`;
+          }
+          if (Array.isArray(item.detalles_vuelo_populados.info_equipaje_seleccionado) && item.detalles_vuelo_populados.info_equipaje_seleccionado.length > 0) {
+            detallesVueloHTML += `<div><b>Equipaje:</b> ` + item.detalles_vuelo_populados.info_equipaje_seleccionado.map(eq => `${eq.nombre ? eq.nombre : 'ID desconocido'} (x${eq.cantidad})`).join(', ') + '</div>';
+          }
+          detallesVueloHTML += '</div>';
+        } else if (item.detalles_vuelo_json) {
+          // Fallback: mostrar los IDs si no hay datos enriquecidos
+          try {
+            const detalles = JSON.parse(item.detalles_vuelo_json);
+            detallesVueloHTML += '<div class="vuelo-detalles-extra">';
+            if (detalles.seleccion_clase_servicio_id) {
+              detallesVueloHTML += `<div><b>Clase seleccionada:</b> ID ${detalles.seleccion_clase_servicio_id}</div>`;
+            }
+            if (detalles.seleccion_asiento_fisico_id) {
+              detallesVueloHTML += `<div><b>Asiento seleccionado:</b> ID ${detalles.seleccion_asiento_fisico_id}</div>`;
+            }
+            if (Array.isArray(detalles.selecciones_equipaje) && detalles.selecciones_equipaje.length > 0) {
+              detallesVueloHTML += `<div><b>Equipaje:</b> ` + detalles.selecciones_equipaje.map(eq => `ID ${eq.id_opcion_equipaje} (x${eq.cantidad})`).join(', ') + '</div>';
+            }
+            detallesVueloHTML += '</div>';
+          } catch (e) {
+            detallesVueloHTML = '<div style="color:#c00;font-size:0.95em;">Error al leer detalles de vuelo</div>';
+          }
+        }
       }
+      // --- FIN NUEVO ---
+
+      // Usar precio_total_item_calculado si está disponible
+      const precioUnitario = (typeof item.precio_total_item_calculado === 'number' && item.cantidad > 0)
+        ? (item.precio_total_item_calculado / item.cantidad)
+        : parseFloat(item.producto.precio);
+      const totalItem = (typeof item.precio_total_item_calculado === 'number')
+        ? item.precio_total_item_calculado
+        : precioUnitario * item.cantidad;
 
       const div = document.createElement('div');
       div.className = 'cart-item';
@@ -701,6 +804,7 @@ class CartUI {
         <div>
           <span class="item-title">${item.producto.nombre}</span>
           <span class="item-type-badge">${item.producto.tipoProducto?.nombre || 'N/A'}</span>
+          ${detallesVueloHTML}
         </div>
         <div>
           <span>Cantidad: 
@@ -708,12 +812,12 @@ class CartUI {
             <input type="number" class="quantity-input" data-item-id="${item.id_item}" value="${item.cantidad}" min="1" max="10">
             <button class="quantity-btn increase" data-item-id="${item.id_item}">+</button>
           </span>
-          <span>Precio unitario: <span class="unit-price-amount">$${precio.toFixed(2)}</span></span>
-          <span>Total: <span class="total-price-amount">$${(precio * item.cantidad).toFixed(2)}</span></span>
+          <span>Precio unitario: <span class="unit-price-amount">$${precioUnitario.toFixed(2)}</span></span>
+          <span>Total: <span class="total-price-amount">$${totalItem.toFixed(2)}</span></span>
           <button class="remove-item-btn" data-item-id="${item.id_item}"><i class="fas fa-trash"></i></button>
         </div>
       `;
-      total += precio * item.cantidad;
+      total += totalItem;
       cartItemsList.appendChild(div);
     });
 
@@ -804,10 +908,10 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
   if (tipo !== 'cliente') {
-    console.log('Invalid user type, redirecting to:', tipo === 'admin' ? 'admin.html' : 'index.html');
+    console.log('Invalid user type, redirecting to:', tipo === 'admin' ? 'dashboard.html' : 'index.html');
     hideAccessOverlay();
     window.CartAPI.showNotification('Solo los clientes pueden acceder al carrito', 'error');
-    setTimeout(() => window.location.href = tipo === 'admin' ? '/admin.html' : '/index.html', 3000);
+    setTimeout(() => window.location.href = tipo === 'admin' ? '/dashboard.html' : '/index.html', 3000);
     return;
   }
 
@@ -880,7 +984,7 @@ document.getElementById('confirmarCompraBtn')?.addEventListener('click', async f
 
   if (!token || tipo !== 'cliente') {
     window.CartAPI.showNotification('Debes iniciar sesión como cliente para comprar', 'error');
-    setTimeout(() => window.location.href = tipo === 'admin' ? '/admin.html' : '/login.html', 1500);
+    setTimeout(() => window.locatiadmin.htmlon.href = tipo === 'admin' ? '/' : '/login.html', 1500);
     return;
   }
 
