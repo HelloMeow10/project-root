@@ -7,29 +7,20 @@ class CheckoutManager {
       total: 0,
     };
 
-    this.orderData = {
-      items: [],
-      subtotal: 0,
-      tax: 0,
-      total: 0,
-    };
-    this.originalUserData = null; // Para guardar los datos originales del usuario
+    this.originalUserData = null;
     
-    // Billing Address
     this.savedBillingAddresses = [];
-    this.selectedBillingAddressOption = 'sameAsPersonal'; // 'sameAsPersonal', 'newAddress', 'savedAddress'
+    this.selectedBillingAddressOption = 'sameAsPersonal';
     this.selectedBillingAddressId = null;
 
-    // Stripe and Payment Methods
-    this.stripe = null;
-    this.cardElement = null;
-    this.savedPaymentMethods = [];
-    this.selectedPaymentMethodId = null; // ID de Stripe del método seleccionado o nuevo
-    this.useNewPaymentMethod = true; // Por defecto, mostrar para nueva tarjeta si no hay guardadas
+    // Payment Methods (No longer Stripe specific)
+    this.savedPaymentMethods = []; // This will be re-evaluated in backend changes
+    this.selectedPaymentMethodId = null; // Will refer to a local ID if we implement custom save
+    this.useNewPaymentMethod = true;
 
     this.formValidation = {
       personal: false,
-      billingAddress: true, // Asumir true inicialmente si 'sameAsPersonal' es default
+      billingAddress: true,
       payment: false,
       terms: false,
     };
@@ -38,136 +29,60 @@ class CheckoutManager {
   }
 
   async init() {
-    await this.loadUserData(); // Asegurarse de que se complete antes de continuar
+    await this.loadUserData();
     this.setupEventListeners();
     this.setupFormValidation();
-    this.initializeStripeElements(); // Inicializar Stripe
-    this.loadSavedBillingAddresses(); // Cargar direcciones guardadas
-    this.loadSavedPaymentMethods(); // Cargar métodos de pago guardados
+    this.loadSavedBillingAddresses();
+    this.loadSavedPaymentMethods(); // Will be adapted or removed
     this.loadOrderSummary();
   }
 
-  initializeStripeElements() {
-    // Reemplaza 'TU_STRIPE_PUBLIC_KEY' con tu clave pública real de Stripe
-    // Idealmente, esta clave vendría de una variable de entorno o configuración.
-    const stripePublicKey = window.STRIPE_PUBLIC_KEY || 'pk_test_51Rcbaj9ZvfEsRh7Eom4jIDS2QrmwBmwvYaBS5OAKeRWlGvqGFObZjxc4QY7MU18XlnqODFF4BCseGqFnDSHKoE3k00kTrOOSsQ'; // Placeholder
-    if (!stripePublicKey.startsWith('pk_test_') && !stripePublicKey.startsWith('pk_live_')) {
-        console.error("Clave pública de Stripe no configurada o inválida. Por favor, configúrala.");
-        this.showNotification("Error de configuración de pagos. Contacta a soporte.", "error");
-        return;
-    }
-    
-    this.stripe = Stripe(stripePublicKey);
-    const elements = this.stripe.elements();
-    
-    // Estilos para el Card Element (puedes personalizarlos)
-    const style = {
-      base: {
-        color: "#32325d",
-        fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
-        fontSmoothing: "antialiased",
-        fontSize: "16px",
-        "::placeholder": {
-          color: "#aab7c4"
-        }
-      },
-      invalid: {
-        color: "#fa755a",
-        iconColor: "#fa755a"
-      }
-    };
-
-    this.cardElement = elements.create('card', { style: style, hidePostalCode: true });
-    const cardElementContainer = document.getElementById('stripeCardElement');
-    if (cardElementContainer) {
-        this.cardElement.mount('#stripeCardElement');
-        this.cardElement.on('change', (event) => {
-            const displayError = document.getElementById('stripeCardError');
-            if (event.error) {
-                displayError.textContent = event.error.message;
-                displayError.classList.add('show');
-            } else {
-                displayError.textContent = '';
-                displayError.classList.remove('show');
-            }
-            this.updateFormValidation(); // Revalidar cuando cambia el Card Element
-        });
-    } else {
-        console.error("Contenedor para Stripe Card Element ('stripeCardElement') no encontrado.");
-    }
-  }
+  // Stripe initializeStripeElements() removed
 
   async loadSavedPaymentMethods() {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
+    // This functionality is temporarily disabled as we are removing Stripe.
+    // A custom solution for saving payment methods would require significant backend changes
+    // and careful consideration of PCI DSS compliance if handling raw card data.
+    console.warn("loadSavedPaymentMethods: Stripe integration removed. Saved payment methods (Stripe-based) are disabled.");
     const selectElement = document.getElementById('selectSavedPaymentMethod');
-    const paymentForm = document.getElementById('paymentForm');
     const savedMethodsContainer = document.getElementById('savedPaymentMethodsContainer');
-    const useNewLink = document.getElementById('useNewPaymentMethodLink');
     const deleteBtn = document.getElementById('deletePaymentMethodBtn');
+    const useNewLink = document.getElementById('useNewPaymentMethodLink');
 
-
-    try {
-      const response = await fetch('/api/payments/metodos-pago', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!response.ok) {
-        console.error('Error al cargar métodos de pago guardados');
-        if (selectElement) selectElement.innerHTML = '<option value="">Error al cargar</option>';
-        this.useNewPaymentMethod = true; // Forzar nuevo si falla la carga
-        this.togglePaymentMethodForm();
-        return;
-      }
-      this.savedPaymentMethods = await response.json();
-
-      if (selectElement) {
-        if (this.savedPaymentMethods.length > 0) {
-          selectElement.innerHTML = '<option value="">Selecciona un método guardado</option>';
-          this.savedPaymentMethods.forEach(pm => {
-            const option = document.createElement('option');
-            option.value = pm.stripe_payment_method_id;
-            option.textContent = `${pm.tipo_tarjeta.toUpperCase()} **** ${pm.ultimos_cuatro_digitos} (Exp: ${pm.fecha_expiracion})${pm.es_principal ? ' - Principal' : ''}`;
-            option.dataset.localId = pm.id_metodo_pago; // Guardar ID local para otras acciones
-            selectElement.appendChild(option);
-          });
-          this.useNewPaymentMethod = false; // Hay guardados, no mostrar nuevo por defecto
-          if (deleteBtn) deleteBtn.style.display = 'inline-block';
-        } else {
-          selectElement.innerHTML = '<option value="">No tienes métodos guardados</option>';
-          selectElement.disabled = true;
-          this.useNewPaymentMethod = true;
-          if (savedMethodsContainer) savedMethodsContainer.style.display = 'none'; // Ocultar si no hay
-          if (deleteBtn) deleteBtn.style.display = 'none';
-        }
-      }
-      this.togglePaymentMethodForm();
-    } catch (error) {
-      console.error('Error en loadSavedPaymentMethods:', error);
-      if (selectElement) selectElement.innerHTML = '<option value="">Error al cargar</option>';
-      this.useNewPaymentMethod = true;
-      this.togglePaymentMethodForm();
+    if (selectElement) {
+        selectElement.innerHTML = '<option value="">No hay métodos de pago guardados</option>';
+        selectElement.disabled = true;
     }
+    if (savedMethodsContainer) {
+        // Hide the entire section for saved payment methods for now
+        savedMethodsContainer.style.display = 'none';
+    }
+    if (deleteBtn) {
+        deleteBtn.style.display = 'none';
+    }
+    if (useNewLink) {
+        // Hide the link to use new payment method if the saved section is hidden
+        useNewLink.style.display = 'none';
+    }
+
+    this.useNewPaymentMethod = true; // Always force new payment method for now
+    this.togglePaymentMethodForm();
   }
 
   togglePaymentMethodForm() {
     const paymentForm = document.getElementById('paymentForm');
-    const savedMethodsContainer = document.getElementById('savedPaymentMethodsContainer');
+    // Saved methods container is hidden by loadSavedPaymentMethods, so no need to manage its display here.
     if (this.useNewPaymentMethod) {
         if (paymentForm) paymentForm.style.display = 'block';
-        if (savedMethodsContainer && this.savedPaymentMethods.length > 0) {
-             // No ocultar el contenedor de guardados, solo el select si se decide
-        }
-        this.selectedPaymentMethodId = null; // Al mostrar nuevo, deseleccionar guardado
+        this.selectedPaymentMethodId = null;
         const selectSaved = document.getElementById('selectSavedPaymentMethod');
-        if(selectSaved) selectSaved.value = "";
-
+        if(selectSaved) selectSaved.value = ""; // Ensure it's cleared
     } else {
+        // This case should ideally not be reached if saved methods are disabled
         if (paymentForm) paymentForm.style.display = 'none';
     }
     this.updateFormValidation();
   }
-
 
   async loadUserData() {
     const token = localStorage.getItem('token');
@@ -778,20 +693,23 @@ class CheckoutManager {
     }
 
     // Validación para el método de pago
+    // Como Stripe se eliminó, la validación de pago ahora se basa en los campos del formulario estándar.
+    // La lógica de 'selectedPaymentMethodId' para métodos guardados se desactiva temporalmente.
     if (this.useNewPaymentMethod) {
-        const cardNameInput = document.getElementById('cardName');
-        const cardNameValid = cardNameInput && cardNameInput.value.trim() !== "" && !cardNameInput.classList.contains("error");
-        // El Card Element de Stripe se valida a través de su evento 'change' y el error se muestra en stripeCardError
-        // Asumimos que si no hay error en stripeCardError, el Card Element es válido o está incompleto.
-        // Para una validación más estricta del Card Element antes de enviar, se podría verificar this.cardElement._complete o similar,
-        // pero el evento 'change' es la forma recomendada de obtener el estado.
-        const stripeCardErrorElement = document.getElementById('stripeCardError');
-        const cardElementValid = stripeCardErrorElement && !stripeCardErrorElement.classList.contains('show');
-        this.formValidation.payment = cardNameValid && cardElementValid;
-    } else { // Usando un método de pago guardado
-        this.formValidation.payment = !!this.selectedPaymentMethodId; // Válido si se ha seleccionado un ID de Stripe
+        const paymentForm = document.getElementById("paymentForm");
+        const paymentInputs = paymentForm.querySelectorAll("input[required]"); // Asumiendo que los campos de tarjeta son 'required'
+        const allPaymentFieldsValid = Array.from(paymentInputs).every(
+          (input) => input.value.trim() !== "" && !input.classList.contains("error")
+        );
+        // Adicionalmente, asegurar que los campos específicos de la tarjeta (número, expiración, cvv)
+        // hayan pasado sus validaciones individuales (que ya actualizan .error).
+        // No es necesario verificar 'stripeCardErrorElement' ya que fue eliminado.
+        this.formValidation.payment = allPaymentFieldsValid;
+    } else {
+        // Lógica para métodos de pago guardados (actualmente deshabilitada)
+        // this.formValidation.payment = !!this.selectedPaymentMethodId;
+        this.formValidation.payment = false; // Deshabilitar si no se usa nuevo método, hasta que se implemente guardado custom
     }
-
 
     const purchaseBtn = document.getElementById("completePurchaseBtn");
     if (purchaseBtn) {
@@ -1033,51 +951,45 @@ class CheckoutManager {
       document.getElementById('paymentProcessingLoader').style.display = 'block'; // Mostrar loader
 
       if (this.useNewPaymentMethod) {
-        if (!this.stripe || !this.cardElement) {
-          this.showNotification('Error de inicialización de Stripe. Intenta de nuevo.', 'error');
-          btn.disabled = false;
-          btnText.innerHTML = 'Finalizar compra';
-          document.getElementById('paymentProcessingLoader').style.display = 'none';
-          return;
-        }
-
-        const cardHolderName = document.getElementById('cardName').value;
-        const { error: createPmError, paymentMethod } = await this.stripe.createPaymentMethod({
-          type: 'card',
-          card: this.cardElement,
-          billing_details: {
-            name: cardHolderName,
-            // Podrías añadir email y address aquí si es relevante para Stripe/prevención de fraude
-          },
-        });
-
-        if (createPmError) {
-          this.showNotification(createPmError.message, 'error');
-          btn.disabled = false;
-          btnText.innerHTML = 'Finalizar compra';
-          document.getElementById('paymentProcessingLoader').style.display = 'none';
-          return;
-        }
-        
-        paymentPayload.paymentMethodId = paymentMethod.id;
+        // Stripe is removed. Collect card details directly from form.
+        // These will be sent to the backend.
+        //
+        // ** ADVERTENCIA DE SEGURIDAD IMPORTANTE **
+        // La recolección y transmisión de detalles de tarjeta crudos (PAN, CVV, fecha de expiración)
+        // desde el frontend al backend como se hace aquí es EXTREMADAMENTE INSEGURA y NO CUMPLE CON PCI DSS.
+        // En un sistema de producción, SIEMPRE se debe utilizar una integración segura con un procesador de pagos
+        // (como Stripe Elements, Braintree, Adyen, etc.) que tokenice la información de la tarjeta
+        // en el lado del cliente para que los datos sensibles nunca toquen su servidor directamente.
+        // Este código es solo para fines demostrativos de la lógica de la aplicación SIN la integración de Stripe
+        // y para ilustrar el flujo de datos si se manejaran directamente (lo cual no se debe hacer).
+        // NO UTILICE ESTE ENFOQUE EN PRODUCCIÓN.
+        //
+        paymentPayload.cardDetails = {
+            cardNumber: document.getElementById('cardNumber')?.value.replace(/\s/g, ""), // Asegúrate que existe este campo
+            cardName: document.getElementById('cardName')?.value,
+            expiryDate: document.getElementById('expiryDate')?.value, // MM/YY
+            cvv: document.getElementById('cvv')?.value // Asegúrate que existe este campo
+        };
         paymentPayload.guardarMetodoPago = document.getElementById('savePaymentMethod').checked;
-
-        // Si se quiere guardar y es un nuevo método, se podría hacer un SetupIntent aquí primero
-        // para asegurar que el método esté configurado para uso futuro antes del pago,
-        // o confiar en que el backend lo guarde después del pago si `guardarMetodoPago` es true.
-        // El backend ya tiene lógica para guardar un PM nuevo si `guardarMetodoPago` es true.
-
+        // The concept of paymentMethodId from Stripe is no longer used here for new cards.
+        // The backend will handle this.
       } else if (this.selectedPaymentMethodId) {
-        paymentPayload.paymentMethodId = this.selectedPaymentMethodId; // Usar el PM guardado
-        paymentPayload.guardarMetodoPago = false; // No es necesario (ni posible) re-guardar un PM ya guardado de esta forma
+        // This part for saved payment methods is currently disabled.
+        // If re-enabled, it would use a local ID, not a Stripe PM ID.
+        // paymentPayload.paymentMethodId = this.selectedPaymentMethodId;
+        this.showNotification('La funcionalidad de métodos de pago guardados está deshabilitada.', 'error');
+        btn.disabled = false;
+        btnText.innerHTML = 'Finalizar compra';
+        document.getElementById('paymentProcessingLoader').style.display = 'none';
+        return;
       } else {
-        this.showNotification('Por favor, selecciona un método de pago o ingresa uno nuevo.', 'error');
+        // Should not happen if saved methods are disabled and new method is default
+        this.showNotification('Por favor, ingresa un método de pago.', 'error');
         btn.disabled = false;
         btnText.innerHTML = 'Finalizar compra';
         document.getElementById('paymentProcessingLoader').style.display = 'none';
         return;
       }
-
 
       // Llamar al endpoint de pagos
       try {
