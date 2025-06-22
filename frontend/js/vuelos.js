@@ -184,11 +184,20 @@ let multiplicadorClase = 1;
 // Abrir modal al hacer clic en "Personalizar y Añadir"
 document.addEventListener('click', async function(e) {
   if (e.target.classList.contains('btn-personalizar-vuelo')) {
-    const vueloItem = e.target.closest('.vuelo-item');
+    const botonPersonalizar = e.target; // El botón que disparó el evento
+    // const flightCard = botonPersonalizar.closest('.flight-card'); // Si se necesitaran datos del contenedor principal
+
+    // Los data-attributes están directamente en el botón
+    if (!botonPersonalizar.dataset.idProducto || !botonPersonalizar.dataset.nombre || !botonPersonalizar.dataset.precioBase) {
+        console.error('Faltan data-attributes en el botón de personalizar.', botonPersonalizar);
+        showNotification('Error al obtener datos del vuelo para personalizar.', 'error');
+        return;
+    }
+
     vueloSeleccionado = {
-      id_producto: vueloItem.dataset.idProducto,
-      nombre: vueloItem.dataset.nombre,
-      precio: parseFloat(vueloItem.dataset.precioBase)
+      id_producto: botonPersonalizar.dataset.idProducto,
+      nombre: botonPersonalizar.dataset.nombre,
+      precio: parseFloat(botonPersonalizar.dataset.precioBase)
     };
     precioBaseVuelo = vueloSeleccionado.precio;
     document.getElementById('modalTituloVuelo').textContent = `Personalizar: ${vueloSeleccionado.nombre}`;
