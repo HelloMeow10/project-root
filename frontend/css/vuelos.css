@@ -549,3 +549,66 @@ body {
     padding: 3px;
   }
 }
+
+/* Footer Styles (copiado de autos.css) */
+.footer {
+  background: var(--black);
+  color: var(--white);
+  padding: 60px 0 20px;
+  margin-top: 3rem; /* Añadir un margen superior para separarlo del contenido */
+}
+
+.footer .container { /* Asegurar que la clase container dentro del footer funcione como se espera */
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px; /* Padding estándar del container */
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 40px;
+  margin-bottom: 40px;
+}
+
+.footer-section h3,
+.footer-section h4 {
+  margin-bottom: 20px;
+  color: var(--white);
+}
+
+.footer-section ul {
+  list-style: none;
+  padding: 0; /* Resetear padding para ul */
+  margin: 0; /* Resetear margen para ul */
+}
+
+.footer-section ul li {
+  margin-bottom: 10px;
+}
+
+.footer-section a {
+  color: var(--pill);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-section a:hover {
+  color: var(--red);
+}
+
+.footer-section p { /* Estilo para los párrafos dentro de footer-section */
+    line-height: 1.6;
+}
+
+.footer-section p i { /* Estilo para los íconos dentro de los párrafos */
+    margin-right: 8px;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid var(--pill);
+  color: var(--pill);
+}
+/* Fin de Footer Styles */
