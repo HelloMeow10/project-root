@@ -22,7 +22,7 @@ async function getCart(req, res) {
         const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
         if (!userId)
             return res.status(401).json({ message: 'No autenticado' });
-        // Buscar el carrito del usuario, incluyendo producto, tipoProducto y config de avión si es vuelo
+        // Buscar el carrito del usuario
         const carrito = await prismaClient_1.prisma.carrito.findFirst({
             where: { id_cliente: userId },
             include: {
@@ -31,15 +31,10 @@ async function getCart(req, res) {
                         producto: {
                             include: {
                                 tipoProducto: true,
-                                pasaje: {
-                                    include: {
-                                        avionConfig: {
-                                            include: {
-                                                asientos: true, // Only asientos is a valid relation
-                                            },
-                                        },
-                                    },
-                                },
+                                // Incluimos pasaje y su avionConfig para tener acceso a id_avion_config si es necesario
+                                // pero los asientos específicos y opciones de equipaje se obtendrán por separado
+                                // basados en los IDs de `detalles_vuelo_json`
+                                pasaje: { include: { avionConfig: true } },
                             },
                         },
                     },
@@ -50,77 +45,83 @@ async function getCart(req, res) {
             return res.status(200).json([]);
         const itemsParaFrontend = [];
         const itemsHuérfanos = [];
-        // Use a type assertion to avoid TS error if needed
-        const items = (carrito === null || carrito === void 0 ? void 0 : carrito.items) || [];
-        for (const item of items) {
-            // Si el producto fue eliminado, marcar para limpiar
+        for (const item of carrito.items) {
             if (!item.producto) {
                 itemsHuérfanos.push(item.id_item);
                 continue;
             }
             const itemParaFrontend = Object.assign({}, item);
-            let precioItemActual = item.producto.precio;
-            let detalles_vuelo_populados = {};
-            // Procesar solo si es vuelo y tiene detalles
-            if (((_b = item.producto.tipoProducto) === null || _b === void 0 ? void 0 : _b.nombre) === 'vuelo' &&
-                item.detalles_vuelo_json) {
+            let precioUnitarioCalculado = Number(item.producto.precio); // Empezar con el precio base del producto
+            const detalles_vuelo_populados = {
+                nombre_clase_servicio: null,
+                multiplicador_clase_servicio: 1,
+                info_asiento_seleccionado: null,
+                precio_adicional_asiento: 0,
+                info_equipaje_seleccionado: [],
+            };
+            if (((_b = item.producto.tipoProducto) === null || _b === void 0 ? void 0 : _b.nombre.toLowerCase()) === 'vuelo' && item.detalles_vuelo_json) {
                 try {
                     const detalles = JSON.parse(item.detalles_vuelo_json);
-                    // --- CLASE DE SERVICIO (desde tipoAsientoBase del asiento seleccionado) ---
-                    let claseServicio = null;
-                    let asientoSeleccionado = null;
-                    const asientos = (_d = (_c = item.producto.pasaje) === null || _c === void 0 ? void 0 : _c.avionConfig) === null || _d === void 0 ? void 0 : _d.asientos;
-                    if (detalles.id_asiento &&
-                        Array.isArray(asientos)) {
-                        asientoSeleccionado = asientos.find((a) => a.id_asiento === detalles.id_asiento);
-                    }
-                    if (asientoSeleccionado && asientoSeleccionado.tipoAsientoBase) {
-                        claseServicio = asientoSeleccionado.tipoAsientoBase;
-                        if (claseServicio.multiplicador_precio) {
-                            precioItemActual *= Number(claseServicio.multiplicador_precio);
+                    // 1. Clase de Servicio
+                    if (detalles.seleccion_clase_servicio_id) {
+                        const claseServicio = await prismaClient_1.prisma.tipoAsiento.findUnique({
+                            where: { id_tipo_asiento: Number(detalles.seleccion_clase_servicio_id) },
+                        });
+                        if (claseServicio) {
+                            detalles_vuelo_populados.nombre_clase_servicio = claseServicio.nombre;
+                            const multiplicador = Number(claseServicio.multiplicador_precio) || 1;
+                            detalles_vuelo_populados.multiplicador_clase_servicio = multiplicador;
+                            precioUnitarioCalculado *= multiplicador;
                         }
-                        detalles_vuelo_populados.nombre_clase_servicio = claseServicio.nombre;
                     }
-                    else {
-                        detalles_vuelo_populados.nombre_clase_servicio = null;
-                    }
-                    // --- ASIENTO SELECCIONADO ---
-                    if (asientoSeleccionado) {
-                        if (asientoSeleccionado.precio_adicional_base) {
-                            precioItemActual += Number(asientoSeleccionado.precio_adicional_base);
+                    // 2. Asiento Seleccionado
+                    if (detalles.seleccion_asiento_fisico_id) {
+                        const asientoSeleccionado = await prismaClient_1.prisma.asiento.findUnique({
+                            where: { id_asiento: Number(detalles.seleccion_asiento_fisico_id) },
+                            include: { tipoAsientoBase: true } // Incluir para mostrar el tipo base si se desea
+                        });
+                        if (asientoSeleccionado && ((_d = (_c = item.producto.pasaje) === null || _c === void 0 ? void 0 : _c.avionConfig) === null || _d === void 0 ? void 0 : _d.id_avion_config) === asientoSeleccionado.id_avion_config) {
+                            const precioAdicionalAsiento = Number(asientoSeleccionado.precio_adicional_base) || 0;
+                            detalles_vuelo_populados.info_asiento_seleccionado = `${asientoSeleccionado.fila}${asientoSeleccionado.columna} (${asientoSeleccionado.tipoAsientoBase.nombre})`;
+                            detalles_vuelo_populados.precio_adicional_asiento = precioAdicionalAsiento;
+                            precioUnitarioCalculado += precioAdicionalAsiento;
                         }
-                        // Build seat code from fila and columna
-                        detalles_vuelo_populados.info_asiento_seleccionado = `${asientoSeleccionado.fila}${asientoSeleccionado.columna}`;
                     }
-                    else {
-                        detalles_vuelo_populados.info_asiento_seleccionado = null;
-                    }
-                    // --- EQUIPAJE ADICIONAL ---
-                    // No direct relation from avionConfig, so skip or handle separately if needed
-                    detalles_vuelo_populados.info_equipaje_seleccionado = [];
+                    // 3. Equipaje Adicional
                     if (Array.isArray(detalles.selecciones_equipaje)) {
                         for (const eqSel of detalles.selecciones_equipaje) {
-                            // You may need to fetch OpcionEquipaje separately if you want names/prices
-                            detalles_vuelo_populados.info_equipaje_seleccionado.push({
-                                nombre: null, // Not available here
-                                cantidad: eqSel.cantidad || 1,
-                                precio_unitario: 0,
-                                precio_total: 0,
-                            });
+                            if (eqSel.id_opcion_equipaje) {
+                                const opcionEquipaje = await prismaClient_1.prisma.opcionEquipaje.findUnique({
+                                    where: { id_opcion_equipaje: Number(eqSel.id_opcion_equipaje) },
+                                });
+                                if (opcionEquipaje && opcionEquipaje.activo) {
+                                    const cantidad = Number(eqSel.cantidad) || 1;
+                                    const precioUnitarioEquipaje = Number(opcionEquipaje.precio_adicional);
+                                    const precioTotalEquipajeOpcion = precioUnitarioEquipaje * cantidad;
+                                    detalles_vuelo_populados.info_equipaje_seleccionado.push({
+                                        id_opcion_equipaje: opcionEquipaje.id_opcion_equipaje,
+                                        nombre: opcionEquipaje.nombre,
+                                        cantidad: cantidad,
+                                        precio_unitario: precioUnitarioEquipaje,
+                                        precio_total: precioTotalEquipajeOpcion,
+                                    });
+                                    precioUnitarioCalculado += precioTotalEquipajeOpcion;
+                                }
+                            }
                         }
                     }
                 }
                 catch (e) {
-                    // Si el JSON está corrupto, ignorar detalles
-                    detalles_vuelo_populados = {};
+                    console.error('Error al parsear detalles_vuelo_json o buscar datos adicionales:', e);
+                    // Mantener detalles_vuelo_populados como estaba (mayormente null/vacío)
+                    // El precioUnitarioCalculado se quedaría como el base o con lo que se haya podido calcular
                 }
             }
-            // Calcular precio total (incluye cantidad)
-            itemParaFrontend.precio_total_item_calculado = precioItemActual * item.cantidad;
+            itemParaFrontend.precio_unitario_calculado = precioUnitarioCalculado;
+            itemParaFrontend.precio_total_item_calculado = precioUnitarioCalculado * item.cantidad;
             itemParaFrontend.detalles_vuelo_populados = detalles_vuelo_populados;
             itemsParaFrontend.push(itemParaFrontend);
         }
-        // Limpiar items huérfanos
         if (itemsHuérfanos.length > 0) {
             await prismaClient_1.prisma.carritoItem.deleteMany({ where: { id_item: { in: itemsHuérfanos } } });
         }
