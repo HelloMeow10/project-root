@@ -461,14 +461,17 @@ class CartUI {
         
         // Construir la URL para pagos.html
         const params = new URLSearchParams({
-            pedidoId: pedidoCreado.id_pedido,
-            total: pedidoCreado.total // Asumiendo que el backend devuelve el total
+            pedidoId: pedidoCreado.id_pedido.toString(), // Asegurar que es string
+            // total: pedidoCreado.total // El total se obtendrá del pedido en pagos.js, es más fiable
         });
+        // Log para depuración
+        console.log(`INFO: carrito.js - Redirigiendo a pagos.html con params: ${params.toString()}`);
         window.location.href = `pagos.html?${params.toString()}`;
 
       } else {
         // Esto no debería ocurrir si la respuesta fue OK y tenía datos
-        throw new Error('Respuesta de creación de pedido inválida.');
+        console.error('ERROR: carrito.js - Respuesta de creación de pedido inválida o falta ID de pedido. Respuesta:', pedidoCreado);
+        throw new Error('Respuesta de creación de pedido inválida o falta ID de pedido.');
       }
     })
     .catch(err => {

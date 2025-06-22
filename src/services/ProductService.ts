@@ -3,18 +3,25 @@ import { prisma } from '../config/db';
 import { ProductRepository } from '../repositories/ProductRepository';
 import { Producto } from '../models/producto';
 
-// Define an interface for the component structure, used in the mapped product
+/**
+ * @interface ProductoComponente
+ * @description Define la estructura de un producto componente dentro de un paquete.
+ * @property {number} id_producto - El ID del producto componente.
+ * @property {string} nombre - El nombre del producto componente.
+ */
 interface ProductoComponente {
   id_producto: number;
   nombre: string;
   // tipo?: string; // Uncomment if type was selected in repo for components
 }
 
-// The main Producto interface (assumed to be imported from ../models/producto)
-// will be augmented by mapPrismaProductoToProducto to include 'componentes'
-// This means the return type of mapPrismaProductoToProducto and methods using it
-// will effectively be Producto & { componentes?: ProductoComponente[] }
-
+/**
+ * Mapea un objeto de producto de Prisma (con posibles relaciones) a un objeto Producto más plano,
+ * incluyendo una lista de sus componentes si es un paquete.
+ * @function mapPrismaProductoToProducto
+ * @param {any} prismaProducto - El objeto producto obtenido de Prisma, potencialmente con `paqueteDetallesAsPaquete` y `tipoProducto`.
+ * @returns {Producto & { componentes?: ProductoComponente[] }} Un objeto Producto extendido con una lista opcional de componentes.
+ */
 function mapPrismaProductoToProducto(prismaProducto: any): Producto & { componentes?: ProductoComponente[] } {
   let componentes: ProductoComponente[] = [];
   if (prismaProducto.paqueteDetallesAsPaquete && prismaProducto.paqueteDetallesAsPaquete.length > 0) {
@@ -38,9 +45,21 @@ function mapPrismaProductoToProducto(prismaProducto: any): Producto & { componen
   };
 }
 
+/**
+ * @class ProductService
+ * @description Proporciona métodos para la gestión de productos, incluyendo la lógica de negocio para productos simples y paquetes.
+ */
 export class ProductService {
   private repo = new ProductRepository();
 
+  /**
+   * Obtiene todos los productos que no son de tipo 'paquete'.
+   * Estos se consideran productos individuales que pueden ser vendidos solos o como parte de un paquete.
+   * @async
+   * @method obtenerProductosIndividuales
+   * @returns {Promise<Producto[]>} Una lista de productos individuales.
+   * @throws {Error} Si el TipoProducto 'paquete' no se encuentra (aunque actualmente retorna array vacío).
+   */
   async obtenerProductosIndividuales(): Promise<Producto[]> {
     const tipoPaquete = await prisma.tipoProducto.findUnique({
       where: { nombre: 'paquete' },
@@ -56,14 +75,27 @@ export class ProductService {
     return productosIndividuales.map(mapPrismaProductoToProducto);
   }
 
-  // Obtiene todos los productos disponibles
+  /**
+   * Obtiene todos los productos disponibles en el sistema.
+   * @async
+   * @method obtenerProductos
+   * @returns {Promise<Producto[]>} Una lista de todos los productos.
+   */
   async obtenerProductos(): Promise<Producto[]> {
     const productos = await this.repo.findAll();
     return productos.map(mapPrismaProductoToProducto);
   }
 
-  // Obtiene un producto por ID, lanza error si no existe
-  async obtenerProductoPorId(id: number): Promise<Producto> {
+  /**
+   * Obtiene un producto específico por su ID.
+   * Incluye detalles como tipo de producto y componentes si es un paquete.
+   * @async
+   * @method obtenerProductoPorId
+   * @param {number} id - El ID del producto a obtener.
+   * @returns {Promise<Producto & { componentes?: ProductoComponente[] }>} El producto encontrado.
+   * @throws {Error} Si el producto no se encuentra.
+   */
+  async obtenerProductoPorId(id: number): Promise<Producto & { componentes?: ProductoComponente[] }>{
     console.log('PRODUCTSERVICE: obtenerProductoPorId called with ID:', id);
     const producto = await this.repo.findById(id);
     console.log('PRODUCTSERVICE: Prisma findUnique result for ID ' + id + ':', producto);
@@ -71,8 +103,18 @@ export class ProductService {
     return mapPrismaProductoToProducto(producto);
   }
 
-  // Crea un producto completo, incluyendo datos específicos del tipo si aplica
-  async crearProductoCompleto(data: any): Promise<Producto> {
+  /**
+   * Crea un nuevo producto completo, incluyendo datos específicos de su tipo (ej. Hospedaje, Pasaje)
+   * si se proporcionan y el tipo de producto corresponde.
+   * @async
+   * @method crearProductoCompleto
+   * @param {any} data - Datos del producto a crear. Debe incluir `nombre`, `precio`, `nombre_tipo_producto`.
+   *                     Puede incluir opcionalmente `descripcion`, `stock`, `activo`, y objetos como
+   *                     `hospedaje`, `pasaje`, `alquiler`, `auto` con sus respectivos campos.
+   * @returns {Promise<Producto & { componentes?: ProductoComponente[] }>} El producto recién creado.
+   * @throws {Error} Si faltan datos requeridos, el tipo de producto no existe, el precio es negativo, o hay un error en la transacción.
+   */
+  async crearProductoCompleto(data: any): Promise<Producto & { componentes?: ProductoComponente[] }> {
     if (data.precio < 0) throw new Error('El precio debe ser positivo');
     if (!data.nombre_tipo_producto) throw new Error('El campo nombre_tipo_producto (string) es requerido');
 
@@ -195,8 +237,8 @@ export class ProductService {
     precio?: number;
     stock?: number;
     activo?: boolean;
-    tipo?: string; // string like 'auto', 'vuelo'
-  }): Promise<Producto> {
+    tipo?: string; // string like 'auto', 'vuelo', 'paquete'
+  }): Promise<Producto & { componentes?: ProductoComponente[] }> {
     const existingProduct = await this.repo.findById(id);
     if (!existingProduct) {
       throw new Error('Producto no encontrado');
@@ -231,7 +273,14 @@ export class ProductService {
     return mapPrismaProductoToProducto(productoActualizado);
   }
 
-  // Elimina un producto
+  /**
+   * Elimina un producto por su ID.
+   * @async
+   * @method deleteProduct
+   * @param {number} id - El ID del producto a eliminar.
+   * @returns {Promise<any>} El resultado de la operación de borrado del repositorio.
+   * @throws {Error} Si el producto no se encuentra, o si está referenciado y no puede ser eliminado.
+   */
   async deleteProduct(id: number) {
     // Optional: First check if product exists
     const productExists = await this.repo.findById(id);
@@ -256,7 +305,19 @@ export class ProductService {
     }
   }
 
-  async agregarComponenteAPaqueteServ(id_paquete: number, id_producto_componente: number, cantidad: number): Promise<Producto> {
+  /**
+   * Agrega un producto componente a un paquete existente.
+   * Valida que el paquete base sea de tipo 'paquete' y que el componente no sea un paquete.
+   * No permite añadir un paquete a sí mismo o duplicar componentes (por ahora lanza error si ya existe).
+   * @async
+   * @method agregarComponenteAPaqueteServ
+   * @param {number} id_paquete - El ID del producto que es el paquete base.
+   * @param {number} id_producto_componente - El ID del producto a agregar como componente.
+   * @param {number} cantidad - La cantidad del producto componente a agregar.
+   * @returns {Promise<Producto & { componentes?: ProductoComponente[] }>} El paquete actualizado con el nuevo componente.
+   * @throws {Error} Si las validaciones fallan (ej. IDs inválidos, tipo incorrecto, componente ya existe).
+   */
+  async agregarComponenteAPaqueteServ(id_paquete: number, id_producto_componente: number, cantidad: number): Promise<Producto & { componentes?: ProductoComponente[] }> {
     // Fetch the package product to ensure it exists and is a package
     const paqueteProducto = await this.repo.findById(id_paquete); // Renamed 'paquete' to 'paqueteProducto' for clarity with logs
 
@@ -344,7 +405,16 @@ export class ProductService {
     return this.obtenerProductoPorId(id_paquete);
   }
 
-  async eliminarComponenteDePaqueteServ(id_paquete: number, id_producto_componente: number): Promise<Producto> {
+  /**
+   * Elimina un producto componente de un paquete específico.
+   * @async
+   * @method eliminarComponenteDePaqueteServ
+   * @param {number} id_paquete - El ID del paquete del cual se eliminará el componente.
+   * @param {number} id_producto_componente - El ID del producto componente a eliminar.
+   * @returns {Promise<Producto & { componentes?: ProductoComponente[] }>} El paquete actualizado tras la eliminación del componente.
+   * @throws {Error} Si el paquete base no se encuentra o si el componente no existe en el paquete.
+   */
+  async eliminarComponenteDePaqueteServ(id_paquete: number, id_producto_componente: number): Promise<Producto & { componentes?: ProductoComponente[] }> {
     // Fetch the package product to ensure it exists
     const paquete = await this.repo.findById(id_paquete);
     if (!paquete) { // It implicitly also checks if it's a package via its components later

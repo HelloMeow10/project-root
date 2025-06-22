@@ -7,9 +7,16 @@ import nodemailer from 'nodemailer';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
-
 const authService = new AuthService();
 
+/**
+ * Maneja el inicio de sesión de un usuario (cliente o administrador).
+ * @async
+ * @function login
+ * @param {Request} req - El objeto de solicitud de Express.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ */
 export async function login(req: Request, res: Response, next: NextFunction) {
   try {
     const { email, contrasena } = req.body;
@@ -20,6 +27,15 @@ export async function login(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+/**
+ * Registra un nuevo cliente en el sistema.
+ * Envía un correo de bienvenida y un correo de verificación de email.
+ * @async
+ * @function register
+ * @param {Request} req - El objeto de solicitud de Express, que debe contener los datos del cliente en `req.body`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ */
 export async function register(req: Request, res: Response, next: NextFunction) {
   try {
     const user = await authService.registerCliente(req.body);
@@ -36,7 +52,14 @@ export async function register(req: Request, res: Response, next: NextFunction) 
   }
 }
 
-// Enviar email de verificación
+/**
+ * Envía un correo electrónico de verificación al usuario.
+ * @async
+ * @function enviarEmailVerificacion
+ * @param {string} email - El correo electrónico del destinatario.
+ * @param {string} nombre - El nombre del destinatario.
+ * @param {string} token - El token de verificación.
+ */
 async function enviarEmailVerificacion(email: string, nombre: string, token: string) {
   // Puedes personalizar la plantilla
   const verifyUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verificar-email?token=${token}`;
@@ -56,7 +79,13 @@ async function enviarEmailVerificacion(email: string, nombre: string, token: str
   });
 }
 
-// Endpoint para verificar email
+/**
+ * Verifica el token de verificación de email de un cliente.
+ * @async
+ * @function verifyEmail
+ * @param {Request} req - El objeto de solicitud de Express, que debe contener el `token` en `req.body`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ */
 export async function verifyEmail(req: Request, res: Response) {
   const { token } = req.body;
   if (!token) return res.status(400).json({ message: 'Token requerido.' });
@@ -69,7 +98,14 @@ export async function verifyEmail(req: Request, res: Response) {
   res.json({ message: 'Email verificado correctamente.' });
 }
 
-// Solicitar reseteo de contraseña
+/**
+ * Maneja la solicitud de reseteo de contraseña.
+ * Genera un token y envía un correo para el reseteo si el email existe.
+ * @async
+ * @function forgotPassword
+ * @param {Request} req - El objeto de solicitud de Express, que debe contener el `email` en `req.body`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ */
 export async function forgotPassword(req: Request, res: Response) {
   const { email } = req.body;
   if (!email) return res.status(400).json({ message: 'Email requerido.' });
@@ -84,7 +120,14 @@ export async function forgotPassword(req: Request, res: Response) {
   res.json({ message: 'Si el email existe, se enviará un enlace para restablecer la contraseña.' });
 }
 
-// Enviar email de reseteo de contraseña
+/**
+ * Envía un correo electrónico para el reseteo de contraseña.
+ * @async
+ * @function enviarResetPasswordEmail
+ * @param {string} email - El correo electrónico del destinatario.
+ * @param {string} nombre - El nombre del destinatario.
+ * @param {string} token - El token de reseteo.
+ */
 async function enviarResetPasswordEmail(email: string, nombre: string, token: string) {
   const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/resetcontraseña.html?token=${token}`;
   const html = `<h2>Hola ${nombre},</h2><p>Has solicitado restablecer tu contraseña. Haz clic en el siguiente enlace para continuar:</p><a href="${resetUrl}">${resetUrl}</a>`;
@@ -103,7 +146,13 @@ async function enviarResetPasswordEmail(email: string, nombre: string, token: st
   });
 }
 
-// Resetear contraseña
+/**
+ * Restablece la contraseña del usuario utilizando un token.
+ * @async
+ * @function resetPassword
+ * @param {Request} req - El objeto de solicitud de Express, que debe contener `token` y `nuevaContrasena` en `req.body`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ */
 export async function resetPassword(req: Request, res: Response) {
   const { token, nuevaContrasena } = req.body;
   if (!token || !nuevaContrasena) return res.status(400).json({ message: 'Token y nueva contraseña requeridos.' });
@@ -117,7 +166,13 @@ export async function resetPassword(req: Request, res: Response) {
   res.json({ message: 'Contraseña restablecida correctamente.' });
 }
 
-// Endpoint para reenviar email de verificación
+/**
+ * Reenvía el correo de verificación de email para un usuario autenticado.
+ * @async
+ * @function resendVerificationEmail
+ * @param {Request} req - El objeto de solicitud de Express, debe contener un token JWT válido en el header `Authorization`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ */
 export async function resendVerificationEmail(req: Request, res: Response) {
   try {
     // El usuario debe estar autenticado (token en Authorization)

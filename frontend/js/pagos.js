@@ -970,20 +970,9 @@ class CheckoutManager {
         // y la opción de guardarMetodoPago
       };
 
-      // TODO: Integrar la lógica de Stripe Elements para obtener paymentMethodId
-      // y la opción de guardarMetodoPago. Por ahora, simulamos un paymentMethodId si no existe.
-      // Esto deberá ser reemplazado por la integración real con Stripe.js
-      // if (!paymentPayload.paymentMethodId) {
-      //     // Simulación temporal hasta integrar Stripe.js para obtener el paymentMethodId real
-      //     // En una implementación real, esto vendría de stripe.createPaymentMethod() o similar
-      //     // y se pasaría aquí. Si el usuario selecciona un método guardado, ese ID se usaría.
-      //     // paymentPayload.paymentMethodId = 'pm_card_visa'; // Ejemplo, ¡NO USAR EN PRODUCCIÓN!
-      //     console.warn("Usando paymentMethodId simulado. Reemplazar con integración de Stripe.js");
-      // }
-       // Aquí se obtendría el paymentMethodId de Stripe Elements
-       // y el valor de un checkbox 'guardarMetodoPago'
-       // paymentPayload.paymentMethodId = generatedStripePaymentMethodId;
-       // paymentPayload.guardarMetodoPago = document.getElementById('guardarMetodoPagoCheckbox').checked;
+      // La lógica de Stripe Elements para obtener paymentMethodId ha sido eliminada.
+      // Los detalles de la tarjeta se envían directamente si es un nuevo método.
+      // La opción de 'guardarMetodoPago' se maneja en el backend con los detalles proporcionados.
 
       document.getElementById('paymentProcessingLoader').style.display = 'block'; // Mostrar loader
 
