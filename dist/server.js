@@ -29,12 +29,12 @@ app.use(express_1.default.json());
 app.use((0, morgan_1.default)('dev'));
 app.use('/api/roles', roleRoutes_1.default); // Añade esta línea
 // Servir archivos estáticos de la carpeta css
-app.use('/css', express_1.default.static(path_1.default.join(__dirname, '../css')));
+app.use('/css', express_1.default.static(path_1.default.join(__dirname, '../frontend/css')));
 // Servir archivos estáticos de la carpeta html
-app.use(express_1.default.static(path_1.default.join(__dirname, '../html')));
+app.use(express_1.default.static(path_1.default.join(__dirname, '../frontend/html')));
 // Servir archivos estáticos de la carpeta js
-app.use('/js', express_1.default.static(path_1.default.join(__dirname, '../js')));
-app.use('/imagenes', express_1.default.static(path_1.default.join(__dirname, '../imagenes')));
+app.use('/js', express_1.default.static(path_1.default.join(__dirname, '../frontend/js')));
+app.use('/imagenes', express_1.default.static(path_1.default.join(__dirname, '../frontend/imagenes')));
 // Rutas
 app.use('/api/products', productRoutes_1.default);
 app.use('/api/auth', authRoutes_1.default);
@@ -46,10 +46,10 @@ app.use('/api/dashboard', dashboardRoutes_1.default);
 app.use('/api/direcciones-facturacion', direccionFacturacionRoutes_1.default); // <-- Nueva ruta
 // Servir verificar-email.html para /verificar-email (con o sin query params)
 app.get('/verificar-email', (req, res) => {
-    res.sendFile(path_1.default.join(__dirname, '../html/verificar-email.html'));
+    res.sendFile(path_1.default.join(__dirname, '../frontend/html/verificar-email.html'));
 });
 app.get('/', (req, res) => {
-    res.sendFile(path_1.default.join(__dirname, '../html/inicio.html'));
+    res.sendFile(path_1.default.join(__dirname, '../frontend/html/inicio.html'));
 });
 // Middleware de manejo de errores (al final de todos)
 app.use(errorHandler_1.errorHandler);

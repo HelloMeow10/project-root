@@ -97,30 +97,143 @@ export async function addToCart(req: Request, res: Response) {
   if (!cliente?.email_verificado) {
     return res.status(403).json({ message: 'Debes verificar tu email antes de agregar productos al carrito.' });
   }
-  const { productId, cantidad } = req.body;
+  // Solo una declaración de productId y cantidad
+  const { productId, cantidad: cantidadSolicitada } = req.body;
 
   // Validación explícita de productId
   if (!productId || isNaN(Number(productId))) {
     return res.status(400).json({ message: 'El campo productId es requerido y debe ser un número válido.' });
   }
+  const idProducto = Number(productId);
 
-  // Busca o crea el carrito del usuario
+  // Validación de cantidad
+  const cantidadFinal = Number(cantidadSolicitada) || 1;
+  if (!Number.isInteger(cantidadFinal) || cantidadFinal <= 0) {
+    return res.status(400).json({ message: 'La cantidad debe ser un entero positivo.' });
+  }
+
+  // Verificar que el producto exista y esté activo
+  const producto = await prisma.producto.findUnique({
+    where: { id_producto: idProducto },
+  });
+
+  if (!producto) {
+    return res.status(404).json({ message: 'Producto no encontrado.' });
+  }
+  if (!producto.activo) {
+    return res.status(400).json({ message: 'Este producto ya no está disponible.' });
+  }
+
+  // Busca o crea el carrito del usuario (solo una vez)
   let carrito = await prisma.carrito.findFirst({ where: { id_cliente: userId } });
   if (!carrito) {
     carrito = await prisma.carrito.create({ data: { id_cliente: userId } });
   }
 
-  // Agrega el producto al carrito
-  const item = await prisma.carritoItem.create({
-    data: {
+  // Verificar si el item ya existe en el carrito
+  let itemEnCarrito = await prisma.carritoItem.findFirst({
+    where: {
       id_carrito: carrito.id_carrito,
-      id_producto: productId,
-      cantidad: cantidad || 1
-    }
+      id_producto: idProducto,
+    },
   });
 
-  res.status(201).json(item);
+  if (itemEnCarrito) {
+    // Producto ya existe en el carrito, actualizar cantidad
+    const nuevaCantidad = itemEnCarrito.cantidad + cantidadFinal;
+    if (producto.stock !== null && nuevaCantidad > producto.stock) {
+      return res.status(400).json({ message: `Stock insuficiente. Solo quedan ${producto.stock} unidades.` });
+    }
+    itemEnCarrito = await prisma.carritoItem.update({
+      where: { id_item: itemEnCarrito.id_item },
+      data: { cantidad: nuevaCantidad },
+    });
+    res.status(200).json(itemEnCarrito);
+  } else {
+    // Producto no existe en el carrito, crear nuevo item
+    if (producto.stock !== null && cantidadFinal > producto.stock) {
+      return res.status(400).json({ message: `Stock insuficiente. Solo quedan ${producto.stock} unidades.` });
+    }
+    const nuevoItem = await prisma.carritoItem.create({
+      data: {
+        id_carrito: carrito.id_carrito,
+        id_producto: idProducto,
+        cantidad: cantidadFinal,
+      },
+    });
+    res.status(201).json(nuevoItem);
+  }
 }
+
+export async function updateCartItem(req: Request, res: Response) {
+  const userId = (req as any).user.userId;
+  const itemId = parseInt(req.params.itemId, 10);
+  const { cantidad } = req.body;
+
+  if (isNaN(itemId)) {
+    return res.status(400).json({ message: 'ID de item inválido.' });
+  }
+  if (cantidad === undefined || !Number.isInteger(cantidad) || cantidad < 0) {
+    return res.status(400).json({ message: 'La cantidad debe ser un entero no negativo.' });
+  }
+
+  try {
+    const item = await prisma.carritoItem.findFirst({
+      where: { id_item: itemId, carrito: { id_cliente: userId } },
+      include: { producto: true }
+    });
+
+    if (!item) {
+      return res.status(404).json({ message: 'Item del carrito no encontrado o no pertenece al usuario.' });
+    }
+
+    if (cantidad === 0) {
+      await prisma.carritoItem.delete({ where: { id_item: itemId } });
+      return res.status(200).json({ message: 'Item eliminado del carrito.' });
+    }
+
+    if (item.producto.stock !== null && cantidad > item.producto.stock) {
+      return res.status(400).json({ message: `Stock insuficiente. Solo quedan ${item.producto.stock} unidades.` });
+    }
+
+    const updatedItem = await prisma.carritoItem.update({
+      where: { id_item: itemId },
+      data: { cantidad },
+    });
+    res.status(200).json(updatedItem);
+
+  } catch (error) {
+    console.error('Error al actualizar item del carrito:', error);
+    res.status(500).json({ message: 'Error interno del servidor.' });
+  }
+}
+
+export async function removeCartItem(req: Request, res: Response) {
+  const userId = (req as any).user.userId;
+  const itemId = parseInt(req.params.itemId, 10);
+
+  if (isNaN(itemId)) {
+    return res.status(400).json({ message: 'ID de item inválido.' });
+  }
+
+  try {
+    const item = await prisma.carritoItem.findFirst({
+      where: { id_item: itemId, carrito: { id_cliente: userId } },
+    });
+
+    if (!item) {
+      return res.status(404).json({ message: 'Item del carrito no encontrado o no pertenece al usuario.' });
+    }
+
+    await prisma.carritoItem.delete({ where: { id_item: itemId } });
+    res.status(200).json({ message: 'Item eliminado del carrito exitosamente.' });
+
+  } catch (error) {
+    console.error('Error al eliminar item del carrito:', error);
+    res.status(500).json({ message: 'Error interno del servidor.' });
+  }
+}
+
 
 export async function clearCart(req: Request, res: Response) {
   try {

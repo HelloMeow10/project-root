@@ -42,9 +42,9 @@ class CartUI {
       promoForm.addEventListener('submit', (e) => this.handlePromoCode(e));
     }
 
-    const checkoutBtn = document.getElementById('checkoutBtn');
-    if (checkoutBtn) {
-      checkoutBtn.addEventListener('click', () => this.handleCheckout());
+    const confirmarCompraBtn = document.getElementById('confirmarCompraBtn');
+    if (confirmarCompraBtn) {
+      confirmarCompraBtn.addEventListener('click', () => this.handleCheckout());
     }
 
     document.addEventListener('click', (e) => {
@@ -96,7 +96,7 @@ class CartUI {
       }
 
       const res = await fetch(`/api/cart/item/${itemId}`, {
-        method: 'PATCH',
+        method: 'PUT', // Cambiado de PATCH a PUT
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -146,7 +146,7 @@ class CartUI {
       }
 
       const res = await fetch(`/api/cart/item/${itemId}`, {
-        method: 'PATCH',
+        method: 'PUT', // Cambiado de PATCH a PUT
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -416,8 +416,70 @@ class CartUI {
       setTimeout(() => window.location.href = tipo === 'admin' ? '/dashboard.html' : '/login.html', 1500);
       return;
     }
+    this.showLoadingOverlay(); // Mostrar overlay de carga
 
-    window.location.href = 'pagos.html';
+    // Aquí podrías recolectar id_direccion_facturacion si tuvieras un selector en el HTML
+    // const idDireccionFacturacion = document.getElementById('direccionSelect')?.value;
+    // const bodyData = idDireccionFacturacion ? { id_direccion_facturacion: idDireccionFacturacion } : {};
+
+    fetch('/api/orders', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      // body: JSON.stringify(bodyData), // Enviar si es necesario
+    })
+    .then(res => {
+      if (res.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('tipo');
+        this.showNotification('Sesión inválida. Por favor, inicia sesión nuevamente.', 'error');
+        setTimeout(() => window.location.href = '/login.html', 1500);
+        throw new Error('Unauthorized'); // Para detener la ejecución
+      }
+      if (res.status === 403) { // Email no verificado
+         this.showNotification('Debes verificar tu email para crear un pedido.', 'error');
+         showEmailVerificationOverlay(); // Mostrar el overlay específico
+         throw new Error('Email not verified');
+      }
+      return res.json().then(data => {
+        if (!res.ok) {
+          // Arrojar un error con el mensaje del backend si está disponible
+          throw new Error(data.message || `Error ${res.status} al crear el pedido`);
+        }
+        return data; // Pedido creado
+      });
+    })
+    .then(pedidoCreado => {
+      if (pedidoCreado && pedidoCreado.id_pedido) {
+        this.showNotification('Pedido creado exitosamente. Redirigiendo al pago...', 'success');
+        // Vaciar el carrito localmente (la API ya lo hace en la BD)
+        this.cartItems = [];
+        this.renderCartItems([]); 
+        this.updateCartTotals();
+        
+        // Construir la URL para pagos.html
+        const params = new URLSearchParams({
+            pedidoId: pedidoCreado.id_pedido,
+            total: pedidoCreado.total // Asumiendo que el backend devuelve el total
+        });
+        window.location.href = `pagos.html?${params.toString()}`;
+
+      } else {
+        // Esto no debería ocurrir si la respuesta fue OK y tenía datos
+        throw new Error('Respuesta de creación de pedido inválida.');
+      }
+    })
+    .catch(err => {
+      if (err.message !== 'Unauthorized' && err.message !== 'Email not verified') { // No mostrar doble notificación
+          this.showNotification(err.message || 'Error al procesar la compra.', 'error');
+      }
+      console.error('Checkout Error:', err);
+    })
+    .finally(() => {
+      this.hideLoadingOverlay(); // Ocultar overlay de carga
+    });
   }
 
   updateCartDisplay() {

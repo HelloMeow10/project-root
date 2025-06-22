@@ -51,9 +51,10 @@
                         <span>Inicio</span>
                     </a>
                 </li>
-                <li><a id="tabProductos" class="nav-link" data-page="productos">Productos</a></li>
-<li><a id="tabUsuarios" class="nav-link" data-page="usuarios">Usuarios</a></li>
-<li><a id="tabPaquetes" class="nav-link" data-page="paquetes">Paquetes</a></li>
+                <li><a id="tabProductos" class="nav-link" data-page="productos"><i class="fas fa-box-open"></i><span>Productos</span></a></li>
+                <li><a id="tabPaquetes" class="nav-link" data-page="paquetes"><i class="fas fa-suitcase-rolling"></i><span>Paquetes</span></a></li>
+                <li><a id="tabPedidos" class="nav-link" data-page="orders"><i class="fas fa-file-invoice-dollar"></i><span>Pedidos</span></a></li>
+                <li><a id="tabUsuarios" class="nav-link" data-page="usuarios"><i class="fas fa-users-cog"></i><span>Usuarios</span></a></li>
                 <li class="nav-item">
                     <a href="#" class="nav-link" data-page="roles">
                         <i class="fas fa-user-shield"></i>
@@ -300,7 +301,43 @@
                     <div class="breadcrumb">Inicio / Pedidos</div>
                 </div>
                 <div class="page-content">
-                    <!-- Content will be loaded dynamically -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Todos los Pedidos</h3>
+                            <div class="table-filters">
+                                <select id="filtroEstadoPedido" class="form-control">
+                                    <option value="">Todos los Estados</option>
+                                    <option value="PENDIENTE_PAGO">Pendiente de Pago</option>
+                                    <option value="PAGADO">Pagado</option>
+                                    <option value="EN_PROCESO">En Proceso</option>
+                                    <option value="ENVIADO">Enviado</option>
+                                    <option value="ENTREGADO">Entregado</option>
+                                    <option value="COMPLETADO">Completado</option>
+                                    <option value="CANCELADO">Cancelado</option>
+                                </select>
+                                <input type="text" id="filtroClientePedido" class="form-control" placeholder="Filtrar por ID Cliente...">
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID Pedido</th>
+                                            <th>Cliente</th>
+                                            <th>Fecha</th>
+                                            <th>Total</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaPedidosBody">
+                                        <!-- Pedidos se cargarán aquí -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -482,6 +519,54 @@
                         <input type="checkbox" id="productoActivo" style="margin-right: 0.5rem;">
                         <label for="productoActivo">Activo</label>
                     </div>
+
+                    <!-- Campos específicos por tipo de producto (inicialmente ocultos) -->
+                    <div id="camposHospedaje" class="tipo-especifico" style="display:none; border-top: 1px solid #eee; margin-top:1rem; padding-top:1rem;">
+                        <h4>Detalles de Hospedaje</h4>
+                        <div class="form-group"><label for="hospedajeUbicacion">Ubicación:</label><input type="text" id="hospedajeUbicacion" class="form-control"></div>
+                        <div class="form-row">
+                            <div class="form-group"><label for="hospedajeFechaInicio">Fecha Inicio:</label><input type="date" id="hospedajeFechaInicio" class="form-control"></div>
+                            <div class="form-group"><label for="hospedajeFechaFin">Fecha Fin:</label><input type="date" id="hospedajeFechaFin" class="form-control"></div>
+                        </div>
+                        <div class="form-group"><label for="hospedajeCapacidad">Capacidad:</label><input type="number" id="hospedajeCapacidad" class="form-control" min="0"></div>
+                    </div>
+
+                    <div id="camposPasaje" class="tipo-especifico" style="display:none; border-top: 1px solid #eee; margin-top:1rem; padding-top:1rem;">
+                        <h4>Detalles de Pasaje</h4>
+                        <div class="form-row">
+                            <div class="form-group"><label for="pasajeOrigen">Origen:</label><input type="text" id="pasajeOrigen" class="form-control"></div>
+                            <div class="form-group"><label for="pasajeDestino">Destino:</label><input type="text" id="pasajeDestino" class="form-control"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label for="pasajeFechaSalida">Fecha Salida:</label><input type="datetime-local" id="pasajeFechaSalida" class="form-control"></div>
+                            <div class="form-group"><label for="pasajeFechaRegreso">Fecha Regreso:</label><input type="datetime-local" id="pasajeFechaRegreso" class="form-control"></div>
+                        </div>
+                        <div class="form-group"><label for="pasajeClase">Clase:</label><input type="text" id="pasajeClase" class="form-control"></div>
+                        <div class="form-group"><label for="pasajeAsientos">Asientos Disponibles:</label><input type="number" id="pasajeAsientos" class="form-control" min="0"></div>
+                        <div class="form-group"><label for="pasajeAerolinea">Aerolínea:</label><input type="text" id="pasajeAerolinea" class="form-control"></div>
+                        <div class="form-group"><label for="pasajeTipoAsiento">ID Tipo Asiento:</label><input type="number" id="pasajeTipoAsiento" class="form-control" min="1"></div>
+                    </div>
+
+                    <div id="camposAlquiler" class="tipo-especifico" style="display:none; border-top: 1px solid #eee; margin-top:1rem; padding-top:1rem;">
+                        <h4>Detalles de Alquiler de Vehículo</h4>
+                        <div class="form-group"><label for="alquilerTipoVehiculo">Tipo Vehículo:</label><input type="text" id="alquilerTipoVehiculo" class="form-control"></div>
+                        <div class="form-group"><label for="alquilerUbicacion">Ubicación:</label><input type="text" id="alquilerUbicacion" class="form-control"></div>
+                        <div class="form-row">
+                            <div class="form-group"><label for="alquilerFechaInicio">Fecha Inicio:</label><input type="date" id="alquilerFechaInicio" class="form-control"></div>
+                            <div class="form-group"><label for="alquilerFechaFin">Fecha Fin:</label><input type="date" id="alquilerFechaFin" class="form-control"></div>
+                        </div>
+                        <div class="form-group"><label for="alquilerCantidad">Cantidad (Stock Alquiler):</label><input type="number" id="alquilerCantidad" class="form-control" min="0"></div>
+                    </div>
+
+                    <div id="camposAuto" class="tipo-especifico" style="display:none; border-top: 1px solid #eee; margin-top:1rem; padding-top:1rem;">
+                        <h4>Detalles de Auto (para Venta)</h4>
+                        <div class="form-group"><label for="autoModelo">Modelo:</label><input type="text" id="autoModelo" class="form-control"></div>
+                        <div class="form-group"><label for="autoMarca">Marca:</label><input type="text" id="autoMarca" class="form-control"></div>
+                        <div class="form-group"><label for="autoCapacidad">Capacidad (Pasajeros):</label><input type="number" id="autoCapacidad" class="form-control" min="1"></div>
+                        <div class="form-group"><label for="autoUbicacion">Ubicación Actual:</label><input type="text" id="autoUbicacion" class="form-control"></div>
+                        <div class="form-group"><label for="autoEstado">Estado (ej. Nuevo, Usado):</label><input type="text" id="autoEstado" class="form-control"></div>
+                    </div>
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" id="cancelarProducto">Cancelar</button>

@@ -32,10 +32,100 @@ class CheckoutManager {
     await this.loadUserData();
     this.setupEventListeners();
     this.setupFormValidation();
-    this.loadSavedBillingAddresses();
-    this.loadSavedPaymentMethods(); // Will be adapted or removed
-    this.loadOrderSummary();
+    this.loadOrderDetailsFromURL(); // Reemplaza a loadOrderSummary y carga datos del pedido
+    await this.loadUserData(); // Cargar datos de usuario para pre-rellenar y obtener direcciones
+    this.loadSavedBillingAddresses(); // Cargar direcciones de facturación guardadas
+    this.loadSavedPaymentMethods(); // Lógica actual (mayormente deshabilitada)
   }
+
+  async loadOrderDetailsFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const pedidoId = urlParams.get('pedidoId');
+    // const totalFromCart = urlParams.get('total'); // Total de la URL es menos fiable, preferir el del pedido
+
+    const orderItemsContainer = document.getElementById("orderItems");
+    const loadingPlaceholder = orderItemsContainer?.querySelector('.loading-placeholder');
+    const totalAmountEl = document.getElementById("totalAmount");
+    const btnAmountEl = document.getElementById("btnAmount");
+    const subtotalAmountEl = document.getElementById("subtotalAmount");
+    const taxAmountEl = document.getElementById("taxAmount");
+
+    if (!pedidoId) {
+      this.showNotification('ID de pedido no encontrado. Redirigiendo al carrito...', 'error', 5000);
+      setTimeout(() => window.location.href = 'carrito.html', 2500);
+      return;
+    }
+    this.orderData.pedidoId = parseInt(pedidoId); // Guardar el ID del pedido
+
+    if (loadingPlaceholder) loadingPlaceholder.style.display = 'block';
+    if (orderItemsContainer) orderItemsContainer.innerHTML = ''; // Limpiar por si acaso
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+        this.showNotification('Sesión no encontrada. Redirigiendo al login...', 'error', 5000);
+        setTimeout(() => window.location.href = 'login.html', 2500);
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/orders/${pedidoId}`, { // Usar el endpoint getOrderById
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.message || `Error ${response.status} al cargar el pedido ${pedidoId}`);
+        }
+        const pedido = await response.json();
+        console.log("Pedido cargado:", pedido);
+
+        if (loadingPlaceholder) loadingPlaceholder.style.display = 'none';
+        
+        this.orderData.items = pedido.items.map(item => ({ // Asumiendo que 'items' viene con 'producto' anidado
+            id_producto: item.producto.id_producto,
+            nombre: item.producto.nombre,
+            cantidad: item.cantidad,
+            precio: parseFloat(item.precio) // precio del PedidoItem
+        }));
+
+        let subtotalCalculado = 0;
+        if (orderItemsContainer) {
+            orderItemsContainer.innerHTML = this.orderData.items.map(item => {
+                const itemTotal = item.precio * item.cantidad;
+                subtotalCalculado += itemTotal;
+                return `
+                  <div class="order-item">
+                    <div class="item-name">${item.nombre}</div>
+                    <div class="item-qty">x${item.cantidad}</div>
+                    <div class="item-price">$${itemTotal.toFixed(2)}</div>
+                  </div>
+                `;
+            }).join("");
+        }
+        
+        const totalPedidoBackend = parseFloat(pedido.total);
+        this.orderData.total = totalPedidoBackend;
+        
+        // Asumimos que el total del pedido ya incluye impuestos si aplica.
+        // Para el desglose, si el subtotal no viene del backend, lo calculamos.
+        this.orderData.subtotal = subtotalCalculado; 
+        this.orderData.tax = totalPedidoBackend - subtotalCalculado; 
+        
+        if (this.orderData.tax < 0) this.orderData.tax = 0; // Evitar impuestos negativos
+
+        if (subtotalAmountEl) subtotalAmountEl.textContent = `$${this.orderData.subtotal.toFixed(2)}`;
+        if (taxAmountEl) taxAmountEl.textContent = `$${this.orderData.tax.toFixed(2)}`;
+        if (totalAmountEl) totalAmountEl.textContent = `$${this.orderData.total.toFixed(2)}`;
+        if (btnAmountEl) btnAmountEl.textContent = `$${this.orderData.total.toFixed(2)}`;
+
+    } catch (e) {
+        console.error('Load Order Details Error:', e);
+        this.showNotification('Error al cargar los detalles del pedido: ' + e.message, 'error', 5000);
+        if (loadingPlaceholder) loadingPlaceholder.style.display = 'none';
+        if (orderItemsContainer) orderItemsContainer.innerHTML = '<p>Error al cargar el resumen del pedido.</p>';
+    }
+  }
+
 
   // Stripe initializeStripeElements() removed
 
@@ -321,37 +411,7 @@ class CheckoutManager {
     }
   }
 
-  async loadOrderSummary() {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      window.location.href = 'login.html';
-      return;
-    }
-
-    const orderItemsContainer = document.getElementById("orderItems");
-    try {
-      const res = await fetch('/api/cart', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!res.ok) {
-        throw new Error(`API error: ${res.statusText}`);
-      }
-      const items = await res.json();
-      if (!Array.isArray(items) || !items.length) {
-        alert('No hay productos en el carrito');
-        window.location.href = 'carrito.html';
-        return;
-      }
-      orderItemsContainer.innerHTML = ''; // Clear loading placeholder
-      this.displayOrderSummary(items);
-    } catch (e) {
-      console.error('Load Order Summary Error:', e);
-      alert('Error al cargar el carrito. Por favor, intenta de nuevo.');
-      orderItemsContainer.innerHTML = '<p>Error al cargar el resumen del pedido.</p>';
-    }
-  }
-
-  displayOrderSummary(items) {
+  /* displayOrderSummary(items) { // Comentado o eliminado ya que la lógica se movió
     const orderItemsContainer = document.getElementById("orderItems");
     let subtotal = 0;
 
@@ -821,45 +881,13 @@ class CheckoutManager {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Debes iniciar sesión');
 
-      // 1. Obtener los items del carrito
-      const resCart = await fetch('/api/cart', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const cartItems = await resCart.json();
-      if (!Array.isArray(cartItems) || !cartItems.length) throw new Error('El carrito está vacío.');
-
-      // 2. Crear el pedido si no existe uno pendiente
-      let pedidoPendiente;
-      const resPedidos = await fetch('/api/orders', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const pedidos = await resPedidos.json();
-      pedidoPendiente = Array.isArray(pedidos)
-        ? pedidos.find(p => p.estado === 'pendiente')
-        : null;
-
-      if (!pedidoPendiente) {
-        // Crear pedido con los items del carrito
-        const resPedido = await fetch('/api/products/pedidos', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            items: cartItems.map(item => ({
-              id_producto: item.producto.id_producto,
-              cantidad: item.cantidad
-            }))
-          })
-        });
-        const pedidoData = await resPedido.json();
-        if (!resPedido.ok) throw new Error(pedidoData.message || 'No se pudo crear el pedido');
-        pedidoPendiente = { id_pedido: pedidoData.id, total: this.orderData.total };
+      if (!this.orderData.pedidoId || !this.orderData.total) {
+        this.showNotification('No se pudo obtener la información del pedido para el pago.', 'error');
+        throw new Error('Falta información del pedido (ID o Total).');
       }
-
-      const pedidoId = pedidoPendiente.id_pedido;
-      const monto = Number(this.orderData.total); // Usar el total calculado en frontend que incluye impuestos
+      
+      const pedidoId = this.orderData.pedidoId;
+      const monto = Number(this.orderData.total);
 
       let idDireccionFacturacionParaPago = null;
 
@@ -1097,4 +1125,5 @@ class CheckoutManager {
 
 document.addEventListener("DOMContentLoaded", () => {
   new CheckoutManager();
-});
+});*/
+}

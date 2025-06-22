@@ -55,15 +55,37 @@ async function getProductById(req, res, next) {
         next(err);
     }
 }
-async function createProduct(req, res) {
+async function createProduct(req, res, next) {
     try {
-        const { nombre, tipo, precio, activo } = req.body;
-        // Si no se envía activo, por defecto true
-        const nuevoProducto = await productService.crearProducto({ nombre, tipo, precio, activo: activo !== undefined ? activo : true });
+        // El cuerpo de la solicitud ahora puede contener datos específicos del tipo
+        // ej. req.body.hospedajeData, req.body.pasajeData, etc.
+        // El servicio se encargará de la lógica de creación detallada.
+        // Necesitamos pasar el 'nombre_tipo_producto' en lugar de 'tipo' (que era el id_tipo)
+        // El servicio buscará el id_tipo basado en el nombre_tipo_producto.
+        const { nombre, descripcion, precio, stock, activo, nombre_tipo_producto, hospedaje, pasaje, alquiler, auto } = req.body;
+        if (!nombre || precio === undefined || !nombre_tipo_producto) {
+            return res.status(400).json({ message: 'Nombre, precio y nombre_tipo_producto son requeridos.' });
+        }
+        const dataForService = {
+            nombre,
+            descripcion,
+            precio: parseFloat(precio),
+            stock: stock !== undefined ? parseInt(stock, 10) : null,
+            activo: activo !== undefined ? activo : true,
+            nombre_tipo_producto, // El servicio resolverá esto a id_tipo
+            hospedaje, // Objeto con datos de hospedaje o undefined
+            pasaje, // Objeto con datos de pasaje o undefined
+            alquiler, // Objeto con datos de alquiler o undefined
+            auto // Objeto con datos de auto o undefined
+        };
+        const nuevoProducto = await productService.crearProductoCompleto(dataForService);
         res.status(201).json(nuevoProducto);
     }
     catch (err) {
-        res.status(500).json({ message: 'Error al crear producto' });
+        if (err.message.includes('no encontrado') || err.message.includes('requerido') || err.message.includes('debe ser')) {
+            return res.status(400).json({ message: err.message });
+        }
+        next(err); // Para errores inesperados
     }
 }
 async function updateProduct(req, res, next) {

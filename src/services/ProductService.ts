@@ -71,37 +71,122 @@ export class ProductService {
     return mapPrismaProductoToProducto(producto);
   }
 
-  // Crea un producto, validando datos (ejemplo simple)
-  async crearProducto(data: { 
-    nombre: string; 
-    tipo?: string; // This is the string like 'auto', 'vuelo'
-    precio: number; 
-    descripcion?: string; 
-    stock?: number; 
-    activo?: boolean; 
-  }): Promise<Producto> {
+  // Crea un producto completo, incluyendo datos específicos del tipo si aplica
+  async crearProductoCompleto(data: any): Promise<Producto> {
     if (data.precio < 0) throw new Error('El precio debe ser positivo');
-    if (!data.tipo) throw new Error('El campo tipo (string del nombre del tipo) es requerido');
+    if (!data.nombre_tipo_producto) throw new Error('El campo nombre_tipo_producto (string) es requerido');
 
     const tipoProductoRecord = await prisma.tipoProducto.findUnique({
-      where: { nombre: data.tipo },
+      where: { nombre: data.nombre_tipo_producto.toLowerCase() }, // Normalizar a minúsculas
     });
 
     if (!tipoProductoRecord) {
-      throw new Error(`Tipo de producto '${data.tipo}' no encontrado.`);
+      throw new Error(`Tipo de producto '${data.nombre_tipo_producto}' no encontrado.`);
     }
     const id_tipo_resolved = tipoProductoRecord.id_tipo;
 
-    const prismaData = {
+    // Datos base para el producto
+    const productoData: any = {
       nombre: data.nombre,
       descripcion: data.descripcion,
-      precio: data.precio,
-      stock: data.stock,
+      precio: parseFloat(data.precio),
+      stock: data.stock !== undefined ? parseInt(data.stock, 10) : null,
       activo: data.activo !== undefined ? data.activo : true,
-      id_tipo: id_tipo_resolved, 
+      id_tipo: id_tipo_resolved,
+      // codigo_producto: data.codigo_producto, // Si se añade este campo al schema
     };
-    const producto = await this.repo.create(prismaData);
-    return mapPrismaProductoToProducto(producto);
+    
+    // Asegurarse de que stock es un entero si se provee
+    if (data.stock !== undefined && isNaN(productoData.stock)) {
+        throw new Error('El stock debe ser un número.');
+    }
+
+
+    return prisma.$transaction(async (tx) => {
+      const nuevoProducto = await tx.producto.create({
+        data: productoData,
+        include: { tipoProducto: true } 
+      });
+
+      // Crear datos específicos del tipo
+      switch (tipoProductoRecord.nombre) {
+        case 'hospedaje':
+          if (!data.hospedaje) throw new Error("Datos de hospedaje requeridos.");
+          await tx.hospedaje.create({
+            data: {
+              id_producto: nuevoProducto.id_producto,
+              ubicacion: data.hospedaje.ubicacion,
+              fecha_inicio: data.hospedaje.fecha_inicio ? new Date(data.hospedaje.fecha_inicio) : null,
+              fecha_fin: data.hospedaje.fecha_fin ? new Date(data.hospedaje.fecha_fin) : null,
+              capacidad: data.hospedaje.capacidad ? parseInt(data.hospedaje.capacidad, 10) : null,
+            }
+          });
+          break;
+        case 'pasaje':
+          if (!data.pasaje) throw new Error("Datos de pasaje requeridos.");
+          if (!data.pasaje.id_tipo_asiento) throw new Error("id_tipo_asiento es requerido para pasajes.")
+          await tx.pasaje.create({
+            data: {
+              id_producto: nuevoProducto.id_producto,
+              origen: data.pasaje.origen,
+              destino: data.pasaje.destino,
+              fecha_salida: data.pasaje.fecha_salida ? new Date(data.pasaje.fecha_salida) : null,
+              fecha_regreso: data.pasaje.fecha_regreso ? new Date(data.pasaje.fecha_regreso) : null,
+              clase: data.pasaje.clase,
+              asientos_disponibles: data.pasaje.asientos_disponibles ? parseInt(data.pasaje.asientos_disponibles, 10) : null,
+              aerolinea: data.pasaje.aerolinea,
+              id_tipo_asiento: parseInt(data.pasaje.id_tipo_asiento, 10)
+            }
+          });
+          break;
+        case 'alquiler': // Asumiendo que 'alquiler' es el nombre en TipoProducto para Alquiler de Auto/Vehículo
+          if (!data.alquiler) throw new Error("Datos de alquiler requeridos.");
+          await tx.alquiler.create({
+            data: {
+              id_producto: nuevoProducto.id_producto,
+              tipo_vehiculo: data.alquiler.tipo_vehiculo,
+              ubicacion: data.alquiler.ubicacion,
+              fecha_inicio: data.alquiler.fecha_inicio ? new Date(data.alquiler.fecha_inicio) : null,
+              fecha_fin: data.alquiler.fecha_fin ? new Date(data.alquiler.fecha_fin) : null,
+              cantidad: data.alquiler.cantidad !== undefined ? parseInt(data.alquiler.cantidad, 10) : 0,
+            }
+          });
+          // Si 'cantidad' en Alquiler afecta el 'stock' principal de Producto, ajustar lógica.
+          // Por ahora, se asume que Producto.stock es para la disponibilidad general del "servicio de alquiler"
+          // y Alquiler.cantidad es cuántos vehículos específicos de ese tipo hay.
+          break;
+        case 'auto': // Este es un modelo separado, si 'alquiler' no lo cubre.
+                     // O si 'auto' es un TipoProducto que usa el modelo 'Auto'.
+          if (!data.auto) throw new Error("Datos de auto requeridos.");
+          await tx.auto.create({
+            data: {
+              id_producto: nuevoProducto.id_producto,
+              modelo: data.auto.modelo,
+              marca: data.auto.marca,
+              capacidad: data.auto.capacidad ? parseInt(data.auto.capacidad, 10) : null,
+              ubicacion_actual: data.auto.ubicacion_actual,
+              estado: data.auto.estado, // ej. "disponible", "en_mantenimiento"
+            }
+          });
+          break;
+        // No se necesita caso para 'paquete' aquí, ya que los componentes se añaden por separado.
+      }
+      
+      // Volver a buscar el producto con todos sus detalles para la respuesta
+      const productoCompleto = await tx.producto.findUnique({
+        where: {id_producto: nuevoProducto.id_producto},
+        include: {
+          tipoProducto: true,
+          hospedaje: true,
+          pasaje: { include: { tipoAsiento: true } },
+          alquiler: true,
+          Auto: true,
+          // No incluimos paquetes aquí para evitar circularidad en la creación inicial
+        }
+      });
+      if(!productoCompleto) throw new Error("Error al recuperar el producto completo creado."); // No debería pasar
+      return mapPrismaProductoToProducto(productoCompleto); // Usar el mapper
+    });
   }
 
   async actualizarProducto(id: number, data: {
