@@ -3,10 +3,29 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrderService = void 0;
 const db_1 = require("../config/db"); // Usaremos prisma client directamente para transacciones
 const OrderRepository_1 = require("../repositories/OrderRepository"); // Aún podemos usarlo para otras ops si es necesario
+/**
+ * @class OrderService
+ * @description Proporciona métodos para la gestión de pedidos.
+ */
 class OrderService {
+    /**
+     * Crea una instancia de OrderService.
+     */
     constructor() {
         this.orderRepository = new OrderRepository_1.OrderRepository(); // Puede ser útil para get/update/delete
     }
+    /**
+     * Obtiene una lista de pedidos, con opciones de filtrado y ordenación.
+     * @async
+     * @method obtenerPedidos
+     * @param {object} [filtros] - Opciones de filtrado.
+     * @param {string} [filtros.estado] - Filtrar por estado del pedido.
+     * @param {number} [filtros.id_cliente] - Filtrar por ID de cliente.
+     * @param {object} [orden] - Opciones de ordenación.
+     * @param {string} [orden.campo] - Campo por el cual ordenar.
+     * @param {'asc' | 'desc'} [orden.direccion] - Dirección de la ordenación.
+     * @returns {Promise<Array<object>>} Una lista de pedidos con sus detalles.
+     */
     async obtenerPedidos(filtros, orden) {
         const whereClause = {};
         if (filtros === null || filtros === void 0 ? void 0 : filtros.estado) {
@@ -41,6 +60,13 @@ class OrderService {
             orderBy: orderByClause,
         });
     }
+    /**
+     * Obtiene todos los pedidos de un cliente específico.
+     * @async
+     * @method obtenerPedidosPorCliente
+     * @param {number} idCliente - El ID del cliente.
+     * @returns {Promise<Array<object>>} Una lista de pedidos del cliente.
+     */
     async obtenerPedidosPorCliente(idCliente) {
         return db_1.prisma.pedido.findMany({
             where: { id_cliente: idCliente },
@@ -48,12 +74,30 @@ class OrderService {
             orderBy: { fecha_pedido: 'desc' }
         });
     }
+    /**
+     * Obtiene un pedido específico por su ID.
+     * @async
+     * @method obtenerPedidoPorId
+     * @param {number} id - El ID del pedido.
+     * @returns {Promise<object | null>} El objeto del pedido con sus detalles, o null si no se encuentra.
+     */
     async obtenerPedidoPorId(id) {
         return db_1.prisma.pedido.findUnique({
             where: { id_pedido: id },
             include: { cliente: true, items: { include: { producto: true } }, pagos: true },
         });
     }
+    /**
+     * Crea un nuevo pedido a partir del carrito de un cliente.
+     * Realiza validaciones de stock y disponibilidad de productos.
+     * Actualiza el stock de los productos y vacía el carrito del usuario dentro de una transacción.
+     * @async
+     * @method crearPedidoDesdeCarrito
+     * @param {number} idCliente - El ID del cliente para el cual crear el pedido.
+     * @param {number} [idDireccionFacturacion] - El ID opcional de la dirección de facturación a asociar con el pedido.
+     * @returns {Promise<object>} El nuevo pedido creado con sus detalles.
+     * @throws {Error} Si el carrito está vacío, un producto no está disponible/activo, o no hay stock suficiente.
+     */
     async crearPedidoDesdeCarrito(idCliente, idDireccionFacturacion) {
         const carrito = await db_1.prisma.carrito.findFirst({
             where: { id_cliente: idCliente },
@@ -126,9 +170,27 @@ class OrderService {
     }
     // El crearPedido original que usa el repositorio puede mantenerse si hay otros usos,
     // o marcarse como obsoleto/privado si crearPedidoDesdeCarrito es el principal.
+    /**
+     * Crea un pedido con datos proporcionados (método de bajo nivel, generalmente no usado directamente por controladores).
+     * @async
+     * @method crearPedidoConData
+     * @param {any} data - Datos para la creación del pedido.
+     * @returns {Promise<object>} El pedido creado.
+     * @deprecated Usar `crearPedidoDesdeCarrito` para la lógica de negocio estándar.
+     */
     async crearPedidoConData(data) {
         return this.orderRepository.create(data);
     }
+    /**
+     * Actualiza un pedido existente.
+     * Incluye lógica para reponer stock si un pedido es cancelado.
+     * @async
+     * @method actualizarPedido
+     * @param {number} id - El ID del pedido a actualizar.
+     * @param {any} data - Los datos a actualizar en el pedido (ej. `{ estado: 'CANCELADO' }`).
+     * @returns {Promise<object>} El pedido actualizado.
+     * @throws {Error} Si el pedido no se encuentra.
+     */
     async actualizarPedido(id, data) {
         // Aquí se podría añadir lógica de negocio, como no permitir cambiar ciertos campos
         // una vez que el pedido está en cierto estado, etc.
@@ -167,6 +229,15 @@ class OrderService {
             include: { items: true, cliente: true, pagos: true },
         });
     }
+    /**
+     * Elimina un pedido de la base de datos.
+     * Nota: Generalmente, los pedidos se marcan como 'CANCELADO' en lugar de eliminarse físicamente.
+     * La reposición de stock no se maneja aquí; debe ser gestionada al cambiar el estado a 'CANCELADO'.
+     * @async
+     * @method eliminarPedido
+     * @param {number} id - El ID del pedido a eliminar.
+     * @returns {Promise<object>} El resultado de la operación de eliminación.
+     */
     async eliminarPedido(id) {
         // Considerar lógica de negocio: ¿Se pueden eliminar pedidos en cualquier estado?
         // ¿O solo se marcan como cancelados?

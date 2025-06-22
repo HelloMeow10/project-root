@@ -68,13 +68,7 @@ export async function deletePaymentMethod(req: Request, res: Response) {
         metodo = await prisma.metodoPagoCliente.findFirst({
              where: { id_metodo_pago: potentialLocalId, id_cliente: userId },
         });
-    } else {
-        // Si no es un número, podría ser un antiguo ID de Stripe, aunque esto ya no debería ocurrir.
-        // Esta rama es para compatibilidad o si la limpieza no fue total.
-         metodo = await prisma.metodoPagoCliente.findFirst({
-             where: { id_cliente: userId, stripe_payment_method_id: localPaymentMethodId },
-         });
-    }
+    } 
 
     if (!metodo) {
       return res.status(404).json({ message: 'Método de pago no encontrado o no pertenece al usuario.' });
@@ -265,13 +259,11 @@ export async function processPayment(req: Request, res: Response) {
             try {
                 await prisma.metodoPagoCliente.create({
                   data: {
-                    id_cliente: userId,
-                    // stripe_payment_method_id: null, // Ya no existe este campo o se deja null
+                    cliente: { connect: { id_cliente: userId } },
                     tipo_tarjeta: tipoTarjetaSimulada, // Esto necesitaría una lógica de detección o ser un campo de entrada
                     ultimos_cuatro_digitos: ultimosCuatroSimulados,
                     fecha_expiracion: cardDetails.expiryDate, // MM/YY
                     es_principal: esPrincipalNuevo,
-                    // No hay stripe_payment_method_id que guardar
                   },
                 });
                 console.log("SIMULACIÓN: 'Método de pago' (representación) guardado para el usuario.");

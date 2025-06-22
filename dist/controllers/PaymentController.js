@@ -9,9 +9,9 @@ exports.deletePaymentMethod = deletePaymentMethod;
 exports.setPrincipalPaymentMethod = setPrincipalPaymentMethod;
 exports.processPayment = processPayment;
 const prismaClient_1 = require("../prismaClient");
-// import Stripe from 'stripe'; // Stripe no se usará directamente aquí ahora
+// import Stripe from 'stripe'; // Stripe ya no se usa
 const nodemailer_1 = __importDefault(require("nodemailer"));
-// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string); // Stripe SDK ya no es necesario para estas operaciones directas
+// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string); // Stripe SDK eliminado
 async function createSetupIntent(req, res) {
     // Esta funcionalidad estaba ligada a Stripe. Con la eliminación de Stripe,
     // un "SetupIntent" en el sentido de Stripe ya no es aplicable.
@@ -66,13 +66,6 @@ async function deletePaymentMethod(req, res) {
         if (!isNaN(potentialLocalId)) {
             metodo = await prismaClient_1.prisma.metodoPagoCliente.findFirst({
                 where: { id_metodo_pago: potentialLocalId, id_cliente: userId },
-            });
-        }
-        else {
-            // Si no es un número, podría ser un antiguo ID de Stripe, aunque esto ya no debería ocurrir.
-            // Esta rama es para compatibilidad o si la limpieza no fue total.
-            metodo = await prismaClient_1.prisma.metodoPagoCliente.findFirst({
-                where: { id_cliente: userId, stripe_payment_method_id: localPaymentMethodId },
             });
         }
         if (!metodo) {
@@ -244,13 +237,11 @@ async function processPayment(req, res) {
                 try {
                     await prismaClient_1.prisma.metodoPagoCliente.create({
                         data: {
-                            id_cliente: userId,
-                            // stripe_payment_method_id: null, // Ya no existe este campo o se deja null
+                            cliente: { connect: { id_cliente: userId } },
                             tipo_tarjeta: tipoTarjetaSimulada, // Esto necesitaría una lógica de detección o ser un campo de entrada
                             ultimos_cuatro_digitos: ultimosCuatroSimulados,
                             fecha_expiracion: cardDetails.expiryDate, // MM/YY
                             es_principal: esPrincipalNuevo,
-                            // No hay stripe_payment_method_id que guardar
                         },
                     });
                     console.log("SIMULACIÓN: 'Método de pago' (representación) guardado para el usuario.");

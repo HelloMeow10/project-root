@@ -6,7 +6,16 @@ exports.updateCartItem = updateCartItem;
 exports.removeCartItem = removeCartItem;
 exports.clearCart = clearCart;
 const prismaClient_1 = require("../prismaClient");
-// Solo exportar los controladores implementados
+/**
+ * Obtiene el contenido del carrito del usuario actual.
+ * Valida que el email del cliente esté verificado.
+ * Limpia items huérfanos del carrito si el producto asociado ya no existe.
+ * @async
+ * @function getCart
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.user.userId`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @returns {Promise<void>} Envía una respuesta JSON con los items del carrito o un error.
+ */
 async function getCart(req, res) {
     console.log('NEW GETCART: Executing getCart function - Start');
     const userId = req.user.userId;
@@ -83,6 +92,16 @@ async function getCart(req, res) {
     console.log('NEW GETCART: Returning data:', validItems);
     return res.json(validItems);
 }
+/**
+ * Agrega un producto al carrito del usuario actual o actualiza su cantidad si ya existe.
+ * Valida que el email del cliente esté verificado y que el producto exista y esté activo.
+ * Verifica el stock del producto.
+ * @async
+ * @function addToCart
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.user.userId` y en `req.body`: `productId` y `cantidad` (opcional, default 1).
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @returns {Promise<void>} Envía una respuesta JSON con el item del carrito creado/actualizado o un error.
+ */
 async function addToCart(req, res) {
     const userId = req.user.userId;
     // Validar que el email esté verificado
@@ -151,6 +170,16 @@ async function addToCart(req, res) {
         res.status(201).json(nuevoItem);
     }
 }
+/**
+ * Actualiza la cantidad de un item específico en el carrito del usuario.
+ * Si la cantidad es 0, elimina el item.
+ * Valida el stock del producto.
+ * @async
+ * @function updateCartItem
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.user.userId`, `req.params.itemId` y en `req.body`: `cantidad`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @returns {Promise<void>} Envía una respuesta JSON con el item actualizado o un mensaje de éxito/error.
+ */
 async function updateCartItem(req, res) {
     const userId = req.user.userId;
     const itemId = parseInt(req.params.itemId, 10);
@@ -187,6 +216,14 @@ async function updateCartItem(req, res) {
         res.status(500).json({ message: 'Error interno del servidor.' });
     }
 }
+/**
+ * Elimina un item específico del carrito del usuario.
+ * @async
+ * @function removeCartItem
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.user.userId` y `req.params.itemId`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @returns {Promise<void>} Envía una respuesta JSON con un mensaje de éxito o un error.
+ */
 async function removeCartItem(req, res) {
     const userId = req.user.userId;
     const itemId = parseInt(req.params.itemId, 10);
@@ -208,6 +245,14 @@ async function removeCartItem(req, res) {
         res.status(500).json({ message: 'Error interno del servidor.' });
     }
 }
+/**
+ * Vacía todos los items del carrito del usuario actual.
+ * @async
+ * @function clearCart
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.user.userId`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @returns {Promise<void>} Envía una respuesta JSON con un mensaje de éxito o un error.
+ */
 async function clearCart(req, res) {
     try {
         const userId = req.user.userId;
