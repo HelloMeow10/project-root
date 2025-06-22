@@ -129,7 +129,7 @@ export async function forgotPassword(req: Request, res: Response) {
  * @param {string} token - El token de reseteo.
  */
 async function enviarResetPasswordEmail(email: string, nombre: string, token: string) {
-  const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/resetcontraseña.html?token=${token}`;
+  const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:8080'}/reset-contrasena.html?token=${token}`;
   const html = `<h2>Hola ${nombre},</h2><p>Has solicitado restablecer tu contraseña. Haz clic en el siguiente enlace para continuar:</p><a href="${resetUrl}">${resetUrl}</a>`;
   const transporter = require('nodemailer').createTransport({
     service: 'gmail',
