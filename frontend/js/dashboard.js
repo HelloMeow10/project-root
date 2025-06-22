@@ -1352,6 +1352,19 @@ class DashboardUI {
             });
         }
     }
+
+    handleProductSearch(event) {
+        const searchTerm = event.target.value.toLowerCase();
+        if (!_globalAllAvailableIndividualProductsForModal) {
+            console.warn("_globalAllAvailableIndividualProductsForModal no está inicializado.");
+            renderAvailableIndividualProducts([]); // Renderiza una lista vacía o con mensaje
+            return;
+        }
+        const filteredProducts = _globalAllAvailableIndividualProductsForModal.filter(producto => {
+            return producto.nombre.toLowerCase().includes(searchTerm);
+        });
+        renderAvailableIndividualProducts(filteredProducts);
+    }
 }; // <-- End of DashboardUI class
 
 // Instancia global para acceso desde funciones y DashboardAPI
@@ -1490,9 +1503,21 @@ async function eliminarProducto(id) {
   });
   if (res.ok) {
     DashboardAPI.showNotification('Producto eliminado', 'success');
-    cargarProductos();
+    // Determinar qué lista recargar. Esto podría necesitar más lógica
+    // si la eliminación puede ocurrir desde diferentes vistas (productos, paquetes, etc.)
+    if (typeof cargarProductos === "function") {
+        cargarProductos();
+    }
+    if (typeof cargarPaquetes === "function" && dashboardUI.currentPage === 'paquetes') { // Asumiendo que tienes una forma de saber la página actual
+        cargarPaquetes();
+    }
+    // Considera llamar a la función de carga específica de la página activa.
+  } else if (res.status === 409) {
+    const errorData = await res.json().catch(() => ({ message: 'Este producto no se puede eliminar porque está referenciado o en uso (ej. en un paquete o pedido).' }));
+    DashboardAPI.showNotification(errorData.message, 'error');
   } else {
-    DashboardAPI.showNotification('Error al eliminar producto', 'error');
+    const errorData = await res.json().catch(() => ({ message: 'Error desconocido al eliminar el producto.' }));
+    DashboardAPI.showNotification(`Error al eliminar producto: ${errorData.message}`, 'error');
   }
 }
 
@@ -1867,7 +1892,7 @@ async function cargarPaquetes() {
       btn.onclick = () => gestionarComponentesPaquete(btn.getAttribute('data-id'));
     });
     tbody.querySelectorAll('.btn-eliminar-paquete').forEach(btn => {
-      btn.onclick = () => dashboardUI.deleteItem(btn.getAttribute('data-id'));
+      btn.onclick = () => eliminarProducto(btn.getAttribute('data-id'));
     });
 
   } catch (err) {
@@ -2029,7 +2054,7 @@ async function handleRemoveComponent(event) {
         return;
     }
 
-    const res = await fetch(`/api/paquetes/${packageId}/details/${componentProductId}?_=${Date.now()}`, {
+    const res = await fetch(`/api/products/paquetes/${packageId}/details/${componentProductId}?_=${Date.now()}`, {
         method: 'DELETE',
         headers: {
             'Authorization': `Bearer ${token}`
@@ -2087,7 +2112,7 @@ async function handleAddComponent(event) {
         return;
     }
 
-    const res = await fetch(`/api/paquetes/${packageId}/details`, {
+    const res = await fetch(`/api/products/paquetes/${packageId}/details`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
