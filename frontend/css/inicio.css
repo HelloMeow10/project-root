@@ -402,6 +402,14 @@ section h3,li{
   section {
     padding: 8em 0.5em 2em 0.5em;
   }
+  #userMenuContainer {
+    top: 1em; /* Reduce top spacing */
+    right: 1em; /* Reduce right spacing */
+    /* Or alternatively, to ensure it's within bounds and allow text to wrap if needed:
+    max-width: calc(100% - 2em);
+    box-sizing: border-box;
+    */
+  }
   .level-1 {
     grid-template-columns: 1fr;
   }
