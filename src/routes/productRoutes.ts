@@ -135,9 +135,9 @@ router.post('/pedidos', authMiddleware, async (req, res) => {
 });
 
 // Endpoint para eliminar productos
-router.delete('/:id', authMiddleware, adminOnly, deleteProduct);
+// router.delete('/:id', authMiddleware, adminOnly, deleteProduct); // Se mueve abajo con las rutas de :id
 
-// Endpoint para obtener solo los autos
+// RUTAS ESPECÍFICAS PRIMERO
 router.get('/autos', async (req: Request, res: Response) => {
   try {
     const tipoAuto = await prisma.tipoProducto.findFirst({
@@ -168,13 +168,38 @@ router.get(
   ProductController.getIndividualProducts // New controller method
 );
 
+// --- NUEVAS RUTAS PARA FUNCIONALIDADES DE VUELO (MOVIDAS ARRIBA) ---
+router.get(
+  '/pasajes/:idProductoPasaje/mapa-asientos',
+  // authMiddleware, // Descomentar si se requiere autenticación para ver el mapa
+  ProductController.getAvionMapaAsientos
+);
+
+router.get(
+  '/opciones-equipaje',
+  // authMiddleware, // Descomentar si se requiere autenticación
+  ProductController.getOpcionesEquipaje
+);
+
+router.get(
+  '/clases-servicio',
+  // authMiddleware, // Descomentar si se requiere autenticación
+  ProductController.getClasesServicio
+);
+// --- FIN DE NUEVAS RUTAS MOVIDAS ARRIBA ---
+
+
+// RUTAS GENERALES Y CON PARÁMETROS AL FINAL
 // Endpoint para obtener todos los productos
 router.get('/', ProductController.getAllProducts);
-router.get('/:id', ProductController.getProductById);
-router.post('/', ProductController.createProduct); // <-- ESTA LÍNEA ES CLAVE
-router.put('/:id', authMiddleware, adminOnly, ProductController.updateProduct);
-router.delete('/:id', ProductController.deleteProduct);
+router.post('/', ProductController.createProduct);
 
+// Rutas que operan sobre un producto específico por ID
+router.get('/:id', ProductController.getProductById);
+router.put('/:id', authMiddleware, adminOnly, ProductController.updateProduct);
+router.delete('/:id', ProductController.deleteProduct); // Combinada con la anterior de ProductController
+
+// Rutas para detalles de paquetes (también usan parámetros, pero son más específicas que solo /:id)
 router.post(
   '/paquetes/:id_paquete/details', 
   authMiddleware, 
@@ -189,29 +214,7 @@ router.delete(
   ProductController.eliminarComponenteDePaquete // New controller method
 );
 
-// --- NUEVAS RUTAS PARA FUNCIONALIDADES DE VUELO ---
-
-// Endpoint para obtener el mapa de asientos de un pasaje específico
-router.get(
-  '/pasajes/:idProductoPasaje/mapa-asientos',
-  // authMiddleware, // Descomentar si se requiere autenticación para ver el mapa
-  ProductController.getAvionMapaAsientos
-);
-
-// Endpoint para obtener todas las opciones de equipaje activas
-router.get(
-  '/opciones-equipaje',
-  // authMiddleware, // Descomentar si se requiere autenticación
-  ProductController.getOpcionesEquipaje
-);
-
-// Endpoint para obtener las clases de servicio (tipos de asiento) disponibles
-router.get(
-  '/clases-servicio',
-  // authMiddleware, // Descomentar si se requiere autenticación
-  ProductController.getClasesServicio
-);
-
-// --- FIN DE NUEVAS RUTAS ---
+// La sección duplicada de "NUEVAS RUTAS PARA FUNCIONALIDADES DE VUELO" que estaba aquí ha sido eliminada.
+// Las definiciones correctas y reordenadas de estas rutas ya están más arriba en el archivo.
 
 export default router;
