@@ -124,12 +124,16 @@ async function createOrder(req, res, next) {
         if (!(cliente === null || cliente === void 0 ? void 0 : cliente.email_verificado)) {
             return res.status(403).json({ message: 'Debes verificar tu email antes de crear un pedido.' });
         }
-        const { id_direccion_facturacion } = req.body; // Opcional
-        const newOrder = await orderService.crearPedidoDesdeCarrito(userId, id_direccion_facturacion ? Number(id_direccion_facturacion) : undefined);
+        const { id_direccion_facturacion, items } = req.body; // items: array de items con detalles avanzados
+        if (!Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ message: 'Debes enviar los items del pedido con sus detalles.' });
+        }
+        // items debe ser el array con la estructura avanzada esperada por el servicio
+        const newOrder = await orderService.crearPedidoDesdeCarrito(userId, items, id_direccion_facturacion ? Number(id_direccion_facturacion) : undefined);
         res.status(201).json(newOrder);
     }
     catch (err) {
-        if (err.message.includes('carrito está vacío') || err.message.includes('Stock insuficiente') || err.message.includes('ya no está disponible')) {
+        if (err.message && (err.message.includes('carrito está vacío') || err.message.includes('Stock insuficiente') || err.message.includes('ya no está disponible'))) {
             return res.status(400).json({ message: err.message });
         }
         next(err);

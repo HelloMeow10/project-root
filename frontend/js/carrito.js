@@ -751,12 +751,50 @@ class CartUI {
         return;
       }
 
-      const precio = parseFloat(item.producto.precio);
-      if (isNaN(precio)) {
-        console.warn(`Invalid price for item ${item.producto.nombre}:`, item.producto.precio);
-        invalidItemDetails.push(`Item ${item.id_item}: Invalid price (${item.producto.precio})`);
-        return;
+      // --- NUEVO: Mostrar detalles de vuelo enriquecidos si existen ---
+      let detallesVueloHTML = '';
+      if (item.producto.tipoProducto?.nombre?.toLowerCase() === 'vuelo') {
+        if (item.detalles_vuelo_populados && Object.keys(item.detalles_vuelo_populados).length > 0) {
+          detallesVueloHTML += '<div class="vuelo-detalles-extra">';
+          if (item.detalles_vuelo_populados.nombre_clase_servicio) {
+            detallesVueloHTML += `<div><b>Clase seleccionada:</b> ${item.detalles_vuelo_populados.nombre_clase_servicio}</div>`;
+          }
+          if (item.detalles_vuelo_populados.info_asiento_seleccionado) {
+            detallesVueloHTML += `<div><b>Asiento seleccionado:</b> ${item.detalles_vuelo_populados.info_asiento_seleccionado}</div>`;
+          }
+          if (Array.isArray(item.detalles_vuelo_populados.info_equipaje_seleccionado) && item.detalles_vuelo_populados.info_equipaje_seleccionado.length > 0) {
+            detallesVueloHTML += `<div><b>Equipaje:</b> ` + item.detalles_vuelo_populados.info_equipaje_seleccionado.map(eq => `${eq.nombre ? eq.nombre : 'ID desconocido'} (x${eq.cantidad})`).join(', ') + '</div>';
+          }
+          detallesVueloHTML += '</div>';
+        } else if (item.detalles_vuelo_json) {
+          // Fallback: mostrar los IDs si no hay datos enriquecidos
+          try {
+            const detalles = JSON.parse(item.detalles_vuelo_json);
+            detallesVueloHTML += '<div class="vuelo-detalles-extra">';
+            if (detalles.seleccion_clase_servicio_id) {
+              detallesVueloHTML += `<div><b>Clase seleccionada:</b> ID ${detalles.seleccion_clase_servicio_id}</div>`;
+            }
+            if (detalles.seleccion_asiento_fisico_id) {
+              detallesVueloHTML += `<div><b>Asiento seleccionado:</b> ID ${detalles.seleccion_asiento_fisico_id}</div>`;
+            }
+            if (Array.isArray(detalles.selecciones_equipaje) && detalles.selecciones_equipaje.length > 0) {
+              detallesVueloHTML += `<div><b>Equipaje:</b> ` + detalles.selecciones_equipaje.map(eq => `ID ${eq.id_opcion_equipaje} (x${eq.cantidad})`).join(', ') + '</div>';
+            }
+            detallesVueloHTML += '</div>';
+          } catch (e) {
+            detallesVueloHTML = '<div style="color:#c00;font-size:0.95em;">Error al leer detalles de vuelo</div>';
+          }
+        }
       }
+      // --- FIN NUEVO ---
+
+      // Usar precio_total_item_calculado si está disponible
+      const precioUnitario = (typeof item.precio_total_item_calculado === 'number' && item.cantidad > 0)
+        ? (item.precio_total_item_calculado / item.cantidad)
+        : parseFloat(item.producto.precio);
+      const totalItem = (typeof item.precio_total_item_calculado === 'number')
+        ? item.precio_total_item_calculado
+        : precioUnitario * item.cantidad;
 
       const div = document.createElement('div');
       div.className = 'cart-item';
@@ -766,6 +804,7 @@ class CartUI {
         <div>
           <span class="item-title">${item.producto.nombre}</span>
           <span class="item-type-badge">${item.producto.tipoProducto?.nombre || 'N/A'}</span>
+          ${detallesVueloHTML}
         </div>
         <div>
           <span>Cantidad: 
@@ -773,12 +812,12 @@ class CartUI {
             <input type="number" class="quantity-input" data-item-id="${item.id_item}" value="${item.cantidad}" min="1" max="10">
             <button class="quantity-btn increase" data-item-id="${item.id_item}">+</button>
           </span>
-          <span>Precio unitario: <span class="unit-price-amount">$${precio.toFixed(2)}</span></span>
-          <span>Total: <span class="total-price-amount">$${(precio * item.cantidad).toFixed(2)}</span></span>
+          <span>Precio unitario: <span class="unit-price-amount">$${precioUnitario.toFixed(2)}</span></span>
+          <span>Total: <span class="total-price-amount">$${totalItem.toFixed(2)}</span></span>
           <button class="remove-item-btn" data-item-id="${item.id_item}"><i class="fas fa-trash"></i></button>
         </div>
       `;
-      total += precio * item.cantidad;
+      total += totalItem;
       cartItemsList.appendChild(div);
     });
 

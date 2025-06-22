@@ -218,3 +218,65 @@ export async function agregarComponenteAPaquete(req: Request, res: Response, nex
     next(err);
   }
 }
+
+/**
+ * Obtiene la configuración de asientos para un pasaje (vuelo) específico, 
+ * incluyendo el estado de ocupación de cada asiento.
+ * @async
+ * @function getAvionMapaAsientos
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.params.idProductoPasaje`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía JSON con el mapa de asientos o un error.
+ */
+export async function getAvionMapaAsientos(req: Request, res: Response, next: NextFunction) {
+  try {
+    const idProductoPasaje = Number(req.params.idProductoPasaje);
+    if (isNaN(idProductoPasaje)) {
+      return res.status(400).json({ message: 'ID de Pasaje (Producto) inválido.' });
+    }
+    const mapaAsientos = await productService.obtenerConfiguracionAvionConAsientosOcupados(idProductoPasaje);
+    if (!mapaAsientos) {
+      return res.status(404).json({ message: 'Mapa de asientos no disponible para este pasaje.' });
+    }
+    res.status(200).json(mapaAsientos);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * Obtiene todas las opciones de equipaje activas.
+ * @async
+ * @function getOpcionesEquipaje
+ * @param {Request} req - El objeto de solicitud de Express.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía JSON con la lista de opciones de equipaje o un error.
+ */
+export async function getOpcionesEquipaje(req: Request, res: Response, next: NextFunction) {
+  try {
+    const opciones = await productService.obtenerOpcionesEquipajeActivas();
+    res.status(200).json(opciones);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * Obtiene las clases de servicio disponibles para los vuelos (basado en Tipos de Asiento).
+ * @async
+ * @function getClasesServicio
+ * @param {Request} req - El objeto de solicitud de Express.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía JSON con la lista de clases de servicio o un error.
+ */
+export async function getClasesServicio(req: Request, res: Response, next: NextFunction) {
+  try {
+    const clases = await productService.obtenerClasesDeServicioDisponibles();
+    res.status(200).json(clases);
+  } catch (err) {
+    next(err);
+  }
+}

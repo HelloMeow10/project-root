@@ -94,75 +94,207 @@ export class OrderService {
   /**
    * Crea un nuevo pedido a partir del carrito de un cliente.
    * Realiza validaciones de stock y disponibilidad de productos.
+   * Calcula precios basados en clase de servicio, asiento seleccionado y equipaje adicional para vuelos.
    * Actualiza el stock de los productos y vacía el carrito del usuario dentro de una transacción.
    * @async
    * @method crearPedidoDesdeCarrito
    * @param {number} idCliente - El ID del cliente para el cual crear el pedido.
-   * @param {number} [idDireccionFacturacion] - El ID opcional de la dirección de facturación a asociar con el pedido.
+   * @param {any[]} itemsConDetallesAdicionales - Array de items del carrito, donde cada item puede tener
+   *                                              `seleccion_clase_servicio_id`, `seleccion_asiento_fisico_id`,
+   *                                              y `selecciones_equipaje` si es un vuelo.
+   * @param {number} [idDireccionFacturacion] - El ID opcional de la dirección de facturación.
    * @returns {Promise<object>} El nuevo pedido creado con sus detalles.
-   * @throws {Error} Si el carrito está vacío, un producto no está disponible/activo, o no hay stock suficiente.
+   * @throws {Error} Si el carrito está vacío, un producto no está disponible/activo, o no hay stock suficiente, o datos adicionales son inválidos.
    */
-  async crearPedidoDesdeCarrito(idCliente: number, idDireccionFacturacion?: number) {
-    const carrito = await prisma.carrito.findFirst({
+  async crearPedidoDesdeCarrito(idCliente: number, itemsConDetallesAdicionales: any[], idDireccionFacturacion?: number) {
+    // Primero, obtenemos el carrito real de la BD para asegurar la integridad de los datos base (producto, cantidad base)
+    const carritoBD = await prisma.carrito.findFirst({
       where: { id_cliente: idCliente },
       include: {
         items: {
           include: {
-            producto: true, // Incluir detalles del producto para stock y precio
+            producto: { include: { tipoProducto: true, pasaje: { include: { avionConfig: true } } } },
           },
         },
       },
     });
 
-    if (!carrito || carrito.items.length === 0) {
+    if (!carritoBD || carritoBD.items.length === 0) {
       throw new Error('El carrito está vacío.');
     }
 
-    // Validaciones y preparación de datos de pedido
-    const itemsPedidoData: any[] = [];
-    let totalPedido = 0;
+    // Mapear los items del carrito de la BD para fácil acceso por id_producto
+    const carritoBDItemsMap = new Map(carritoBD.items.map(item => [item.id_producto, item]));
 
-    for (const item of carrito.items) {
-      if (!item.producto) {
-        throw new Error(`Producto con ID ${item.id_producto} no encontrado en el carrito.`);
+    const itemsParaPedidoCreate: any[] = [];
+    let granTotalPedido = 0;
+    const seleccionesAsientoParaItem: any[] = [];
+    const seleccionesEquipajeParaItem: any[] = [];
+
+    // Iterar sobre los items enviados desde el frontend (que pueden tener detalles adicionales)
+    for (const itemFrontend of itemsConDetallesAdicionales) {
+      const itemBD = carritoBDItemsMap.get(itemFrontend.id_producto);
+
+      if (!itemBD || !itemBD.producto) {
+        throw new Error(`Producto con ID ${itemFrontend.id_producto} no encontrado en el carrito del usuario o producto no existe.`);
       }
-      if (!item.producto.activo) {
-        throw new Error(`El producto "${item.producto.nombre}" ya no está disponible.`);
+      if (!itemBD.producto.activo) {
+        throw new Error(`El producto "${itemBD.producto.nombre}" ya no está disponible.`);
       }
-      if (item.producto.stock !== null && item.cantidad > item.producto.stock) {
-        throw new Error(`Stock insuficiente para el producto "${item.producto.nombre}". Solicitado: ${item.cantidad}, Disponible: ${item.producto.stock}`);
+      if (itemBD.producto.stock !== null && itemFrontend.cantidad > itemBD.producto.stock) {
+        throw new Error(`Stock insuficiente para "${itemBD.producto.nombre}". Solicitado: ${itemFrontend.cantidad}, Disponible: ${itemBD.producto.stock}`);
       }
 
-      itemsPedidoData.push({
-        id_producto: item.id_producto,
-        cantidad: item.cantidad,
-        precio: item.producto.precio, // Usar el precio actual del producto
+      let precioUnitarioBase = itemBD.producto.precio;
+      let precioTotalItemCalculado = 0;
+      let idClaseServicioSeleccionadaParaItem: number | undefined = undefined;
+      let asientoSeleccionadoData: any = null;
+      let equipajeSeleccionadoData: any[] = [];
+
+      // ---- Lógica específica para productos de tipo 'vuelo' ----
+      if (itemBD.producto.tipoProducto?.nombre.toLowerCase() === 'vuelo') {
+        let precioAjustadoPorClase = precioUnitarioBase;
+
+        // 1. Aplicar Clase de Servicio seleccionada
+        if (itemFrontend.seleccion_clase_servicio_id) {
+          const claseServicio = await prisma.tipoAsiento.findUnique({
+            where: { id_tipo_asiento: Number(itemFrontend.seleccion_clase_servicio_id) },
+          });
+          if (!claseServicio || !claseServicio.multiplicador_precio) {
+            throw new Error(`Clase de servicio con ID ${itemFrontend.seleccion_clase_servicio_id} no válida o sin multiplicador.`);
+          }
+          precioAjustadoPorClase = Number(precioUnitarioBase) * Number(claseServicio.multiplicador_precio);
+          idClaseServicioSeleccionadaParaItem = claseServicio.id_tipo_asiento;
+        }
+        precioTotalItemCalculado += precioAjustadoPorClase * itemFrontend.cantidad;
+
+        // 2. Procesar Asiento Seleccionado (si existe)
+        if (itemFrontend.seleccion_asiento_fisico_id) {
+          if (!itemBD.producto.pasaje?.avionConfig) {
+            throw new Error(`El vuelo ${itemBD.producto.nombre} no tiene una configuración de avión para seleccionar asientos.`);
+          }
+          const asientoSeleccionado = await prisma.asiento.findUnique({
+            where: { id_asiento: Number(itemFrontend.seleccion_asiento_fisico_id) },
+          });
+          if (!asientoSeleccionado || asientoSeleccionado.id_avion_config !== itemBD.producto.pasaje.avionConfig.id_avion_config) {
+            throw new Error(`Asiento con ID ${itemFrontend.seleccion_asiento_fisico_id} no válido para este vuelo.`);
+          }
+          const precioAdicionalAsiento = Number(asientoSeleccionado.precio_adicional_base) || 0;
+          precioTotalItemCalculado += precioAdicionalAsiento * itemFrontend.cantidad;
+          asientoSeleccionadoData = {
+            id_asiento_fisico: asientoSeleccionado.id_asiento,
+            precio_seleccion_asiento: precioAdicionalAsiento,
+          };
+        }
+
+        // 3. Procesar Equipaje Adicional
+        if (itemFrontend.selecciones_equipaje && Array.isArray(itemFrontend.selecciones_equipaje)) {
+          for (const equipaje of itemFrontend.selecciones_equipaje) {
+            const opcionEquipaje = await prisma.opcionEquipaje.findUnique({
+              where: { id_opcion_equipaje: Number(equipaje.id_opcion_equipaje) },
+            });
+            if (!opcionEquipaje || !opcionEquipaje.activo) {
+              throw new Error(`Opción de equipaje ID ${equipaje.id_opcion_equipaje} no válida o inactiva.`);
+            }
+            const cantidadEquipaje = Number(equipaje.cantidad) || 1;
+            const precioTotalOpcionEquipaje = Number(opcionEquipaje.precio_adicional) * cantidadEquipaje;
+            precioTotalItemCalculado += precioTotalOpcionEquipaje;
+            equipajeSeleccionadoData.push({
+              id_opcion_equipaje: opcionEquipaje.id_opcion_equipaje,
+              cantidad: cantidadEquipaje,
+              precio_seleccion_equipaje: precioTotalOpcionEquipaje,
+            });
+          }
+        }
+      } else {
+        // Para productos que no son vuelos, el precio total es simplemente precio base * cantidad
+        precioTotalItemCalculado = Number(precioUnitarioBase) * itemFrontend.cantidad;
+      }
+
+      itemsParaPedidoCreate.push({
+        id_producto: itemBD.id_producto,
+        cantidad: itemFrontend.cantidad,
+        precio_unitario_base: precioUnitarioBase,
+        precio_total_item: precioTotalItemCalculado,
+        id_clase_servicio_seleccionada: idClaseServicioSeleccionadaParaItem,
       });
-      totalPedido += item.producto.precio * item.cantidad;
+      seleccionesAsientoParaItem.push(asientoSeleccionadoData);
+      seleccionesEquipajeParaItem.push(equipajeSeleccionadoData);
+      granTotalPedido += precioTotalItemCalculado;
     }
 
-    // Usar transacción de Prisma
     return prisma.$transaction(async (tx) => {
-      // 1. Crear el Pedido
       const nuevoPedido = await tx.pedido.create({
         data: {
           id_cliente: idCliente,
-          total: totalPedido,
-          estado: 'PENDIENTE_PAGO', // Estado inicial del pedido
+          total: granTotalPedido,
+          estado: 'PENDIENTE_PAGO',
           id_direccion_facturacion: idDireccionFacturacion,
           items: {
-            create: itemsPedidoData,
+            create: itemsParaPedidoCreate.map(item => ({
+              id_producto: item.id_producto,
+              cantidad: item.cantidad,
+              precio_unitario_base: item.precio_unitario_base,
+              precio_total_item: item.precio_total_item,
+              id_clase_servicio_seleccionada: item.id_clase_servicio_seleccionada,
+            })),
           },
         },
         include: {
-          items: { include: { producto: true } },
+          items: true,
           cliente: true,
         }
       });
 
-      // 2. Actualizar el stock de los productos
-      for (const item of carrito.items) {
-        if (item.producto.stock !== null) { // Solo actualizar si el stock no es ilimitado
+      // Ahora, con los PedidoItems creados y sus IDs (id_detalle), creamos las selecciones de asiento y equipaje
+      for (let i = 0; i < itemsConDetallesAdicionales.length; i++) {
+        const itemFrontend = itemsConDetallesAdicionales[i];
+        const pedidoItemCreado = nuevoPedido.items.find(pi => pi.id_producto === itemFrontend.id_producto && pi.cantidad === itemFrontend.cantidad);
+        // Crear SeleccionAsientoPasajero si aplica
+        if (pedidoItemCreado && seleccionesAsientoParaItem[i]) {
+          // Validación de ocupación de asiento (simplificada)
+          if (itemFrontend.seleccion_asiento_fisico_id) {
+            const pasajeDelItem = await tx.pasaje.findUnique({ where: {id_producto: pedidoItemCreado.id_producto }});
+            if (pasajeDelItem && pasajeDelItem.id_avion_config) {
+              const otrosItemsDeEsteVueloConMismoAsiento = await tx.seleccionAsientoPasajero.count({
+                where: {
+                  id_asiento_fisico: Number(itemFrontend.seleccion_asiento_fisico_id),
+                  pedidoItem: {
+                    producto: { pasaje: { id_avion_config: pasajeDelItem.id_avion_config } },
+                  }
+                }
+              });
+              if(otrosItemsDeEsteVueloConMismoAsiento > 0) {
+                throw new Error(`El asiento ${itemFrontend.seleccion_asiento_fisico_id} ya no está disponible para el vuelo ${itemFrontend.id_producto}.`);
+              }
+            }
+            await tx.seleccionAsientoPasajero.create({
+              data: {
+                id_pedido_item: pedidoItemCreado.id_detalle,
+                id_asiento_fisico: Number(itemFrontend.seleccion_asiento_fisico_id),
+                precio_seleccion_asiento: seleccionesAsientoParaItem[i].precio_seleccion_asiento,
+              },
+            });
+          }
+        }
+        // Crear SeleccionEquipajePasajero si aplica
+        if (pedidoItemCreado && seleccionesEquipajeParaItem[i] && seleccionesEquipajeParaItem[i].length > 0) {
+          for (const equipajeData of seleccionesEquipajeParaItem[i]) {
+            await tx.seleccionEquipajePasajero.create({
+              data: {
+                id_pedido_item: pedidoItemCreado.id_detalle,
+                id_opcion_equipaje: equipajeData.id_opcion_equipaje,
+                cantidad: equipajeData.cantidad,
+                precio_seleccion_equipaje: equipajeData.precio_seleccion_equipaje,
+              },
+            });
+          }
+        }
+      }
+
+      // Actualizar el stock de los productos base (como antes)
+      for (const item of carritoBD.items) {
+        if (item.producto.stock !== null) {
           await tx.producto.update({
             where: { id_producto: item.id_producto },
             data: { stock: { decrement: item.cantidad } },
@@ -170,15 +302,27 @@ export class OrderService {
         }
       }
 
-      // 3. Vaciar el carrito del usuario
       await tx.carritoItem.deleteMany({
-        where: { id_carrito: carrito.id_carrito },
+        where: { id_carrito: carritoBD.id_carrito },
       });
-      // Opcionalmente, eliminar el carrito si se desea que se cree uno nuevo la próxima vez.
-      // await tx.carrito.delete({ where: { id_carrito: carrito.id_carrito } });
-
-
-      return nuevoPedido;
+      
+      // Devolver el pedido con todos sus detalles, incluyendo las nuevas selecciones anidadas
+      return tx.pedido.findUnique({
+        where: { id_pedido: nuevoPedido.id_pedido },
+        include: {
+          cliente: true,
+          direccionFacturacion: true,
+          items: {
+            include: {
+              producto: { include: { tipoProducto: true }},
+              claseServicioSeleccionada: true,
+              seleccion_asiento: { include: { asientoFisico: { include: { tipoAsientoBase: true }} } },
+              selecciones_equipaje: { include: { opcionEquipaje: true }}
+            }
+          },
+          pagos: true
+        }
+      });
     });
   }
   

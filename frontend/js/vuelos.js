@@ -53,6 +53,9 @@ class FlightBooking {
           >
             Comprar
           </button>
+          <button class="btn-personalizar-vuelo" data-id-producto="${vuelo.id_producto}" data-nombre="${vuelo.nombre}" data-precio-base="${vuelo.precio}">
+            Personalizar y Añadir
+          </button>
         </div>
       `;
     }).join('');
@@ -169,25 +172,83 @@ document.addEventListener('click', async function(e) {
   }
 });
 
-// Código del servidor (por ejemplo, usando Express y Prisma)
-app.get('/api/products/vuelos', async (req, res) => {
+// Variables globales para el modal
+let vueloSeleccionado = null;
+let claseSeleccionada = null;
+let asientoSeleccionado = null;
+let equipajeSeleccionado = [];
+let precioBaseVuelo = 0;
+let precioAsiento = 0;
+let multiplicadorClase = 1;
+
+// Abrir modal al hacer clic en "Personalizar y Añadir"
+document.addEventListener('click', async function(e) {
+  if (e.target.classList.contains('btn-personalizar-vuelo')) {
+    const vueloItem = e.target.closest('.vuelo-item');
+    vueloSeleccionado = {
+      id_producto: vueloItem.dataset.idProducto,
+      nombre: vueloItem.dataset.nombre,
+      precio: parseFloat(vueloItem.dataset.precioBase)
+    };
+    precioBaseVuelo = vueloSeleccionado.precio;
+    document.getElementById('modalTituloVuelo').textContent = `Personalizar: ${vueloSeleccionado.nombre}`;
+    document.getElementById('modalPrecioBaseVuelo').textContent = precioBaseVuelo.toFixed(2);
+
+    // Cargar clases, asientos y equipaje
+    await cargarClasesServicio();
+    await cargarMapaAsientos();
+    await cargarOpcionesEquipaje();
+
+    recalcularPrecioTotalModal();
+    document.getElementById('vueloOpcionesModal').style.display = 'block';
+  }
+});
+
+// Funciones para cargar datos y renderizar (deberás implementarlas)
+async function cargarClasesServicio() { /* ... */ }
+async function cargarMapaAsientos() { /* ... */ }
+async function cargarOpcionesEquipaje() { /* ... */ }
+function recalcularPrecioTotalModal() { /* ... */ }
+
+// Confirmar y añadir al carrito
+document.getElementById('modalConfirmarBtn').addEventListener('click', async function() {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    showNotification('Debes iniciar sesión para agregar al carrito', 'error');
+    setTimeout(() => window.location.href = 'login.html', 1800);
+    return;
+  }
+  // Recopilar detalles seleccionados
+  const detallesVuelo = {
+    seleccion_clase_servicio_id: claseSeleccionada ? claseSeleccionada.id : null,
+    seleccion_asiento_fisico_id: asientoSeleccionado ? asientoSeleccionado.id : null,
+    selecciones_equipaje: Array.isArray(equipajeSeleccionado) ? equipajeSeleccionado.map(eq => ({
+      id_opcion_equipaje: eq.id,
+      cantidad: eq.cantidad
+    })) : []
+  };
+  const datosParaCarrito = {
+    productId: vueloSeleccionado.id_producto,
+    cantidad: 1,
+    detallesVuelo
+  };
   try {
-    const vuelos = await prisma.producto.findMany({
-      where: {
-        // tu filtro para vuelos, por ejemplo:
-        tipoProducto: { nombre: 'vuelo' }
+    const res = await fetch('/api/cart', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
-      include: {
-        pasaje: {
-          include: {
-            tipoAsiento: true
-          }
-        }
-      }
+      body: JSON.stringify(datosParaCarrito)
     });
-    res.json(vuelos);
-  } catch (error) {
-    console.error('Error al obtener vuelos:', error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    if (res.ok) {
+      showNotification('Vuelo personalizado agregado al carrito', 'success');
+      document.getElementById('vueloOpcionesModal').style.display = 'none';
+    } else {
+      const data = await res.json();
+      showNotification(data.message || 'Error al agregar al carrito', 'error');
+    }
+  } catch (err) {
+    showNotification('Error de red', 'error');
   }
 });

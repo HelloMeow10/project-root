@@ -95,12 +95,36 @@ export class ProductService {
    * @returns {Promise<Producto & { componentes?: ProductoComponente[] }>} El producto encontrado.
    * @throws {Error} Si el producto no se encuentra.
    */
-  async obtenerProductoPorId(id: number): Promise<Producto & { componentes?: ProductoComponente[] }>{
+  async obtenerProductoPorId(id: number): Promise<Producto & { componentes?: ProductoComponente[], avionConfig?: any }> {
     console.log('PRODUCTSERVICE: obtenerProductoPorId called with ID:', id);
-    const producto = await this.repo.findById(id);
-    console.log('PRODUCTSERVICE: Prisma findUnique result for ID ' + id + ':', producto);
+    const producto = await this.repo.findById(id); // findById ya hace los includes profundos
     if (!producto) throw new Error('Producto no encontrado');
-    return mapPrismaProductoToProducto(producto);
+
+    const productoMapeado = mapPrismaProductoToProducto(producto);
+
+    // Si es un pasaje y tiene configuración de avión, la añadimos al resultado mapeado
+    if (producto.pasaje && producto.pasaje.avionConfig) {
+      (productoMapeado as any).avionConfig = {
+        id_avion_config: producto.pasaje.avionConfig.id_avion_config,
+        nombre_config: producto.pasaje.avionConfig.nombre_config,
+        total_filas: producto.pasaje.avionConfig.total_filas,
+        columnas_config: producto.pasaje.avionConfig.columnas_config,
+        asientos: producto.pasaje.avionConfig.asientos.map((asiento: any) => ({
+          id_asiento: asiento.id_asiento,
+          fila: asiento.fila,
+          columna: asiento.columna,
+          caracteristicas: asiento.caracteristicas,
+          precio_adicional_base: asiento.precio_adicional_base,
+          id_tipo_asiento_base: asiento.id_tipo_asiento_base,
+          tipoAsientoBase: {
+            id_tipo_asiento: asiento.tipoAsientoBase.id_tipo_asiento,
+            nombre: asiento.tipoAsientoBase.nombre,
+            descripcion: asiento.tipoAsientoBase.descripcion
+          }
+        })),
+      };
+    }
+    return productoMapeado;
   }
 
   /**
@@ -111,7 +135,8 @@ export class ProductService {
    * @param {any} data - Datos del producto a crear. Debe incluir `nombre`, `precio`, `nombre_tipo_producto`.
    *                     Puede incluir opcionalmente `descripcion`, `stock`, `activo`, y objetos como
    *                     `hospedaje`, `pasaje`, `alquiler`, `auto` con sus respectivos campos.
-   * @returns {Promise<Producto & { componentes?: ProductoComponente[] }>} El producto recién creado.
+   * @returns {Promise<Producto & { componentes?: ProductoComponente[] }>}
+   *          El producto recién creado.
    * @throws {Error} Si faltan datos requeridos, el tipo de producto no existe, el precio es negativo, o hay un error en la transacción.
    */
   async crearProductoCompleto(data: any): Promise<Producto & { componentes?: ProductoComponente[] }> {
@@ -166,7 +191,6 @@ export class ProductService {
           break;
         case 'pasaje':
           if (!data.pasaje) throw new Error("Datos de pasaje requeridos.");
-          if (!data.pasaje.id_tipo_asiento) throw new Error("id_tipo_asiento es requerido para pasajes.")
           await tx.pasaje.create({
             data: {
               id_producto: nuevoProducto.id_producto,
@@ -174,10 +198,9 @@ export class ProductService {
               destino: data.pasaje.destino,
               fecha_salida: data.pasaje.fecha_salida ? new Date(data.pasaje.fecha_salida) : null,
               fecha_regreso: data.pasaje.fecha_regreso ? new Date(data.pasaje.fecha_regreso) : null,
-              clase: data.pasaje.clase,
               asientos_disponibles: data.pasaje.asientos_disponibles ? parseInt(data.pasaje.asientos_disponibles, 10) : null,
-              aerolinea: data.pasaje.aerolinea,
-              id_tipo_asiento: parseInt(data.pasaje.id_tipo_asiento, 10)
+              aerolinea: data.pasaje.aerolinea
+              // id_tipo_asiento removed
             }
           });
           break;
@@ -220,7 +243,7 @@ export class ProductService {
         include: {
           tipoProducto: true,
           hospedaje: true,
-          pasaje: { include: { tipoAsiento: true } },
+          pasaje: true, // Removed tipoAsiento from include
           alquiler: true,
           Auto: true,
           // No incluimos paquetes aquí para evitar circularidad en la creación inicial
@@ -434,5 +457,122 @@ export class ProductService {
 
     // Fetch and return the updated package product with all its details
     return this.obtenerProductoPorId(id_paquete);
+  }
+
+  /**
+   * Obtiene la configuración de un avión para un pasaje específico, incluyendo el estado de ocupación de cada asiento.
+   * @async
+   * @method obtenerConfiguracionAvionConAsientosOcupados
+   * @param {number} idProductoPasaje - El ID del Producto que representa el Pasaje (vuelo).
+   * @returns {Promise<any | null>} Objeto con la configuración del avión y la lista de asientos con su estado, o null si no se encuentra.
+   * @throws {Error} Si el producto no es un pasaje o no tiene configuración de avión.
+   */
+  async obtenerConfiguracionAvionConAsientosOcupados(idProductoPasaje: number): Promise<any | null> {
+    const productoPasaje = await prisma.producto.findUnique({
+      where: { id_producto: idProductoPasaje },
+      include: {
+        tipoProducto: true,
+        pasaje: {
+          include: {
+            avionConfig: {
+              include: {
+                asientos: {
+                  orderBy: [{ fila: 'asc' }, { columna: 'asc' }],
+                  include: {
+                    tipoAsientoBase: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!productoPasaje || !productoPasaje.pasaje || !productoPasaje.pasaje.avionConfig) {
+      console.warn(`Pasaje con ID de producto ${idProductoPasaje} no encontrado o sin configuración de avión.`);
+      throw new Error('Pasaje no encontrado o sin configuración de avión asignada.');
+    }
+
+    const { avionConfig } = productoPasaje.pasaje;
+    if (!avionConfig || !avionConfig.asientos) {
+        throw new Error('Configuración de avión o asientos no disponibles para este pasaje.');
+    }
+
+    // Obtener todos los PedidoItem asociados a este Producto (Pasaje)
+    const pedidosItemsParaEsteVuelo = await prisma.pedidoItem.findMany({
+      where: { id_producto: idProductoPasaje },
+      select: { id_detalle: true },
+    });
+    const idsPedidoItemParaEsteVuelo = pedidosItemsParaEsteVuelo.map(pi => pi.id_detalle);
+
+    let asientosOcupadosIds = new Set<number>();
+    if (idsPedidoItemParaEsteVuelo.length > 0) {
+      const seleccionesAsientosParaEsteVuelo = await prisma.seleccionAsientoPasajero.findMany({
+        where: {
+          id_pedido_item: { in: idsPedidoItemParaEsteVuelo },
+        },
+        select: { id_asiento_fisico: true },
+      });
+      asientosOcupadosIds = new Set(seleccionesAsientosParaEsteVuelo.map(s => s.id_asiento_fisico));
+    }
+
+    const asientosConEstado = avionConfig.asientos.map((asiento: any) => ({
+      id_asiento: asiento.id_asiento,
+      fila: asiento.fila,
+      columna: asiento.columna,
+      caracteristicas: asiento.caracteristicas,
+      precio_adicional_base: asiento.precio_adicional_base,
+      id_tipo_asiento_base: asiento.id_tipo_asiento_base,
+      tipoAsientoBase: asiento.tipoAsientoBase ? {
+        id_tipo_asiento: asiento.tipoAsientoBase.id_tipo_asiento,
+        nombre: asiento.tipoAsientoBase.nombre,
+        descripcion: asiento.tipoAsientoBase.descripcion,
+        multiplicador_precio: asiento.tipoAsientoBase.multiplicador_precio,
+      } : null,
+      ocupado: asientosOcupadosIds.has(asiento.id_asiento),
+    }));
+
+    return {
+      id_avion_config: avionConfig.id_avion_config,
+      nombre_config: avionConfig.nombre_config,
+      total_filas: avionConfig.total_filas,
+      columnas_config: avionConfig.columnas_config,
+      asientos: asientosConEstado,
+    };
+  }
+
+  /**
+   * Obtiene todas las opciones de equipaje activas.
+   * @async
+   * @method obtenerOpcionesEquipajeActivas
+   * @returns {Promise<OpcionEquipaje[]>} Una lista de opciones de equipaje activas.
+   */
+  async obtenerOpcionesEquipajeActivas(): Promise<any[]> {
+    return prisma.opcionEquipaje.findMany({
+      where: { activo: true },
+      orderBy: { nombre: 'asc' },
+    });
+  }
+
+  /**
+   * Obtiene todos los Tipos de Asiento que pueden ser seleccionados como clase de servicio.
+   * Incluye el nombre y el multiplicador de precio.
+   * @async
+   * @method obtenerClasesDeServicioDisponibles
+   * @returns {Promise<Array<{id_tipo_asiento: number, nombre: string, multiplicador_precio: number | null}>>} Lista de clases de servicio.
+   */
+  async obtenerClasesDeServicioDisponibles(): Promise<any[]> {
+    return prisma.tipoAsiento.findMany({
+      select: {
+        id_tipo_asiento: true,
+        nombre: true,
+        descripcion: true,
+        multiplicador_precio: true,
+      },
+      orderBy: {
+        multiplicador_precio: 'asc',
+      },
+    });
   }
 }

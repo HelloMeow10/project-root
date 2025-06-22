@@ -12,91 +12,127 @@ import { prisma } from '../prismaClient';
  * @returns {Promise<void>} Envía una respuesta JSON con los items del carrito o un error.
  */
 export async function getCart(req: Request, res: Response) {
-  console.log('NEW GETCART: Executing getCart function - Start');
-  const userId = (req as any).user.userId;
-  const cliente = await prisma.cliente.findUnique({ where: { id_cliente: userId } });
-  if (!cliente?.email_verificado) {
-    console.log('NEW GETCART: Email not verified, returning 403');
-    return res.status(403).json({ message: 'Debes verificar tu email para ver el carrito.' });
-  }
+  try {
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ message: 'No autenticado' });
 
-  // 1. Fetch the user's cart and its basic items
-  const carrito = await prisma.carrito.findFirst({
-    where: { id_cliente: userId },
-    include: {
-      items: true // Just CarritoItems, no deep product include yet
-    }
-  });
+    // Buscar el carrito del usuario, incluyendo producto, tipoProducto y config de avión si es vuelo
+    const carrito = await prisma.carrito.findFirst({
+      where: { id_cliente: userId },
+      include: {
+        items: {
+          include: {
+            producto: {
+              include: {
+                tipoProducto: true,
+                pasaje: {
+                  include: {
+                    avionConfig: {
+                      include: {
+                        asientos: true, // Only asientos is a valid relation
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
 
-  if (!carrito || !carrito.items || carrito.items.length === 0) {
-    console.log('NEW GETCART: Returning data:', []);
-    return res.json([]); // Return empty array if no cart or no items
-  }
+    if (!carrito) return res.status(200).json([]);
 
-  // 2. Extract all unique product IDs from cart items
-  const productoIds = [...new Set(carrito.items.map(item => item.id_producto))];
+    const itemsParaFrontend = [];
+    const itemsHuérfanos: number[] = [];
 
-  if (productoIds.length === 0) {
-      // This case should ideally not be reached if carrito.items was not empty,
-      // but as a safeguard:
-      if (carrito.items.length > 0) {
-        // If there were items but no product IDs (e.g. all items had null/undefined id_producto)
-        // then these are all orphans.
-        const orphanItemIds = carrito.items.map(i => i.id_item);
-        if (orphanItemIds.length > 0) {
-          await prisma.carritoItem.deleteMany({
-            where: { id_item: { in: orphanItemIds } }
-          });
+    // Use a type assertion to avoid TS error if needed
+    const items = (carrito as any)?.items || [];
+    for (const item of items) {
+      // Si el producto fue eliminado, marcar para limpiar
+      if (!item.producto) {
+        itemsHuérfanos.push(item.id_item);
+        continue;
+      }
+      const itemParaFrontend: any = { ...item };
+      let precioItemActual = item.producto.precio;
+      let detalles_vuelo_populados: any = {};
+
+      // Procesar solo si es vuelo y tiene detalles
+      if (
+        item.producto.tipoProducto?.nombre === 'vuelo' &&
+        item.detalles_vuelo_json
+      ) {
+        try {
+          const detalles = JSON.parse(item.detalles_vuelo_json);
+          // --- CLASE DE SERVICIO (desde tipoAsientoBase del asiento seleccionado) ---
+          let claseServicio = null;
+          let asientoSeleccionado = null;
+          const asientos = item.producto.pasaje?.avionConfig?.asientos;
+          if (
+            detalles.id_asiento &&
+            Array.isArray(asientos)
+          ) {
+            asientoSeleccionado = asientos.find(
+              (a: any) => a.id_asiento === detalles.id_asiento
+            );
+          }
+          if (asientoSeleccionado && asientoSeleccionado.tipoAsientoBase) {
+            claseServicio = asientoSeleccionado.tipoAsientoBase;
+            if (claseServicio.multiplicador_precio) {
+              precioItemActual *= Number(claseServicio.multiplicador_precio);
+            }
+            detalles_vuelo_populados.nombre_clase_servicio = claseServicio.nombre;
+          } else {
+            detalles_vuelo_populados.nombre_clase_servicio = null;
+          }
+
+          // --- ASIENTO SELECCIONADO ---
+          if (asientoSeleccionado) {
+            if (asientoSeleccionado.precio_adicional_base) {
+              precioItemActual += Number(asientoSeleccionado.precio_adicional_base);
+            }
+            // Build seat code from fila and columna
+            detalles_vuelo_populados.info_asiento_seleccionado = `${asientoSeleccionado.fila}${asientoSeleccionado.columna}`;
+          } else {
+            detalles_vuelo_populados.info_asiento_seleccionado = null;
+          }
+
+          // --- EQUIPAJE ADICIONAL ---
+          // No direct relation from avionConfig, so skip or handle separately if needed
+          detalles_vuelo_populados.info_equipaje_seleccionado = [];
+          if (Array.isArray(detalles.selecciones_equipaje)) {
+            for (const eqSel of detalles.selecciones_equipaje) {
+              // You may need to fetch OpcionEquipaje separately if you want names/prices
+              detalles_vuelo_populados.info_equipaje_seleccionado.push({
+                nombre: null, // Not available here
+                cantidad: eqSel.cantidad || 1,
+                precio_unitario: 0,
+                precio_total: 0,
+              });
+            }
+          }
+        } catch (e) {
+          // Si el JSON está corrupto, ignorar detalles
+          detalles_vuelo_populados = {};
         }
       }
-      console.log('NEW GETCART: Returning data:', []);
-      return res.json([]);
-  }
-
-  // 3. Fetch all corresponding products with their types
-  const productos = await prisma.producto.findMany({
-    where: {
-      id_producto: { in: productoIds }
-    },
-    include: {
-      tipoProducto: true // Include the product type
+      // Calcular precio total (incluye cantidad)
+      itemParaFrontend.precio_total_item_calculado = precioItemActual * item.cantidad;
+      itemParaFrontend.detalles_vuelo_populados = detalles_vuelo_populados;
+      itemsParaFrontend.push(itemParaFrontend);
     }
-  });
 
-  // 4. Create a map of productId to Product for easy lookup
-  const productoMap = new Map(productos.map(p => [p.id_producto, p]));
-
-  const validItems = [];
-  const orphanItemIds = [];
-
-  // 5. Iterate through original cart items, validate, and build response
-  for (const item of carrito.items) {
-    const productoDetallado = productoMap.get(item.id_producto);
-    if (productoDetallado) {
-      // Product exists, create the item structure the frontend expects
-      validItems.push({
-        ...item, // Spread CarritoItem properties (id_item, id_carrito, cantidad)
-        producto: productoDetallado // Add the full product details
-      });
-    } else {
-      // Product not found, mark this CarritoItem as an orphan
-      orphanItemIds.push(item.id_item);
+    // Limpiar items huérfanos
+    if (itemsHuérfanos.length > 0) {
+      await prisma.carritoItem.deleteMany({ where: { id_item: { in: itemsHuérfanos } } });
     }
-  }
 
-  // 6. Delete orphan CarritoItems
-  if (orphanItemIds.length > 0) {
-    await prisma.carritoItem.deleteMany({
-      where: {
-        id_item: { in: orphanItemIds }
-      }
-    });
-    console.log(`Deleted ${orphanItemIds.length} orphan cart items.`);
+    res.status(200).json(itemsParaFrontend);
+  } catch (error) {
+    console.error('Error al obtener carrito:', error);
+    res.status(500).json({ message: 'Error interno del servidor.' });
   }
-
-  // 7. Return only the valid items
-  console.log('NEW GETCART: Returning data:', validItems);
-  return res.json(validItems);
 }
 
 /**
@@ -117,7 +153,7 @@ export async function addToCart(req: Request, res: Response) {
     return res.status(403).json({ message: 'Debes verificar tu email antes de agregar productos al carrito.' });
   }
   // Solo una declaración de productId y cantidad
-  const { productId, cantidad: cantidadSolicitada } = req.body;
+  const { productId, cantidad: cantidadSolicitada, detallesVuelo } = req.body;
 
   // Validación explícita de productId
   if (!productId || isNaN(Number(productId))) {
@@ -157,15 +193,32 @@ export async function addToCart(req: Request, res: Response) {
     },
   });
 
+  // Serializar detallesVuelo si viene presente
+  let detallesVueloJson: string | null = null;
+  if (detallesVuelo !== undefined) {
+    if (detallesVuelo === null) {
+      detallesVueloJson = null;
+    } else {
+      try {
+        detallesVueloJson = JSON.stringify(detallesVuelo);
+      } catch (e) {
+        return res.status(400).json({ message: 'Error al serializar detallesVuelo.' });
+      }
+    }
+  }
+
   if (itemEnCarrito) {
-    // Producto ya existe en el carrito, actualizar cantidad
+    // Producto ya existe en el carrito, actualizar cantidad y/o detalles_vuelo_json
     const nuevaCantidad = itemEnCarrito.cantidad + cantidadFinal;
     if (producto.stock !== null && nuevaCantidad > producto.stock) {
       return res.status(400).json({ message: `Stock insuficiente. Solo quedan ${producto.stock} unidades.` });
     }
     itemEnCarrito = await prisma.carritoItem.update({
       where: { id_item: itemEnCarrito.id_item },
-      data: { cantidad: nuevaCantidad },
+      data: {
+        cantidad: nuevaCantidad,
+        ...(detallesVuelo !== undefined ? { detalles_vuelo_json: detallesVueloJson } : {})
+      },
     });
     res.status(200).json(itemEnCarrito);
   } else {
@@ -178,6 +231,7 @@ export async function addToCart(req: Request, res: Response) {
         id_carrito: carrito.id_carrito,
         id_producto: idProducto,
         cantidad: cantidadFinal,
+        ...(detallesVuelo !== undefined ? { detalles_vuelo_json: detallesVueloJson } : {})
       },
     });
     res.status(201).json(nuevoItem);
