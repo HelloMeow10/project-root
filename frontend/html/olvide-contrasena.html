@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Contraseña | Dashboard Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/login.css">
+    <link rel="stylesheet" href="../css/olvide-contrasena.css">
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="background-animation">
+        <div class="floating-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+            <div class="shape shape-4"></div>
+            <div class="shape shape-5"></div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="auth-container">
+        <!-- Left Panel - Branding -->
+        <div class="branding-panel">
+            <div class="branding-content">
+                <div class="logo">
+                    <i class="fas fa-shield-alt"></i>
+                    <h1>Recuperación Segura</h1>
+                </div>
+                <div class="welcome-text">
+                    <h2>¿Olvidaste tu contraseña?</h2>
+                    <p>No te preocupes, es normal. Te ayudaremos a recuperar el acceso a tu cuenta de forma segura.</p>
+                </div>
+                <div class="recovery-steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>Ingresa tu email</h4>
+                            <p>Proporciona el correo asociado a tu cuenta</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>Revisa tu correo</h4>
+                            <p>Te enviaremos un enlace de recuperación</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>Crea nueva contraseña</h4>
+                            <p>Establece una contraseña segura</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Recovery Form -->
+        <div class="form-panel">
+            <div class="form-container">
+                <div class="form-header">
+                    <div class="back-button">
+                        <a href="login.html" class="back-link">
+                            <i class="fas fa-arrow-left"></i>
+                            Volver al login
+                        </a>
+                    </div>
+                    <h2>Recuperar Contraseña</h2>
+                    <p>Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña</p>
+                </div>
+
+                <form id="forgotPasswordForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="email">Correo Electrónico</label>
+                        <div class="input-group">
+                            <i class="fas fa-envelope"></i>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                placeholder="tu@email.com"
+                                required
+                                autocomplete="email"
+                            >
+                        </div>
+                        <span class="error-message" id="emailError"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full" id="sendResetButton">
+                        <span class="btn-text">
+                            <i class="fas fa-paper-plane"></i>
+                            Enviar Enlace de Recuperación
+                        </span>
+                        <span class="btn-loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            Enviando...
+                        </span>
+                    </button>
+
+                    <div class="form-footer">
+                        <p>¿Recordaste tu contraseña? <a href="login.html" class="switch-link">Inicia sesión</a></p>
+                        <p>¿No tienes cuenta? <a href="registro.html" class="switch-link">Regístrate aquí</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Procesando...</p>
+        </div>
+    </div>
+
+    <script src="../js/login.js"></script>
+    <script src="../js/olvide-contrasena.js"></script>
+</body>
+</html>
