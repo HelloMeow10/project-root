@@ -234,17 +234,25 @@ let todasLasOpcionesEquipaje = [];
 let configuracionAvionActual = null;
 
 async function cargarClasesServicio() {
-  const selector = document.getElementById('claseServicioSelector');
+  console.log('[vuelos.js] Iniciando cargarClasesServicio');
+  const selector = document.getElementById('modalClaseServicioSelect'); // ID CORREGIDO
   if (!selector) {
-    console.warn("Elemento #claseServicioSelector no encontrado en el DOM del modal.");
+    console.error("[vuelos.js] Elemento #modalClaseServicioSelect no encontrado.");
     return;
   }
   selector.innerHTML = '<option value="">Cargando clases...</option>';
   selector.disabled = true;
   try {
-    const response = await fetch('/api/products/clases-servicio');
-    if (!response.ok) throw new Error(`HTTP ${response.status}: No se pudieron cargar las clases de servicio`);
-    todasLasClasesServicio = await response.json();
+    const url = '/api/products/clases-servicio';
+    console.log(`[vuelos.js] Fetching clases de servicio desde: ${url}`);
+    const response = await fetch(url);
+    const responseText = await response.text();
+    console.log(`[vuelos.js] Respuesta cruda de clases-servicio (status ${response.status}): ${responseText}`);
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}: No se pudieron cargar las clases de servicio. Detalle: ${responseText}`);
+
+    todasLasClasesServicio = JSON.parse(responseText);
+    console.log('[vuelos.js] Clases de servicio parseadas:', todasLasClasesServicio);
 
     if (!Array.isArray(todasLasClasesServicio)) {
         throw new Error("La respuesta de clases de servicio no es un array.");
@@ -260,19 +268,21 @@ async function cargarClasesServicio() {
       selector.appendChild(option);
     });
     selector.disabled = false;
+    console.log('[vuelos.js] Clases de servicio renderizadas en el select.');
 
-    selector.removeEventListener('change', handleClaseChange); // Prevenir duplicados
+    selector.removeEventListener('change', handleClaseChange);
     selector.addEventListener('change', handleClaseChange);
 
   } catch (error) {
-    console.error('Error cargando clases de servicio:', error);
+    console.error('[vuelos.js] Error cargando clases de servicio:', error);
     selector.innerHTML = `<option value="">Error: ${error.message}</option>`;
     showNotification(error.message || 'Error al cargar clases de servicio.', 'error');
   }
 }
 
 function handleClaseChange() {
-    const selector = document.getElementById('claseServicioSelector');
+    console.log('[vuelos.js] handleClaseChange disparado');
+    const selector = document.getElementById('modalClaseServicioSelect'); // ID CORREGIDO
     const selectedOption = selector.options[selector.selectedIndex];
     if (selectedOption && selectedOption.value) {
       claseSeleccionada = {
@@ -281,47 +291,59 @@ function handleClaseChange() {
         multiplicador: parseFloat(selectedOption.dataset.multiplicador)
       };
       multiplicadorClase = claseSeleccionada.multiplicador;
+      console.log('[vuelos.js] Clase seleccionada:', claseSeleccionada);
     } else {
       claseSeleccionada = null;
       multiplicadorClase = 1;
+      console.log('[vuelos.js] Ninguna clase seleccionada.');
     }
     recalcularPrecioTotalModal();
 }
 
 async function cargarMapaAsientos() {
-  const container = document.getElementById('asientosContainer');
+  console.log('[vuelos.js] Iniciando cargarMapaAsientos');
+  const container = document.getElementById('modalMapaAsientosContainer'); // ID CORREGIDO
   const infoSeleccion = document.getElementById('modalAsientoSeleccionado');
-  const costoAdicionalInfo = document.getElementById('modalCostoAdicionalAsiento');
+  const costoAdicionalInfo = document.getElementById('modalCostoAsiento'); // ID CORREGIDO
 
-  if (!container) { console.warn("#asientosContainer no encontrado"); return; }
-  if (!infoSeleccion) { console.warn("#modalAsientoSeleccionado no encontrado"); return; }
-  if (!costoAdicionalInfo) { console.warn("#modalCostoAdicionalAsiento no encontrado"); return; }
+  if (!container) { console.error("[vuelos.js] Elemento #modalMapaAsientosContainer no encontrado."); return; }
+  if (!infoSeleccion) { console.error("[vuelos.js] Elemento #modalAsientoSeleccionado no encontrado."); return; }
+  if (!costoAdicionalInfo) { console.error("[vuelos.js] Elemento #modalCostoAsiento no encontrado."); return; }
 
   container.innerHTML = 'Cargando mapa de asientos...';
   infoSeleccion.textContent = 'Ninguno';
-  costoAdicionalInfo.textContent = '$0.00';
+  costoAdicionalInfo.textContent = '0.00'; // No poner el $ aquí, solo el número
   asientoSeleccionado = null;
   precioAsiento = 0;
 
   if (!vueloSeleccionado || !vueloSeleccionado.id_producto) {
+    console.error('[vuelos.js] No hay vuelo seleccionado para cargar mapa de asientos.');
     container.innerHTML = '<p>Error: No se ha seleccionado un vuelo para personalizar.</p>';
     return;
   }
+  console.log('[vuelos.js] Vuelo seleccionado para mapa:', vueloSeleccionado);
 
   try {
-    const response = await fetch(`/api/products/pasajes/${vueloSeleccionado.id_producto}/mapa-asientos`);
+    const url = `/api/products/pasajes/${vueloSeleccionado.id_producto}/mapa-asientos`;
+    console.log(`[vuelos.js] Fetching mapa de asientos desde: ${url}`);
+    const response = await fetch(url);
+    const responseText = await response.text();
+    console.log(`[vuelos.js] Respuesta cruda de mapa-asientos (status ${response.status}): ${responseText}`);
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = JSON.parse(responseText || "{}");
       const defaultMessage = `Error ${response.status} al cargar el mapa de asientos.`;
       if (response.status === 404) {
-         throw new Error(errorData.message || 'Mapa de asientos no disponible para este vuelo (verifique config de avión en BD).');
+         throw new Error(errorData.message || 'Mapa de asientos no disponible (verifique config de avión en BD).');
       }
       throw new Error(errorData.message || defaultMessage);
     }
-    configuracionAvionActual = await response.json();
+    configuracionAvionActual = JSON.parse(responseText);
+    console.log('[vuelos.js] Mapa de asientos parseado:', configuracionAvionActual);
 
     if (!configuracionAvionActual || !configuracionAvionActual.asientosConDisponibilidad || configuracionAvionActual.asientosConDisponibilidad.length === 0) {
       container.innerHTML = '<p>No hay asientos definidos o disponibles para este avión.</p>';
+      console.log('[vuelos.js] No hay asientos definidos/disponibles.');
       return;
     }
 
@@ -334,6 +356,7 @@ async function cargarMapaAsientos() {
         if (!filas[asiento.fila]) filas[asiento.fila] = [];
         filas[asiento.fila].push(asiento);
     });
+    console.log('[vuelos.js] Asientos agrupados por filas:', filas);
 
     for (const numFila in filas) {
         const filaDiv = document.createElement('div');
@@ -360,6 +383,7 @@ async function cargarMapaAsientos() {
             }
 
             asientoBtn.addEventListener('click', function() {
+                console.log('[vuelos.js] Clic en asiento:', asiento);
                 const actualSeleccionadoDOM = container.querySelector('.asiento-btn.seleccionado');
                 if (actualSeleccionadoDOM) {
                     actualSeleccionadoDOM.classList.remove('seleccionado');
@@ -369,6 +393,7 @@ async function cargarMapaAsientos() {
                     asientoSeleccionado = null;
                     precioAsiento = 0;
                     infoSeleccion.textContent = 'Ninguno';
+                    console.log('[vuelos.js] Asiento deseleccionado.');
                 } else {
                     this.classList.add('seleccionado');
                     asientoSeleccionado = {
@@ -378,8 +403,9 @@ async function cargarMapaAsientos() {
                     };
                     precioAsiento = asientoSeleccionado.precio;
                     infoSeleccion.textContent = asientoSeleccionado.display;
+                    console.log('[vuelos.js] Asiento seleccionado:', asientoSeleccionado);
                 }
-                costoAdicionalInfo.textContent = `$${precioAsiento.toFixed(2)}`;
+                costoAdicionalInfo.textContent = precioAsiento.toFixed(2); // No poner el $ aquí
                 recalcularPrecioTotalModal();
             });
             filaDiv.appendChild(asientoBtn);
@@ -387,24 +413,33 @@ async function cargarMapaAsientos() {
         grid.appendChild(filaDiv);
     }
     container.appendChild(grid);
+    console.log('[vuelos.js] Mapa de asientos renderizado.');
 
   } catch (error) {
-    console.error('Error cargando mapa de asientos:', error);
+    console.error('[vuelos.js] Error cargando mapa de asientos:', error);
     container.innerHTML = `<p style="color:red;">${error.message}</p>`;
     showNotification(error.message || 'Error al cargar el mapa de asientos.', 'error');
   }
 }
 
 async function cargarOpcionesEquipaje() {
-  const container = document.getElementById('equipajeContainer');
-   if (!container) { console.warn("#equipajeContainer no encontrado"); return;}
+  console.log('[vuelos.js] Iniciando cargarOpcionesEquipaje');
+  const container = document.getElementById('modalOpcionesEquipajeContainer'); // ID CORREGIDO
+   if (!container) { console.error("[vuelos.js] Elemento #modalOpcionesEquipajeContainer no encontrado."); return;}
   container.innerHTML = 'Cargando opciones de equipaje...';
   equipajeSeleccionado = [];
 
   try {
-    const response = await fetch('/api/products/opciones-equipaje');
-    if (!response.ok) throw new Error(`HTTP ${response.status}: No se pudieron cargar las opciones de equipaje`);
-    todasLasOpcionesEquipaje = await response.json();
+    const url = '/api/products/opciones-equipaje';
+    console.log(`[vuelos.js] Fetching opciones de equipaje desde: ${url}`);
+    const response = await fetch(url);
+    const responseText = await response.text();
+    console.log(`[vuelos.js] Respuesta cruda de opciones-equipaje (status ${response.status}): ${responseText}`);
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}: No se pudieron cargar las opciones de equipaje. Detalle: ${responseText}`);
+
+    todasLasOpcionesEquipaje = JSON.parse(responseText);
+    console.log('[vuelos.js] Opciones de equipaje parseadas:', todasLasOpcionesEquipaje);
 
     if (!Array.isArray(todasLasOpcionesEquipaje)) {
         throw new Error("La respuesta de opciones de equipaje no es un array.");
@@ -412,6 +447,7 @@ async function cargarOpcionesEquipaje() {
 
     if (todasLasOpcionesEquipaje.length === 0) {
         container.innerHTML = '<p>No hay opciones de equipaje adicionales disponibles.</p>';
+        console.log('[vuelos.js] No hay opciones de equipaje adicionales.');
         return;
     }
 
@@ -432,6 +468,7 @@ async function cargarOpcionesEquipaje() {
       const cantidadInput = div.querySelector('.equipaje-cantidad');
 
       checkbox.addEventListener('change', function() {
+        console.log(`[vuelos.js] Checkbox equipaje '${opcion.nombre}' cambiado: ${this.checked}`);
         cantidadInput.style.display = this.checked ? 'inline-block' : 'none';
         actualizarSeleccionEquipaje(
             parseInt(opcion.id_opcion_equipaje),
@@ -442,6 +479,7 @@ async function cargarOpcionesEquipaje() {
         );
       });
       cantidadInput.addEventListener('change', function() {
+         console.log(`[vuelos.js] Cantidad equipaje '${opcion.nombre}' cambiada: ${this.value}`);
          if (checkbox.checked) {
             actualizarSeleccionEquipaje(
                 parseInt(opcion.id_opcion_equipaje),
@@ -453,8 +491,9 @@ async function cargarOpcionesEquipaje() {
          }
       });
     });
+    console.log('[vuelos.js] Opciones de equipaje renderizadas.');
   } catch (error) {
-    console.error('Error cargando opciones de equipaje:', error);
+    console.error('[vuelos.js] Error cargando opciones de equipaje:', error);
     container.innerHTML = `<p style="color:red;">Error al cargar opciones de equipaje: ${error.message}</p>`;
     showNotification(error.message || 'Error al cargar opciones de equipaje.', 'error');
   }
@@ -468,7 +507,7 @@ function actualizarSeleccionEquipaje(idOpcion, seleccionado, cantidad, precioUni
             equipajeSeleccionado[indiceExistente].precioTotal = precioUnitario * cantidad;
         } else {
             equipajeSeleccionado.push({
-                id: idOpcion, // Este es el id_opcion_equipaje
+                id: idOpcion,
                 nombre: nombreOpcion,
                 cantidad: cantidad,
                 precioUnitario: precioUnitario,
@@ -480,15 +519,16 @@ function actualizarSeleccionEquipaje(idOpcion, seleccionado, cantidad, precioUni
             equipajeSeleccionado.splice(indiceExistente, 1);
         }
     }
+    console.log('[vuelos.js] Selección de equipaje actualizada:', equipajeSeleccionado);
     recalcularPrecioTotalModal();
 }
 
 function recalcularPrecioTotalModal() {
   const precioBaseElem = document.getElementById('modalPrecioBaseVuelo');
-  const precioTotalEstimadoElem = document.getElementById('modalPrecioTotalEstimadoVuelo');
+  const precioTotalEstimadoElem = document.getElementById('modalPrecioTotalEstimado'); // ID CORREGIDO
 
   if (!precioBaseElem || !precioTotalEstimadoElem) {
-      console.warn("Elementos de precio no encontrados en el modal para recalcular.");
+      console.warn("[vuelos.js] Elementos de precio no encontrados en el modal para recalcular.");
       return;
   }
 
@@ -503,25 +543,32 @@ function recalcularPrecioTotalModal() {
 
   const precioTotalEstimado = precioBase + costoClase + costoAsiento + costoEquipaje;
 
-  precioTotalEstimadoElem.textContent = precioTotalEstimado.toFixed(2);
+  console.log(`[vuelos.js] Recalculando precio: Base=${precioBase}, MultiplicadorClase=${multiplicadorClase}, CostoClase=${costoClase}, CostoAsiento=${costoAsiento}, CostoEquipaje=${costoEquipaje}, Total=${precioTotalEstimado}`);
+  precioTotalEstimadoElem.textContent = precioTotalEstimado.toFixed(2); // No poner el $ aquí
 }
 
 // Asegurarse de resetear estado del modal al cerrarlo
-const modalCloseBtn = document.querySelector('#vueloOpcionesModal .modal-close-btn');
-if (modalCloseBtn) {
-    modalCloseBtn.addEventListener('click', function() {
-        const modal = document.getElementById('vueloOpcionesModal');
-        if(modal) modal.style.display = 'none';
+// Quitar el onclick en línea del HTML: <span class="close-button" onclick="document.getElementById('vueloOpcionesModal').style.display='none'">&times;</span>
+// Y usar solo este event listener:
+const modalInstance = document.getElementById('vueloOpcionesModal');
+const spanClose = modalInstance ? modalInstance.querySelector('.close-button') : null;
+
+if (spanClose) {
+    spanClose.addEventListener('click', function() {
+        console.log('[vuelos.js] Botón de cierre del modal clickeado.');
+        if(modalInstance) modalInstance.style.display = 'none';
         resetearEstadoModalVuelo();
     });
+} else {
+    console.warn("[vuelos.js] Botón de cierre (.close-button) no encontrado dentro de #vueloOpcionesModal.");
 }
 
 // Cerrar modal si se hace clic fuera de él
-const modalVuelo = document.getElementById('vueloOpcionesModal');
-if (modalVuelo) {
-    modalVuelo.addEventListener('click', function(event) {
-        if (event.target === modalVuelo) { // Si el clic es en el fondo del modal
-            modalVuelo.style.display = 'none';
+if (modalInstance) {
+    modalInstance.addEventListener('click', function(event) {
+        if (event.target === modalInstance) {
+            console.log('[vuelos.js] Clic fuera del contenido del modal.');
+            modalInstance.style.display = 'none';
             resetearEstadoModalVuelo();
         }
     });
@@ -529,6 +576,7 @@ if (modalVuelo) {
 
 
 function resetearEstadoModalVuelo() {
+    console.log('[vuelos.js] Reseteando estado del modal de vuelo.');
     vueloSeleccionado = null;
     claseSeleccionada = null;
     asientoSeleccionado = null;
@@ -537,26 +585,27 @@ function resetearEstadoModalVuelo() {
     precioAsiento = 0;
     multiplicadorClase = 1;
 
-    const selectorClase = document.getElementById('claseServicioSelector');
-    if (selectorClase) selectorClase.innerHTML = '<option value="">Selecciona una clase</option>'; // Limpiar y poner placeholder
+    const selectorClase = document.getElementById('modalClaseServicioSelect'); // ID CORREGIDO
+    if (selectorClase) selectorClase.innerHTML = '<option value="">Selecciona una clase</option>';
 
-    const asientosContainer = document.getElementById('asientosContainer');
+    const asientosContainer = document.getElementById('modalMapaAsientosContainer'); // ID CORREGIDO
     if (asientosContainer) asientosContainer.innerHTML = 'Cargando mapa de asientos...';
 
-    const equipajeContainer = document.getElementById('equipajeContainer');
+    const equipajeContainer = document.getElementById('modalOpcionesEquipajeContainer'); // ID CORREGIDO
     if (equipajeContainer) equipajeContainer.innerHTML = 'Cargando opciones de equipaje...';
 
     const modalAsientoSel = document.getElementById('modalAsientoSeleccionado');
     if(modalAsientoSel) modalAsientoSel.textContent = 'Ninguno';
 
-    const modalCostoAdAs = document.getElementById('modalCostoAdicionalAsiento');
-    if(modalCostoAdAs) modalCostoAdAs.textContent = '$0.00';
+    const modalCostoAdAs = document.getElementById('modalCostoAsiento'); // ID CORREGIDO
+    if(modalCostoAdAs) modalCostoAdAs.textContent = '0.00';
 
     const modalPrecioBase = document.getElementById('modalPrecioBaseVuelo');
     if(modalPrecioBase) modalPrecioBase.textContent = '0.00';
 
-    const modalPrecioTotal = document.getElementById('modalPrecioTotalEstimadoVuelo');
+    const modalPrecioTotal = document.getElementById('modalPrecioTotalEstimado'); // ID CORREGIDO
     if(modalPrecioTotal) modalPrecioTotal.textContent = '0.00';
+    console.log('[vuelos.js] Estado del modal reseteado.');
 }
 
 
