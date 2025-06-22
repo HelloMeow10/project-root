@@ -422,13 +422,31 @@ class CartUI {
     // const idDireccionFacturacion = document.getElementById('direccionSelect')?.value;
     // const bodyData = idDireccionFacturacion ? { id_direccion_facturacion: idDireccionFacturacion } : {};
 
+    // Construir el array de items para enviar al backend
+    const itemsParaPedido = this.cartItems.map(item => {
+      const detallesVuelo = item.detalles_vuelo_json ? JSON.parse(item.detalles_vuelo_json) : {};
+      return {
+        id_producto: item.id_producto,
+        cantidad: item.cantidad,
+        // Incluir detalles adicionales si existen, asegurándose de que los nombres coincidan con lo que espera el backend
+        seleccion_clase_servicio_id: detallesVuelo.seleccion_clase_servicio_id !== undefined ? detallesVuelo.seleccion_clase_servicio_id : null,
+        seleccion_asiento_fisico_id: detallesVuelo.seleccion_asiento_fisico_id !== undefined ? detallesVuelo.seleccion_asiento_fisico_id : null,
+        selecciones_equipaje: Array.isArray(detallesVuelo.selecciones_equipaje) ? detallesVuelo.selecciones_equipaje : []
+      };
+    });
+
+    const bodyData = {
+      // id_direccion_facturacion: idDireccionFacturacion ? Number(idDireccionFacturacion) : undefined, // Descomentar si se implementa selector de dirección
+      items: itemsParaPedido
+    };
+
     fetch('/api/orders', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      // body: JSON.stringify(bodyData), // Enviar si es necesario
+      body: JSON.stringify(bodyData),
     })
     .then(res => {
       if (res.status === 401) {
