@@ -4,6 +4,15 @@ import { ProductService } from '../services/ProductService';
 
 const productService = new ProductService();
 
+/**
+ * Obtiene todos los productos.
+ * @async
+ * @function getAllProducts
+ * @param {Request} req - El objeto de solicitud de Express.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía una respuesta JSON con la lista de productos o un error.
+ */
 export async function getAllProducts(req: Request, res: Response, next: NextFunction) {
   try {
     const productos = await productService.obtenerProductos();
@@ -13,6 +22,15 @@ export async function getAllProducts(req: Request, res: Response, next: NextFunc
   }
 }
 
+/**
+ * Obtiene todos los productos que no son de tipo 'paquete' (productos individuales).
+ * @async
+ * @function getIndividualProducts
+ * @param {Request} req - El objeto de solicitud de Express.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía una respuesta JSON con la lista de productos individuales o un error.
+ */
 export async function getIndividualProducts(req: Request, res: Response, next: NextFunction) {
   try {
     const productos = await productService.obtenerProductosIndividuales();
@@ -22,6 +40,15 @@ export async function getIndividualProducts(req: Request, res: Response, next: N
   }
 }
 
+/**
+ * Elimina un producto componente de un paquete específico.
+ * @async
+ * @function eliminarComponenteDePaquete
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.params.id_paquete` y `req.params.id_producto_componente`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía una respuesta JSON con el paquete actualizado o un error.
+ */
 export async function eliminarComponenteDePaquete(req: Request, res: Response, next: NextFunction) {
   try {
     const id_paquete = Number(req.params.id_paquete);
@@ -41,6 +68,15 @@ export async function eliminarComponenteDePaquete(req: Request, res: Response, n
   }
 }
 
+/**
+ * Obtiene un producto específico por su ID.
+ * @async
+ * @function getProductById
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.params.id`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía una respuesta JSON con el producto o un error.
+ */
 export async function getProductById(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const id = Number(req.params.id);
@@ -51,6 +87,16 @@ export async function getProductById(req: Request, res: Response, next: NextFunc
   }
 }
 
+/**
+ * Crea un nuevo producto, incluyendo datos específicos del tipo si aplica (ej. Hospedaje, Pasaje).
+ * @async
+ * @function createProduct
+ * @param {Request} req - El objeto de solicitud de Express. Espera en `req.body` los datos del producto,
+ *                        incluyendo `nombre_tipo_producto` y opcionalmente objetos como `hospedaje`, `pasaje`, etc.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía una respuesta JSON con el nuevo producto creado o un error.
+ */
 export async function createProduct(req: Request, res: Response, next: NextFunction) {
   try {
     // El cuerpo de la solicitud ahora puede contener datos específicos del tipo
@@ -88,6 +134,15 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
   }
 }
 
+/**
+ * Actualiza un producto existente.
+ * @async
+ * @function updateProduct
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.params.id` y en `req.body` los campos a actualizar.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía una respuesta JSON con el producto actualizado o un error.
+ */
 export async function updateProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const id = Number(req.params.id);
@@ -103,6 +158,14 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
   }
 }
 
+/**
+ * Elimina un producto por su ID.
+ * @async
+ * @function deleteProduct
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.params.id`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @returns {Promise<void>} Envía una respuesta con estado 204 (sin contenido) si tiene éxito, o un error.
+ */
 export async function deleteProduct(req: Request, res: Response) {
   try {
     const id = Number(req.params.id);
@@ -123,6 +186,15 @@ export async function deleteProduct(req: Request, res: Response) {
   }
 }
 
+/**
+ * Agrega un producto componente a un paquete existente.
+ * @async
+ * @function agregarComponenteAPaquete
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.params.id_paquete` y en `req.body`: `id_producto` (del componente) y `cantidad`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía una respuesta JSON con el paquete actualizado o un error.
+ */
 export async function agregarComponenteAPaquete(req: Request, res: Response, next: NextFunction) {
   try {
     const id_paquete = Number(req.params.id_paquete);

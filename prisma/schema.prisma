@@ -47,7 +47,7 @@ model MetodoPagoCliente {
   id_metodo_pago          Int     @id @default(autoincrement())
   id_cliente              Int
   cliente                 Cliente @relation(fields: [id_cliente], references: [id_cliente])
-  stripe_payment_method_id String? // ID de Stripe, ahora obsoleto y opcional. Se eliminó @unique.
+  // stripe_payment_method_id String? // ID de Stripe, ahora obsoleto y opcional. Se eliminó @unique. <- CAMPO ELIMINADO
   tipo_tarjeta            String  // ej. "visa", "mastercard"
   ultimos_cuatro_digitos  String
   fecha_expiracion        String  // ej. "12/25"

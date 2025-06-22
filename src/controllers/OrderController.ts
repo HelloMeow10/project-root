@@ -4,6 +4,16 @@ import { prisma } from '../config/db'; // Para validación de email
 
 const orderService = new OrderService();
 
+/**
+ * Obtiene todos los pedidos. Solo para administradores.
+ * Permite filtrar por estado y ID de cliente, y ordenar.
+ * @async
+ * @function getAllOrders
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.user.tipo`. Query params opcionales: `estado`, `id_cliente`, `ordenPor`, `direccionOrden`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía una respuesta JSON con la lista de pedidos o un error.
+ */
 export async function getAllOrders(req: Request, res: Response, next: NextFunction) {
   try {
     // Solo admin debería ver todos los pedidos
@@ -35,6 +45,15 @@ export async function getAllOrders(req: Request, res: Response, next: NextFuncti
   }
 }
 
+/**
+ * Obtiene todos los pedidos del usuario actualmente autenticado.
+ * @async
+ * @function getMyOrders
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.user.userId`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía una respuesta JSON con los pedidos del usuario o un error.
+ */
 export async function getMyOrders(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = req.user?.userId;
@@ -48,6 +67,16 @@ export async function getMyOrders(req: Request, res: Response, next: NextFunctio
   }
 }
 
+/**
+ * Obtiene un pedido específico por su ID.
+ * Solo el propietario del pedido o un administrador pueden acceder.
+ * @async
+ * @function getOrderById
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.user.userId`, `req.user.tipo` y `req.params.id`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía una respuesta JSON con el pedido o un error.
+ */
 export async function getOrderById(req: Request, res: Response, next: NextFunction) {
   try {
     const id = Number(req.params.id);
@@ -69,6 +98,16 @@ export async function getOrderById(req: Request, res: Response, next: NextFuncti
   }
 }
 
+/**
+ * Crea un nuevo pedido a partir del carrito del usuario actual.
+ * Valida que el email del cliente esté verificado.
+ * @async
+ * @function createOrder
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.user.userId`. Opcional en `req.body`: `id_direccion_facturacion`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía una respuesta JSON con el nuevo pedido creado o un error.
+ */
 export async function createOrder(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = req.user?.userId;
@@ -94,6 +133,17 @@ export async function createOrder(req: Request, res: Response, next: NextFunctio
   }
 }
 
+/**
+ * Actualiza un pedido existente.
+ * Los administradores pueden actualizar el estado y la dirección de facturación.
+ * Los clientes solo pueden cancelar sus propios pedidos si están pendientes de pago.
+ * @async
+ * @function updateOrder
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.user.userId`, `req.user.tipo`, `req.params.id`. En `req.body`: `estado` y/o `id_direccion_facturacion`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía una respuesta JSON con el pedido actualizado o un error.
+ */
 export async function updateOrder(req: Request, res: Response, next: NextFunction) {
   // Principalmente para que un admin actualice el estado del pedido, por ejemplo.
   try {
@@ -141,6 +191,16 @@ export async function updateOrder(req: Request, res: Response, next: NextFunctio
   }
 }
 
+/**
+ * Elimina un pedido. Solo para administradores.
+ * Nota: Usualmente los pedidos se marcan como cancelados en lugar de eliminarse físicamente.
+ * @async
+ * @function deleteOrder
+ * @param {Request} req - El objeto de solicitud de Express. Espera `req.user.tipo` y `req.params.id`.
+ * @param {Response} res - El objeto de respuesta de Express.
+ * @param {NextFunction} next - La función middleware siguiente.
+ * @returns {Promise<void>} Envía una respuesta JSON con un mensaje de éxito o un error.
+ */
 export async function deleteOrder(req: Request, res: Response, next: NextFunction) {
   // Usualmente los pedidos no se eliminan físicamente, se marcan como cancelados.
   // Pero siguiendo la estructura actual:

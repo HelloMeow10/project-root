@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import { prisma } from '../prismaClient';
-// import Stripe from 'stripe'; // Stripe no se usará directamente aquí ahora
+// import Stripe from 'stripe'; // Stripe ya no se usa
 import nodemailer from 'nodemailer';
 
-// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string); // Stripe SDK ya no es necesario para estas operaciones directas
+// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string); // Stripe SDK eliminado
 
 export async function createSetupIntent(req: Request, res: Response) {
   // Esta funcionalidad estaba ligada a Stripe. Con la eliminación de Stripe,
