@@ -976,53 +976,10 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 });
 
-document.getElementById('confirmarCompraBtn')?.addEventListener('click', async function () {
-  const token = localStorage.getItem('token');
-  const tipo = localStorage.getItem('tipo');
-  console.log('Confirmar Compra - Token:', token ? `Yes (${token.substring(0, 10)}...)` : 'No');
-  console.log('Confirmar Compra - Tipo:', tipo);
-
-  if (!token || tipo !== 'cliente') {
-    window.CartAPI.showNotification('Debes iniciar sesión como cliente para comprar', 'error');
-    setTimeout(() => window.locatiadmin.htmlon.href = tipo === 'admin' ? '/' : '/login.html', 1500);
-    return;
-  }
-
-  try {
-    const res = await fetch('/api/cart', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-    console.log('Confirmar Compra - Cart API Status:', res.status);
-
-    if (res.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('tipo');
-      window.CartAPI.showNotification('Sesión inválida. Por favor, inicia sesión nuevamente.', 'error');
-      setTimeout(() => window.location.href = '/login.html', 1500);
-      return;
-    }
-
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      console.log('Confirmar Compra - Cart API Error:', errorData);
-      throw new Error(`Failed to fetch cart: ${res.status} - ${errorData.message || 'Unknown error'}`);
-    }
-
-    const items = await res.json();
-    if (!items.length) {
-      window.CartAPI.showNotification('No hay productos en el carrito', 'error');
-      return;
-    }
-
-    window.location.href = 'pagos.html';
-  } catch (err) {
-    console.error('Confirmar Compra Error:', err);
-    window.CartAPI.showNotification(`Error: ${err.message}`, 'error');
-  }
-});
+// Eliminar el event listener redundante para confirmarCompraBtn
+// document.getElementById('confirmarCompraBtn')?.addEventListener('click', async function () {
+// ... (código eliminado) ...
+// });
 
 window.CartAPI = {
   showNotification: function (text, type, duration) {
