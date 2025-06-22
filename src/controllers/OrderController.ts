@@ -121,15 +121,19 @@ export async function createOrder(req: Request, res: Response, next: NextFunctio
       return res.status(403).json({ message: 'Debes verificar tu email antes de crear un pedido.' });
     }
     
-    // const { id_direccion_facturacion, items } = req.body;
-    // Ya no se esperan items en el body, el servicio los obtiene del carrito.
-    const { id_direccion_facturacion } = req.body;
+    }
 
+    const { id_direccion_facturacion, items } = req.body;
 
-    // El servicio crearPedidoDesdeCarrito ahora obtiene los items del carrito directamente.
+    // Validar que 'items' se proporciona y es un array con elementos.
+    // El OrderService espera estos items para procesar detalles adicionales (vuelos, etc.)
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ message: 'Debes enviar los items del pedido con sus detalles (ej. selección de asientos, equipaje).' });
+    }
+
     const newOrder = await orderService.crearPedidoDesdeCarrito(
       userId,
-      // items, // Ya no se pasa 'items' desde aquí
+      items, // Pasar los items del req.body al servicio
       id_direccion_facturacion ? Number(id_direccion_facturacion) : undefined
     );
     res.status(201).json(newOrder);
