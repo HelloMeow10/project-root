@@ -7,11 +7,11 @@ INSERT INTO "TipoProducto" (nombre, descripcion) VALUES
 ON CONFLICT (nombre) DO NOTHING;
 
 -- Insertar tipos de asiento
-INSERT INTO "TipoAsiento" (nombre, descripcion) VALUES
-('Económica', 'Asiento estándar en clase económica'),
-('Premium Economy', 'Asiento con mayor espacio y servicios mejorados'),
-('Business', 'Asiento en clase ejecutiva, reclinable y con más comodidades'),
-('Primera', 'Asiento de primera clase, máximo confort')
+INSERT INTO "TipoAsiento" (nombre, descripcion, multiplicador_precio) VALUES
+('Económica', 'Asiento estándar en clase económica', 1.0),
+('Premium Economy', 'Asiento con mayor espacio y servicios mejorados', 1.2),
+('Business', 'Asiento en clase ejecutiva, reclinable y con más comodidades', 1.8),
+('Primera', 'Asiento de primera clase, máximo confort', 2.5)
 ON CONFLICT (nombre) DO NOTHING;
 
 -- Insertar roles
@@ -43,11 +43,11 @@ VALUES
 ('Vuelo Buenos Aires - Mendoza', 'Vuelo directo ida y vuelta', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'vuelo'), 95000, 40, true),
 ('Vuelo Buenos Aires - Ushuaia', 'Vuelo directo ida y vuelta', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'vuelo'), 150000, 30, true);
 
--- Insertar detalles de pasajes (con id_tipo_asiento obligatorio)
-INSERT INTO "Pasaje" (id_producto, origen, destino, clase, asientos_disponibles, id_tipo_asiento) VALUES
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Bariloche'), 'Buenos Aires', 'Bariloche', 'Turista', 50, (SELECT id_tipo_asiento FROM "TipoAsiento" WHERE nombre = 'Económica')),
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Mendoza'), 'Buenos Aires', 'Mendoza', 'Turista', 40, (SELECT id_tipo_asiento FROM "TipoAsiento" WHERE nombre = 'Económica')),
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Ushuaia'), 'Buenos Aires', 'Ushuaia', 'Turista', 30, (SELECT id_tipo_asiento FROM "TipoAsiento" WHERE nombre = 'Económica'));
+-- Insertar detalles de pasajes (sin clase ni asientos_disponibles, acorde a nuevo modelo)
+INSERT INTO "Pasaje" (id_producto, origen, destino, fecha_salida, fecha_regreso, aerolinea) VALUES
+((SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Bariloche'), 'Buenos Aires', 'Bariloche', NULL, NULL, 'Aerolineas Argentinas'),
+((SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Mendoza'), 'Buenos Aires', 'Mendoza', NULL, NULL, 'Aerolineas Argentinas'),
+((SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Ushuaia'), 'Buenos Aires', 'Ushuaia', NULL, NULL, 'Aerolineas Argentinas');
 
 -- Insertar productos individuales (hoteles)
 INSERT INTO "Producto" (nombre, descripcion, id_tipo, precio, stock, activo)
@@ -98,3 +98,10 @@ INSERT INTO "PaqueteDetalle" (id_paquete, id_producto) VALUES
 ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Ushuaia Premium'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Ushuaia')),
 ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Ushuaia Premium'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Hotel Austral')),
 ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Ushuaia Premium'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Auto Familiar Ushuaia'));
+
+-- Insertar opciones de equipaje (nuevas tablas)
+INSERT INTO "OpcionEquipaje" (nombre, descripcion, precio_adicional, peso_maximo_kg, dimensiones_maximas) VALUES
+('Maleta documentada 23kg', 'Maleta grande para bodega', 15000, 23, '158cm lineales'),
+('Equipaje de mano extra', 'Bolso adicional en cabina', 8000, 10, '55x40x20cm'),
+('Equipo deportivo', 'Equipo especial (ej. esquí, golf)', 20000, 25, '200cm lineales')
+ON CONFLICT (nombre) DO NOTHING;
