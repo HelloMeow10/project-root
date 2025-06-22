@@ -121,7 +121,7 @@ export async function createOrder(req: Request, res: Response, next: NextFunctio
       return res.status(403).json({ message: 'Debes verificar tu email antes de crear un pedido.' });
     }
     
-    }
+    // Se eliminó la llave '}' extra que estaba aquí.
 
     const { id_direccion_facturacion, items } = req.body;
 
