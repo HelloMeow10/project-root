@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.obtenerUsuarios = exports.editarUsuarioInterno = exports.obtenerUsuarioInternoPorId = exports.eliminarUsuarioInterno = exports.toggleActivoUsuarioInterno = exports.createUsuarioInterno = exports.getAllClientes = exports.getAllUsuariosInternos = void 0;
 exports.getAuthenticatedUserData = getAuthenticatedUserData;
+exports.updateAuthenticatedClienteData = updateAuthenticatedClienteData;
 const UserService_1 = require("../services/UserService");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const prismaClient_1 = require("../prismaClient");
@@ -136,6 +137,7 @@ async function getAuthenticatedUserData(req, res) {
                 email: true,
                 telefono: true,
                 direccion: true,
+                dni: true, // Añadir DNI aquí
             },
         });
         if (!cliente) {
@@ -145,6 +147,52 @@ async function getAuthenticatedUserData(req, res) {
     }
     catch (error) {
         console.error('Error al obtener datos del usuario autenticado:', error);
+        return res.status(500).json({ error: 'Error interno del servidor.' });
+    }
+}
+async function updateAuthenticatedClienteData(req, res) {
+    try {
+        const { userId, tipo } = req.user; // Asumiendo que req.user es poblado por authMiddleware
+        if (tipo !== 'cliente') {
+            return res.status(403).json({ error: 'Acceso denegado. Solo los clientes pueden modificar esta información.' });
+        }
+        const { nombre, apellido, telefono, direccion, dni } = req.body;
+        // Validaciones básicas (puedes expandirlas)
+        if (!nombre && !apellido && !telefono && !direccion && !dni) {
+            return res.status(400).json({ error: 'No se proporcionaron datos para actualizar.' });
+        }
+        const dataToUpdate = {};
+        if (nombre)
+            dataToUpdate.nombre = nombre;
+        if (apellido)
+            dataToUpdate.apellido = apellido;
+        if (telefono)
+            dataToUpdate.telefono = telefono;
+        if (direccion)
+            dataToUpdate.direccion = direccion;
+        if (dni)
+            dataToUpdate.dni = dni;
+        const updatedCliente = await prismaClient_1.prisma.cliente.update({
+            where: { id_cliente: userId },
+            data: dataToUpdate,
+            select: {
+                id_cliente: true,
+                nombre: true,
+                apellido: true,
+                email: true,
+                telefono: true,
+                direccion: true,
+                dni: true,
+                email_verificado: true,
+            }
+        });
+        return res.status(200).json(updatedCliente);
+    }
+    catch (error) {
+        console.error('Error al actualizar datos del cliente autenticado:', error);
+        if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2025') {
+            return res.status(404).json({ error: 'Cliente no encontrado.' });
+        }
         return res.status(500).json({ error: 'Error interno del servidor.' });
     }
 }

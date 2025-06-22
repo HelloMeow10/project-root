@@ -126,6 +126,7 @@ export async function getAuthenticatedUserData(req: Request, res: Response) {
         email: true,
         telefono: true,
         direccion: true,
+        dni: true, // Añadir DNI aquí
       },
     });
 
@@ -136,6 +137,53 @@ export async function getAuthenticatedUserData(req: Request, res: Response) {
     return res.status(200).json(cliente);
   } catch (error) {
     console.error('Error al obtener datos del usuario autenticado:', error);
+    return res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+}
+
+export async function updateAuthenticatedClienteData(req: Request, res: Response) {
+  try {
+    const { userId, tipo } = req.user; // Asumiendo que req.user es poblado por authMiddleware
+
+    if (tipo !== 'cliente') {
+      return res.status(403).json({ error: 'Acceso denegado. Solo los clientes pueden modificar esta información.' });
+    }
+
+    const { nombre, apellido, telefono, direccion, dni } = req.body;
+
+    // Validaciones básicas (puedes expandirlas)
+    if (!nombre && !apellido && !telefono && !direccion && !dni) {
+      return res.status(400).json({ error: 'No se proporcionaron datos para actualizar.' });
+    }
+
+    const dataToUpdate: any = {};
+    if (nombre) dataToUpdate.nombre = nombre;
+    if (apellido) dataToUpdate.apellido = apellido;
+    if (telefono) dataToUpdate.telefono = telefono;
+    if (direccion) dataToUpdate.direccion = direccion;
+    if (dni) dataToUpdate.dni = dni;
+
+    const updatedCliente = await prisma.cliente.update({
+      where: { id_cliente: userId },
+      data: dataToUpdate,
+      select: { // Devolver los datos actualizados, similar a getAuthenticatedUserData
+        id_cliente: true,
+        nombre: true,
+        apellido: true,
+        email: true,
+        telefono: true,
+        direccion: true,
+        dni: true,
+        email_verificado: true,
+      }
+    });
+
+    return res.status(200).json(updatedCliente);
+  } catch (error) {
+    console.error('Error al actualizar datos del cliente autenticado:', error);
+    if (typeof error === 'object' && error !== null && 'code' in error && (error as any).code === 'P2025') {
+        return res.status(404).json({ error: 'Cliente no encontrado.' });
+    }
     return res.status(500).json({ error: 'Error interno del servidor.' });
   }
 }

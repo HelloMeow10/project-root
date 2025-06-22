@@ -13,6 +13,7 @@ import paymentRoutes from './routes/paymentRoutes';
 import { errorHandler } from './middlewares/errorHandler';
 import path from 'path';
 import dashboardRoutes from './routes/dashboardRoutes';
+import direccionFacturacionRoutes from './routes/direccionFacturacionRoutes'; // <-- Nueva importación
 // ... otras importaciones
 import roleRoutes from './routes/roleRoutes'; // Ajusta la ruta
 
@@ -42,6 +43,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/direcciones-facturacion', direccionFacturacionRoutes); // <-- Nueva ruta
 
 // Servir verificar-email.html para /verificar-email (con o sin query params)
 app.get('/verificar-email', (req, res) => {

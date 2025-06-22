@@ -6,7 +6,7 @@ import crypto from 'crypto';
 
 export class AuthService {
   // Registro de cliente
-  async registerCliente(userData: { nombre: string; apellido?: string; email: string; contrasena: string; telefono?: string; direccion?: string; }) {
+  async registerCliente(userData: { nombre: string; apellido?: string; email: string; contrasena: string; telefono?: string; direccion?: string; dni?: string; }) {
     const hashed = await bcrypt.hash(userData.contrasena, 10);
     // Generar token de verificación de email
     const token_verificacion_email = crypto.randomBytes(32).toString('hex');

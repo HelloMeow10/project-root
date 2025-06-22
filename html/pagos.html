@@ -103,9 +103,15 @@
                             <span class="error-message" id="phoneError"></span>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="address">Dirección *</label>
-                        <input type="text" id="address" name="address" required>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="dni">DNI/Identificación *</label>
+                            <input type="text" id="dni" name="dni" required>
+                            <span class="error-message" id="dniError"></span>
+                        </div>
+                        <div class="form-group"> 
+                            <label for="address">Dirección *</label>
+                            <input type="text" id="address" name="address" required>
                         <span class="error-message" id="addressError"></span>
                     </div>
                     <div class="form-row">
@@ -133,50 +139,149 @@
                 </form>
             </div>
 
+            <!-- Billing Address Section -->
+            <div class="billing-address-section">
+                <div class="section-header">
+                    <img src="/placeholder.svg?height=40&width=40" alt="Dirección de facturación" class="section-icon">
+                    <h2>Dirección de Facturación</h2>
+                </div>
+                <div class="billing-address-options">
+                    <label>
+                        <input type="radio" name="billingAddressOption" value="sameAsPersonal" checked>
+                        Usar mi dirección personal como dirección de facturación
+                    </label>
+                    <label>
+                        <input type="radio" name="billingAddressOption" value="newAddress">
+                        Usar una dirección de facturación diferente
+                    </label>
+                    <div id="savedBillingAddressesContainer" style="display: none; margin-top: 10px;">
+                        <label for="selectSavedBillingAddress">O selecciona una dirección guardada:</label>
+                        <select id="selectSavedBillingAddress" name="selectSavedBillingAddress">
+                            <option value="">Cargando direcciones...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <form class="info-form" id="billingAddressForm" style="display: none;">
+                    <p>Por favor, completa los datos de tu dirección de facturación.</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="billingDni">DNI/Identificación *</label>
+                            <input type="text" id="billingDni" name="billingDni" required>
+                            <span class="error-message" id="billingDniError"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="billingStreet">Calle *</label>
+                            <input type="text" id="billingStreet" name="billingStreet" required>
+                            <span class="error-message" id="billingStreetError"></span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="billingNumber">Número</label>
+                            <input type="text" id="billingNumber" name="billingNumber">
+                            <span class="error-message" id="billingNumberError"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="billingFloor">Piso</label>
+                            <input type="text" id="billingFloor" name="billingFloor">
+                            <span class="error-message" id="billingFloorError"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="billingApartment">Departamento</label>
+                            <input type="text" id="billingApartment" name="billingApartment">
+                            <span class="error-message" id="billingApartmentError"></span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="billingCity">Ciudad *</label>
+                            <input type="text" id="billingCity" name="billingCity" required>
+                            <span class="error-message" id="billingCityError"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="billingZip">Código Postal *</label>
+                            <input type="text" id="billingZip" name="billingZip" required>
+                            <span class="error-message" id="billingZipError"></span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                         <div class="form-group">
+                            <label for="billingProvince">Provincia *</label>
+                            <input type="text" id="billingProvince" name="billingProvince" required>
+                            <span class="error-message" id="billingProvinceError"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="billingCountry">País *</label>
+                            <select id="billingCountry" name="billingCountry" required>
+                                <option value="">Seleccionar país</option>
+                                <option value="AR">Argentina</option>
+                                <option value="ES">España</option>
+                                <option value="MX">México</option>
+                                <option value="CO">Colombia</option>
+                                <option value="PE">Perú</option>
+                                <option value="CL">Chile</option>
+                                <option value="US">Estados Unidos</option>
+                                <option value="CA">Canadá</option>
+                            </select>
+                            <span class="error-message" id="billingCountryError"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <input type="checkbox" id="saveBillingAddress" name="saveBillingAddress">
+                        <label for="saveBillingAddress">Guardar esta dirección para futuras compras</label>
+                    </div>
+                </form>
+            </div>
+
             <!-- Payment Information Section -->
             <div class="payment-info">
                 <div class="section-header">
                     <img src="/placeholder.svg?height=40&width=40" alt="Datos de pago" class="section-icon">
                     <h2>Datos de Pago</h2>
                 </div>
-                <form class="payment-form" id="paymentForm">
-                    <div class="form-group">
-                        <label for="cardNumber">Número de Tarjeta *</label>
-                        <div class="card-input-container">
-                            <input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19" required>
-                            <div class="card-icons">
-                                <img src="/placeholder.svg?height=24&width=38" alt="Visa" class="card-icon">
-                                <img src="/placeholder.svg?height=24&width=38" alt="Mastercard" class="card-icon">
-                                <img src="/placeholder.svg?height=24&width=38" alt="American Express" class="card-icon">
-                            </div>
-                        </div>
-                        <span class="error-message" id="cardNumberError"></span>
-                    </div>
+
+                <div id="savedPaymentMethodsContainer" style="margin-bottom: 20px;">
+                    <label for="selectSavedPaymentMethod">Selecciona un método de pago guardado:</label>
+                    <select id="selectSavedPaymentMethod" name="selectSavedPaymentMethod">
+                        <option value="">Cargando métodos...</option>
+                    </select>
+                    <button type="button" id="deletePaymentMethodBtn" style="display:none; margin-left: 10px;">Eliminar</button>
+                     <p><a href="#" id="useNewPaymentMethodLink">O usa un nuevo método de pago</a></p>
+                </div>
+                
+                <form class="payment-form" id="paymentForm" style="display: none;"> <!-- Oculto inicialmente si hay guardados -->
+                    <p>Ingresa los datos de tu nueva tarjeta:</p>
                     <div class="form-group">
                         <label for="cardName">Nombre en la Tarjeta *</label>
                         <input type="text" id="cardName" name="cardName" placeholder="Como aparece en la tarjeta" required>
                         <span class="error-message" id="cardNameError"></span>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="expiryDate">Fecha de Vencimiento *</label>
-                            <input type="text" id="expiryDate" name="expiryDate" placeholder="MM/AA" maxlength="5" required>
-                            <span class="error-message" id="expiryDateError"></span>
-                        </div>
-                        <div class="form-group">
-                            <label for="cvv">CVV *</label>
-                            <input type="text" id="cvv" name="cvv" placeholder="123" maxlength="4" required>
-                            <span class="error-message" id="cvvError"></span>
-                        </div>
+                    
+                    <!-- Stripe Card Element aparecerá aquí -->
+                    <div class="form-group">
+                        <label for="stripeCardElement">Datos de la Tarjeta *</label>
+                        <div id="stripeCardElement" class="StripeElement"></div>
+                        <span class="error-message" id="stripeCardError"></span>
                     </div>
+
+                    <div class="form-group">
+                        <input type="checkbox" id="savePaymentMethod" name="savePaymentMethod" checked>
+                        <label for="savePaymentMethod">Guardar este método de pago para futuras compras</label>
+                    </div>
+
                     <div class="security-info">
                         <div class="security-icon">🔒</div>
                         <div class="security-text">
-                            <p><strong>Pago 100% Seguro</strong></p>
-                            <p>Tus datos están protegidos con encriptación SSL de 256 bits</p>
+                            <p><strong>Pago 100% Seguro con Stripe</strong></p>
+                            <p>Tus datos están protegidos.</p>
                         </div>
                     </div>
                 </form>
+                 <div id="paymentProcessingLoader" style="display:none; text-align:center; padding:20px;">
+                    <div class="loading-spinner"></div>
+                    <p>Procesando pago, por favor espera...</p>
+                </div>
             </div>
 
             <!-- Terms and Conditions -->
@@ -233,7 +338,8 @@
             </button>
         </div>
     </div>
-
+    
+    <script src="https://js.stripe.com/v3/"></script>
     <script src="../js/pagos.js"></script>
 </body>
 </html>

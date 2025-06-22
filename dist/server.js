@@ -18,6 +18,7 @@ const paymentRoutes_1 = __importDefault(require("./routes/paymentRoutes"));
 const errorHandler_1 = require("./middlewares/errorHandler");
 const path_1 = __importDefault(require("path"));
 const dashboardRoutes_1 = __importDefault(require("./routes/dashboardRoutes"));
+const direccionFacturacionRoutes_1 = __importDefault(require("./routes/direccionFacturacionRoutes")); // <-- Nueva importación
 // ... otras importaciones
 const roleRoutes_1 = __importDefault(require("./routes/roleRoutes")); // Ajusta la ruta
 const app = (0, express_1.default)();
@@ -42,6 +43,7 @@ app.use('/api/users', userRoutes_1.default);
 app.use('/api/cart', cartRoutes_1.default);
 app.use('/api/payments', paymentRoutes_1.default);
 app.use('/api/dashboard', dashboardRoutes_1.default);
+app.use('/api/direcciones-facturacion', direccionFacturacionRoutes_1.default); // <-- Nueva ruta
 // Servir verificar-email.html para /verificar-email (con o sin query params)
 app.get('/verificar-email', (req, res) => {
     res.sendFile(path_1.default.join(__dirname, '../html/verificar-email.html'));
