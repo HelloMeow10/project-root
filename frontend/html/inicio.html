@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUSIMUNDO/Travel</title>
+    <link rel="stylesheet" href="../css/inicio.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> <!-- Añadido Font Awesome -->
+</head>
+<body>
+    
+  
+    <div class="page-wrap">
+        <!-- Header adaptado de autos.html -->
+        <header class="header">
+            <nav class="navbar">
+                <div class="nav-container">
+                    <div class="nav-logo">
+                        <!-- Enlace alrededor del logo para mantener la funcionalidad si se desea -->
+                        <a href="inicio.html">MUSIMUNDO/Travel</a>
+                    </div>
+                    <ul class="nav-menu">
+                        <!-- Los elementos del menú se pueden añadir aquí o dejar que el JS los maneje si es dinámico -->
+                        <!-- Ejemplo de elementos estáticos si se necesitan -->
+                        <li><a href="info.html">Nosotros</a></li> <!-- Ajustar hrefs según sea necesario -->
+                         <li><a href="paquetes.html">Paquetes</a></li>
+                         <li><a href="vuelos.html">Vuelos</a></li>
+                         <li><a href="hotel.html">Hoteles</a></li>
+                         <li><a href="autos.html">Autos</a></li>
+                         <!-- Contenedor para el menú de usuario/login, integrado en nav-menu para responsividad -->
+                         <li id="userMenuContainer" class="nav-menu-item-user">
+                            <!-- Aquí se inyectará el menú dinámico (login/logout/dashboard) -->
+                         </li>
+                    </ul>
+                    <div class="nav-toggle">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </nav>
+        </header>
+        <!-- Fin del Header adaptado -->
+      
+        <!-- El 'main' original de inicio.html ahora está fuera del nuevo header -->
+        <main class="content-below-header">
+            <!-- page-header ya no es necesario como contenedor principal del header -->
+
+            <article id="hero-1" style="--i: 5">
+              <div class="hero-info">
+                <h2>Viaja Por</h2>
+                <h1>El Mundo</h1>
+                <h3>Pragser Wildsee, Italy</h3>
+              </div>
+              <div class="hero-image hi-1"></div>
+            </article>
+      
+            <article id="hero-2" style="--i: 4">
+              <div class="hero-info">
+                <h2>Disfruta</h2>
+                <h1>La Aventura</h1>
+                <h3>Marignier, France</h3>
+              </div>
+              <div class="hero-image hi-2"></div>
+      
+            </article>
+      
+            <article id="hero-3" style="--i: 3">
+              <div class="hero-info">
+                <h2>Expande tu</h2>
+                <h1>Horizonte</h1>
+                <h3>Hooker Valley Track, New Zealand</h3>
+              </div>
+              <div class="hero-image hi-3"></div>
+      
+            </article>
+      
+            <article id="hero-4" style="--i: 2">
+              <div class="hero-info">
+                <h2>Explora</h2>
+                <h1>Reflecta</h1>
+                <h3>Dolmites, Italy</h3>
+              </div>
+              <div class="hero-image hi-4"></div>
+      
+            </article>
+      
+            <article id="hero-5" style="--i: 1">
+              <div class="hero-info">
+                <h2>Cambia tu</h2>
+                <h1>Perspectiva</h1>
+                <h3>Phuket, Thailand</h3>
+              </div>
+              <div class="hero-image hi-5"></div>
+            </article>
+          </main>
+      
+        <!-- La etiqueta </header> que envolvía el main original se elimina o se cierra antes si es necesario.
+             Dado que el nuevo <header class="header"> está autocontenido,
+             la estructura de <main> y <section> debe estar fuera de él. -->
+      
+        <section class="main-content-section"> <!-- Nueva clase para la sección principal de contenido -->
+          <ul class="level-1">
+            <li>
+              <h3>Destinos</h3>
+              <ul class="level-2">
+                <li>
+                  <p>Asia</p>
+                  <ul class="level-3">
+                    <li>Bali</li>
+                    <li>Cambodia</li>
+                    <li>Georgia</li>
+                    <li>India</li>
+                    <li>Indonesia</li>
+                    <li>Laos</li>
+                    <li>Malaysia</li>
+                    <li>Maldives</li>
+                    <li>Myanmar</li>
+                    <li>Philippines</li>
+                    <li>Singapore</li>
+                    <li>Sri Lanka</li>
+                    <li>Thailand</li>
+                    <li>Uzbekistan</li>
+                    <li>Vietnam</li>
+                  </ul>
+                </li>
+                <li>
+                  <p>Europa</p>
+                  <ul class="level-3">
+                    <li>Czech Republic</li>
+                    <li>France</li>
+                    <li>Georgia</li>
+                    <li>Greece</li>
+                    <li>Hungary</li>
+                    <li>Iceland</li>
+                    <li>Italy</li>
+                    <li>Malta</li>
+                    <li>Netherlands</li>
+                    <li>Poland</li>
+                    <li>Portugal</li>
+                    <li>Spain</li>
+                    <li>Turkey</li>
+                  </ul>
+                  <p class="animated-gradient-text">Explora el mundo con estilo!</p>
+                </li>
+                <li>
+                  <p>Africa</p>
+                  <ul class="level-3">
+                    <li>Egypt</li>
+                    <li>Maurtius</li>
+                    <li>Morocco</li>
+                  </ul>
+                </li>
+                <li>
+                  <p>Medio oriente</p>
+                  <ul class="level-3">
+                    <li>Egypt</li>
+                    <li>Jordan</li>
+                    <li>Oman</li>
+                    <li>Turkey</li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+           
+            <!-- El userMenuContainer se movió al .nav-menu -->
+            
+              <li class="compra-experiencia">
+                <h3>Acerca de nosotros</h3>
+                <ul>
+                  <li><a href="info.html">Información</a></li>
+                </ul>
+              </li>
+              <li class="compra-experiencia">
+                <h3>Compra tu nueva experiencia</h3>
+                <ul>
+                  <li><a href="paquetes.html">Paquetes completos</a></li>
+                  <li><a href="vuelos.html">Vuelos</a></li>
+                  <li><a href="hotel.html">Hoteles</a></li>
+                  <li><a href="autos.html">Autos</a></li>
+                </ul>
+                <p><small>...</small></p>
+              </li>
+            
+            
+          </ul>
+        </section>
+      
+      </div>
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="../js/inicio.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+  // El userMenuContainer se mantiene, pero su lógica de JS podría necesitar revisión
+  // si su posición en el DOM cambió significativamente respecto al CSS esperado.
+  const userMenuContainer = document.getElementById('userMenuContainer');
+  const token = localStorage.getItem('token');
+  const tipo = localStorage.getItem('tipo');
+
+  if (token && tipo) {
+    // Opcional: decodifica el token para obtener el nombre (si lo incluyes en el payload)
+    let nombre = 'Usuario';
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      nombre = payload.nombre || 'Usuario';
+    } catch {}
+
+    let menuHtml = `
+      <span>Bienvenido, <strong>${nombre}</strong></span>
+      <button id="logoutBtn" style="margin-left:10px;">Cerrar sesión</button>
+    `;
+
+    // Si es admin, muestra acceso al dashboard
+    if (tipo === 'admin') {
+      menuHtml += `<a href="dashboard.html" id="dashboardBtn" style="margin-left:10px;">Dashboard</a>`;
+    }
+
+    userMenuContainer.innerHTML = menuHtml;
+
+    // Cerrar sesión
+    document.getElementById('logoutBtn').onclick = function() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('tipo');
+      window.location.href = 'inicio.html';
+    };
+  } else {
+    // Si no está logueado, muestra el botón de iniciar sesión
+    userMenuContainer.innerHTML = `<a href="login.html" id="loginBoton">Iniciar sesión</a>`;
+  }
+});
+</script>
+
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>MUSIMUNDO/TRAVEL</h3>
+                <p>Tu puerta de entrada a aventuras increíbles en todo el mundo.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Enlaces Rápidos</h4>
+                <ul>
+                    <li><a href="inicio.html">Inicio</a></li>
+                    <li><a href="paquetes.html">Paquetes</a></li>
+                    <li><a href="vuelos.html">Vuelos</a></li>
+                    <li><a href="hotel.html">Hoteles</a></li>
+                    <li><a href="autos.html">Autos</a></li>
+                    <li><a href="info.html">Info</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Información de Contacto</h4>
+                <p><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
+                <p><i class="fas fa-envelope"></i> info@musimundo.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 MUSIMUNDO/TRAVEL. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

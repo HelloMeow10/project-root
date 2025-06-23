@@ -1,70 +1,154 @@
+-- =====================
+-- TIPOS Y ROLES BÁSICOS
+-- =====================
 -- Insertar tipos de producto
 INSERT INTO "TipoProducto" (nombre, descripcion) VALUES
-('paquete', 'Paquete turístico'),
-('vuelo', 'Pasaje aéreo'),
-('hotel', 'Hospedaje'),
-('auto', 'Alquiler de autos')
+  ('paquete', 'Paquete turístico'),
+  ('vuelo', 'Pasaje aéreo'),
+  ('hotel', 'Hospedaje'),
+  ('auto', 'Alquiler de autos')
 ON CONFLICT (nombre) DO NOTHING;
 
--- Insertar productos individuales (vuelos)
-INSERT INTO "Producto" (nombre, descripcion, id_tipo, precio, stock, activo)
-VALUES
-('Vuelo Buenos Aires - Bariloche', 'Vuelo directo ida y vuelta', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'vuelo'), 120000, 50, true),
-('Vuelo Buenos Aires - Mendoza', 'Vuelo directo ida y vuelta', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'vuelo'), 95000, 40, true),
-('Vuelo Buenos Aires - Ushuaia', 'Vuelo directo ida y vuelta', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'vuelo'), 150000, 30, true);
+-- Insertar tipos de asiento
+INSERT INTO "TipoAsiento" (nombre, descripcion, multiplicador_precio) VALUES
+  ('Económica', 'Asiento estándar en clase económica', 1.0),
+  ('Premium Economy', 'Asiento con mayor espacio y servicios mejorados', 1.2),
+  ('Business', 'Asiento en clase ejecutiva, reclinable y con más comodidades', 1.8),
+  ('Primera', 'Asiento de primera clase, máximo confort', 2.5)
+ON CONFLICT (nombre) DO NOTHING;
 
--- Insertar detalles de pasajes
-INSERT INTO "Pasaje" (id_producto, origen, destino, clase, asientos_disponibles) VALUES
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Bariloche'), 'Buenos Aires', 'Bariloche', 'Turista', 50),
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Mendoza'), 'Buenos Aires', 'Mendoza', 'Turista', 40),
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Ushuaia'), 'Buenos Aires', 'Ushuaia', 'Turista', 30);
+-- Insertar roles
+INSERT INTO "Rol" (nombre, descripcion) VALUES
+  ('ADMIN', 'Administrador del sistema'),
+  ('JEFE_VENTAS', 'Jefe de ventas'),
+  ('VENDEDOR', 'Empleado vendedor')
+ON CONFLICT (nombre) DO NOTHING;
 
--- Insertar productos individuales (hoteles)
-INSERT INTO "Producto" (nombre, descripcion, id_tipo, precio, stock, activo)
-VALUES
-('Hotel Patagonia', 'Hotel 4 estrellas en Bariloche', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'hotel'), 80000, 20, true),
-('Hotel Andes', 'Hotel 3 estrellas en Mendoza', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'hotel'), 60000, 15, true),
-('Hotel Austral', 'Hotel 5 estrellas en Ushuaia', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'hotel'), 110000, 10, true);
+-- =====================
+-- USUARIOS INTERNOS
+-- =====================
+-- Para obtener el hash de las contraseñas en Node.js puedes usar bcrypt:
+-- const bcrypt = require('bcrypt');
+-- const hash = await bcrypt.hash('admin123', 10);
+-- console.log(hash);
+-- Reemplaza las contraseñas de abajo por los hashes generados.
 
--- Insertar detalles de hospedaje
+-- Insertar empleados internos (usuarios internos)
+INSERT INTO "UsuarioInterno" (nombre, apellido, email, contrasena, telefono, activo, id_rol) VALUES
+  ('Admin', 'Principal', 'admin@empresa.com', '$2b$10$adminhash', '1111111111', true, (SELECT id_rol FROM "Rol" WHERE nombre = 'ADMIN')),
+  ('Jefe', 'Ventas', 'jefe.ventas@empresa.com', '$2b$10$jefehash', '2222222222', true, (SELECT id_rol FROM "Rol" WHERE nombre = 'JEFE_VENTAS')),
+  ('Empleado', 'Vendedor', 'empleado@empresa.com', '$2b$10$empleadohash', '3333333333', true, (SELECT id_rol FROM "Rol" WHERE nombre = 'VENDEDOR'))
+ON CONFLICT (email) DO NOTHING;
+
+-- =====================
+-- PRODUCTOS Y DETALLES
+-- =====================
+-- Vuelos
+INSERT INTO "Producto" (nombre, descripcion, id_tipo, precio, stock, activo) VALUES
+  ('Vuelo Buenos Aires - Bariloche', 'Vuelo directo ida y vuelta', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'vuelo'), 120000, 50, true),
+  ('Vuelo Buenos Aires - Mendoza', 'Vuelo directo ida y vuelta', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'vuelo'), 95000, 40, true),
+  ('Vuelo Buenos Aires - Ushuaia', 'Vuelo directo ida y vuelta', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'vuelo'), 150000, 30, true);
+
+INSERT INTO "Pasaje" (id_producto, origen, destino, fecha_salida, fecha_regreso, aerolinea) VALUES
+  ((SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Bariloche'), 'Buenos Aires', 'Bariloche', NULL, NULL, 'Aerolineas Argentinas'),
+  ((SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Mendoza'), 'Buenos Aires', 'Mendoza', NULL, NULL, 'Aerolineas Argentinas'),
+  ((SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Ushuaia'), 'Buenos Aires', 'Ushuaia', NULL, NULL, 'Aerolineas Argentinas');
+
+-- Hoteles
+INSERT INTO "Producto" (nombre, descripcion, id_tipo, precio, stock, activo) VALUES
+  ('Hotel Patagonia', 'Hotel 4 estrellas en Bariloche', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'hotel'), 80000, 20, true),
+  ('Hotel Andes', 'Hotel 3 estrellas en Mendoza', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'hotel'), 60000, 15, true),
+  ('Hotel Austral', 'Hotel 5 estrellas en Ushuaia', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'hotel'), 110000, 10, true);
+
 INSERT INTO "Hospedaje" (id_producto, ubicacion, capacidad) VALUES
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Hotel Patagonia'), 'Bariloche', 2),
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Hotel Andes'), 'Mendoza', 2),
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Hotel Austral'), 'Ushuaia', 2);
+  ((SELECT id_producto FROM "Producto" WHERE nombre = 'Hotel Patagonia'), 'Bariloche', 2),
+  ((SELECT id_producto FROM "Producto" WHERE nombre = 'Hotel Andes'), 'Mendoza', 2),
+  ((SELECT id_producto FROM "Producto" WHERE nombre = 'Hotel Austral'), 'Ushuaia', 2);
 
--- Insertar productos individuales (autos)
-INSERT INTO "Producto" (nombre, descripcion, id_tipo, precio, stock, activo)
-VALUES
-('Auto Compacto Bariloche', 'Alquiler auto compacto 3 días', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'auto'), 30000, 10, true),
-('Auto SUV Mendoza', 'Alquiler SUV 3 días', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'auto'), 45000, 8, true),
-('Auto Familiar Ushuaia', 'Alquiler auto familiar 3 días', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'auto'), 40000, 6, true);
+-- Autos
+INSERT INTO "Producto" (nombre, descripcion, id_tipo, precio, stock, activo) VALUES
+  ('Auto Compacto Bariloche', 'Alquiler auto compacto 3 días', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'auto'), 30000, 10, true),
+  ('Auto SUV Mendoza', 'Alquiler SUV 3 días', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'auto'), 45000, 8, true),
+  ('Auto Familiar Ushuaia', 'Alquiler auto familiar 3 días', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'auto'), 40000, 6, true);
 
--- Insertar detalles de autos (agregando estado)
 INSERT INTO "Auto" (id_producto, marca, modelo, capacidad, estado) VALUES
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Auto Compacto Bariloche'), 'Toyota', 'Etios', 4, 'disponible'),
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Auto SUV Mendoza'), 'Ford', 'EcoSport', 5, 'disponible'),
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Auto Familiar Ushuaia'), 'Chevrolet', 'Spin', 7, 'disponible');
+  ((SELECT id_producto FROM "Producto" WHERE nombre = 'Auto Compacto Bariloche'), 'Toyota', 'Etios', 4, 'disponible'),
+  ((SELECT id_producto FROM "Producto" WHERE nombre = 'Auto SUV Mendoza'), 'Ford', 'EcoSport', 5, 'disponible'),
+  ((SELECT id_producto FROM "Producto" WHERE nombre = 'Auto Familiar Ushuaia'), 'Chevrolet', 'Spin', 7, 'disponible');
 
--- Insertar productos paquete (paquetes turísticos)
-INSERT INTO "Producto" (nombre, descripcion, id_tipo, precio, stock, activo)
-VALUES
-('Paquete Bariloche Completo', 'Vuelo + Hotel + Auto en Bariloche', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'paquete'), 210000, 5, true),
-('Paquete Mendoza Relax', 'Vuelo + Hotel + Auto en Mendoza', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'paquete'), 170000, 4, true),
-('Paquete Ushuaia Premium', 'Vuelo + Hotel + Auto en Ushuaia', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'paquete'), 260000, 3, true);
+-- Paquetes
+INSERT INTO "Producto" (nombre, descripcion, id_tipo, precio, stock, activo) VALUES
+  ('Paquete Bariloche Completo', 'Vuelo + Hotel + Auto en Bariloche', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'paquete'), 210000, 5, true),
+  ('Paquete Mendoza Relax', 'Vuelo + Hotel + Auto en Mendoza', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'paquete'), 170000, 4, true),
+  ('Paquete Ushuaia Premium', 'Vuelo + Hotel + Auto en Ushuaia', (SELECT id_tipo FROM "TipoProducto" WHERE nombre = 'paquete'), 260000, 3, true);
 
--- Relacionar productos individuales con paquetes en PaqueteDetalle
--- Bariloche
 INSERT INTO "PaqueteDetalle" (id_paquete, id_producto) VALUES
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Bariloche Completo'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Bariloche')),
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Bariloche Completo'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Hotel Patagonia')),
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Bariloche Completo'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Auto Compacto Bariloche'));
--- Mendoza
-INSERT INTO "PaqueteDetalle" (id_paquete, id_producto) VALUES
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Mendoza Relax'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Mendoza')),
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Mendoza Relax'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Hotel Andes')),
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Mendoza Relax'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Auto SUV Mendoza'));
--- Ushuaia
-INSERT INTO "PaqueteDetalle" (id_paquete, id_producto) VALUES
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Ushuaia Premium'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Ushuaia')),
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Ushuaia Premium'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Hotel Austral')),
-((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Ushuaia Premium'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Auto Familiar Ushuaia'));
+  ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Bariloche Completo'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Bariloche')),
+  ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Bariloche Completo'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Hotel Patagonia')),
+  ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Bariloche Completo'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Auto Compacto Bariloche')),
+  ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Mendoza Relax'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Mendoza')),
+  ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Mendoza Relax'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Hotel Andes')),
+  ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Mendoza Relax'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Auto SUV Mendoza')),
+  ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Ushuaia Premium'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Vuelo Buenos Aires - Ushuaia')),
+  ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Ushuaia Premium'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Hotel Austral')),
+  ((SELECT id_producto FROM "Producto" WHERE nombre = 'Paquete Ushuaia Premium'), (SELECT id_producto FROM "Producto" WHERE nombre = 'Auto Familiar Ushuaia'));
+
+-- =====================
+-- OPCIONES DE EQUIPAJE
+-- =====================
+INSERT INTO "OpcionEquipaje" (nombre, descripcion, precio_adicional, peso_maximo_kg, dimensiones_maximas) VALUES
+  ('Maleta documentada 23kg', 'Maleta grande para bodega', 15000, 23, '158cm lineales'),
+  ('Equipaje de mano extra', 'Bolso adicional en cabina', 8000, 10, '55x40x20cm'),
+  ('Equipo deportivo', 'Equipo especial (ej. esquí, golf)', 20000, 25, '200cm lineales')
+ON CONFLICT (nombre) DO NOTHING;
+
+-- =====================
+-- AVIÓN Y ASIENTOS FÍSICOS
+-- =====================
+INSERT INTO "AvionConfig" (nombre_config, total_filas, columnas_config) VALUES
+  ('Boeing 737-800 Estándar', 30, 'ABC DEF')
+ON CONFLICT (nombre_config) DO NOTHING;
+
+-- Tipos físicos de asiento
+INSERT INTO "TipoAsiento" (nombre, descripcion, multiplicador_precio) VALUES
+  ('Ventana Estándar', 'Asiento junto a la ventana', 1.0),
+  ('Pasillo Estándar', 'Asiento junto al pasillo', 1.0),
+  ('Medio Estándar', 'Asiento central', 1.0),
+  ('Salida Emergencia', 'Asiento con más espacio', 1.0)
+ON CONFLICT (nombre) DO UPDATE SET 
+  descripcion = EXCLUDED.descripcion,
+  multiplicador_precio = EXCLUDED.multiplicador_precio;
+
+-- Poblar la tabla Asiento y asociar vuelos a la configuración
+DO $$
+DECLARE
+  avion_id INT;
+  ventana_id INT;
+  pasillo_id INT;
+  medio_id INT;
+BEGIN
+  SELECT id_avion_config INTO avion_id FROM "AvionConfig" WHERE nombre_config = 'Boeing 737-800 Estándar';
+  SELECT id_tipo_asiento INTO ventana_id FROM "TipoAsiento" WHERE nombre = 'Ventana Estándar';
+  SELECT id_tipo_asiento INTO pasillo_id FROM "TipoAsiento" WHERE nombre = 'Pasillo Estándar';
+  SELECT id_tipo_asiento INTO medio_id FROM "TipoAsiento" WHERE nombre = 'Medio Estándar';
+
+  IF avion_id IS NOT NULL AND ventana_id IS NOT NULL AND pasillo_id IS NOT NULL AND medio_id IS NOT NULL THEN
+    INSERT INTO "Asiento" (id_avion_config, id_tipo_asiento_base, fila, columna, caracteristicas, precio_adicional_base) VALUES
+      (avion_id, ventana_id, 1, 'A', ARRAY['VENTANA'], 0.00),
+      (avion_id, medio_id, 1, 'B', ARRAY[]::text[], 0.00),
+      (avion_id, pasillo_id, 1, 'C', ARRAY['PASILLO'], 0.00),
+      (avion_id, pasillo_id, 1, 'D', ARRAY['PASILLO'], 0.00),
+      (avion_id, medio_id, 1, 'E', ARRAY[]::text[], 0.00),
+      (avion_id, ventana_id, 1, 'F', ARRAY['VENTANA'], 0.00)
+    ON CONFLICT DO NOTHING;
+  END IF;
+
+  UPDATE "Pasaje" SET id_avion_config = avion_id 
+  WHERE id_producto IN (
+    SELECT id_producto FROM "Producto" WHERE nombre IN (
+      'Vuelo Buenos Aires - Bariloche',
+      'Vuelo Buenos Aires - Mendoza',
+      'Vuelo Buenos Aires - Ushuaia'
+    )
+  );
+END $$;

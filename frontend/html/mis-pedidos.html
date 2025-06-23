@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Pedidos | Travel Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/carrito.css"> <!-- Reutilizar algunos estilos o crear uno nuevo -->
+    <style>
+        .order-list { margin-top: 20px; }
+        .order-item { background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .order-item h3 { margin-top: 0; color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; font-size: 1.4em; }
+        .order-details p { margin: 8px 0; color: #555; font-size: 0.95em; }
+        .order-details strong { color: #333; }
+        .order-item ul { list-style: none; padding-left: 0; margin-top: 10px; }
+        .order-item li { background-color: #fff; border: 1px solid #eee; border-radius: 4px; padding: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .order-item li span { font-size: 0.9em; }
+        .order-actions button { background-color: #dc3545; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em; }
+        .order-actions button:hover { background-color: #c82333; }
+        .order-status { font-weight: bold; padding: 5px 10px; border-radius: 4px; color: white; display: inline-block; font-size: 0.9em; }
+        .status-pendiente_pago { background-color: #ffc107; color: #333; }
+        .status-pagado { background-color: #28a745; }
+        .status-en_proceso { background-color: #17a2b8; }
+        .status-enviado { background-color: #007bff; }
+        .status-entregado { background-color: #6f42c1; }
+        .status-completado { background-color: #20c997; }
+        .status-cancelado { background-color: #6c757d; }
+        .status-reembolsado { background-color: #fd7e14; }
+        #loadingOverlayMisPedidos { /* Estilos similares a loadingOverlay en carrito.css */ display: none; position: fixed; inset:0; background: rgba(255,255,255,0.8); z-index:10000; justify-content: center; align-items: center; }
+        .total-pedido { font-size: 1.1em; font-weight: bold; text-align: right; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-plane"></i>
+                    <span>MUSIMUNDO/TRAVEL</span>
+                </div>
+                <nav class="nav">
+                    <a href="inicio.html" class="nav-link">Paquetes</a>
+                    <a href="hotel.html" class="nav-link">Hoteles</a>
+                    <a href="vuelos.html" class="nav-link">Vuelos</a>
+                    <a href="autos.html" class="nav-link">Autos</a>
+                    <a href="carrito.html" class="nav-link">
+                        <i class="fas fa-shopping-cart"></i> Carrito <span class="cart-count" id="cartCountHeader">0</span>
+                    </a>
+                    <a href="mis-pedidos.html" class="nav-link active">Mis Pedidos</a>
+                    <!-- Añadir enlace de logout si está logueado -->
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="main container">
+        <h1><i class="fas fa-history"></i> Mis Pedidos</h1>
+        <div id="orderList" class="order-list">
+            <!-- Los pedidos se cargarán aquí -->
+        </div>
+        <div id="noOrdersMessage" style="display:none; text-align:center; padding: 40px; color: #777;">
+            <i class="fas fa-box-open" style="font-size: 3em; margin-bottom: 15px;"></i>
+            <p>Aún no has realizado ningún pedido.</p>
+            <a href="inicio.html" class="btn btn-primary">Explorar productos</a>
+        </div>
+    </main>
+
+    <template id="orderItemTemplate">
+        <div class="order-item" data-order-id="">
+            <h3>Pedido #<span class="order-id"></span> - <span class="order-status"></span></h3>
+            <div class="order-details">
+                <p><strong>Fecha:</strong> <span class="order-date"></span></p>
+                <p><strong>Total:</strong> $<span class="order-total"></span></p>
+                <p><strong>Items:</strong></p>
+                <ul>
+                    <!-- Los items del pedido se listarán aquí -->
+                </ul>
+            </div>
+            <div class="order-actions">
+                <!-- Botones de acción se añadirán aquí (ej. Cancelar) -->
+            </div>
+        </div>
+    </template>
+
+    <template id="orderProductItemTemplate">
+        <li>
+            <span class="product-name"></span> (x<span class="product-quantity"></span>) - 
+            $<span class="product-price"></span> c/u
+        </li>
+    </template>
+    
+    <div id="loadingOverlayMisPedidos" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Cargando pedidos...</p>
+        </div>
+    </div>
+
+     <!-- Notification Container (reutilizar de carrito.js o similar) -->
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <!-- Modal de Confirmación (reutilizar de carrito.js o similar) -->
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="modalCloseBtn">&times;</span>
+            <h3 id="modalTitle">Confirmar Acción</h3>
+            <p id="modalMessage">¿Estás seguro?</p>
+            <div class="modal-footer">
+                <button id="modalCancelBtn" class="btn btn-secondary">Cancelar</button>
+                <button id="modalConfirmBtn" class="btn btn-danger">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="../js/mis-pedidos.js"></script>
+</body>
+</html>

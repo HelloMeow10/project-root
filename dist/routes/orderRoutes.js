@@ -37,9 +37,12 @@ const express_1 = require("express");
 const orderController = __importStar(require("../controllers/OrderController"));
 const authMiddleware_1 = require("../middlewares/authMiddleware");
 const router = (0, express_1.Router)();
-router.get('/', authMiddleware_1.authMiddleware, orderController.getAllOrders);
+// Ruta para que un cliente obtenga sus propios pedidos
+router.get('/my-orders', authMiddleware_1.authMiddleware, orderController.getMyOrders);
+// Rutas existentes (CRUD general de pedidos, la de abajo es más para admin)
+router.get('/', authMiddleware_1.authMiddleware, orderController.getAllOrders); // Podría ser solo para admin
 router.get('/:id', authMiddleware_1.authMiddleware, orderController.getOrderById);
-router.post('/', authMiddleware_1.authMiddleware, orderController.createOrder);
-router.put('/:id', authMiddleware_1.authMiddleware, orderController.updateOrder);
-router.delete('/:id', authMiddleware_1.authMiddleware, orderController.deleteOrder);
+router.post('/', authMiddleware_1.authMiddleware, orderController.createOrder); // Este es el endpoint de "checkout"
+router.put('/:id', authMiddleware_1.authMiddleware, orderController.updateOrder); // Para admin actualizar estado, etc.
+router.delete('/:id', authMiddleware_1.authMiddleware, orderController.deleteOrder); // Para admin
 exports.default = router;

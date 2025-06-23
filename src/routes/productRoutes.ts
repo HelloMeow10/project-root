@@ -13,31 +13,64 @@ const prisma = new PrismaClient();
 
 // Endpoint para obtener todos los paquetes turísticos
 router.get('/paquetes', async (req, res) => {
-  const paquetes = await prisma.producto.findMany({
-    where: { id_tipo: 1, activo: true },
-    include: {
-      paqueteDetallesAsPaquete: {
-        include: {
-          producto: {
-            include: {
-              hospedaje: true,
-              pasaje: true
+  try {
+    const tipoPaquete = await prisma.tipoProducto.findUnique({
+      where: { nombre: 'paquete' },
+    });
+
+    if (!tipoPaquete) {
+      console.error("TipoProducto 'paquete' not found in database.");
+      return res.status(404).json({ message: "Tipo de producto 'paquete' no configurado." });
+    }
+    const paqueteTipoId = tipoPaquete.id_tipo;
+
+    const paquetes = await prisma.producto.findMany({
+      where: { id_tipo: paqueteTipoId, activo: true }, // Use the fetched ID
+      include: {
+        paqueteDetallesAsPaquete: {
+          include: {
+            producto: {
+              include: {
+                hospedaje: true,
+                pasaje: true
+              }
             }
           }
         }
       }
-    }
-  });
-  res.json(paquetes);
+    });
+    res.json(paquetes);
+  } catch (err: any) {
+    console.error('Error al obtener paquetes:', err);
+    res.status(500).json({ message: 'Error al obtener paquetes', error: err.message });
+  }
 });
 
-// Endpoint para obtener solo los vuelos
+// Endpoint para obtener solo los vuelos (CORREGIDO)
 router.get('/vuelos', async (req, res) => {
-  const vuelos = await prisma.producto.findMany({
-    where: { id_tipo: 2, activo: true },
-    include: { pasaje: true }
-  });
-  res.json(vuelos);
+  try {
+    const tipoVuelo = await prisma.tipoProducto.findUnique({
+      where: { nombre: 'vuelo' },
+    });
+
+    if (!tipoVuelo) {
+      return res.status(404).json({ message: "Tipo de producto 'vuelo' no configurado." });
+    }
+
+    const vuelos = await prisma.producto.findMany({
+      where: { id_tipo: tipoVuelo.id_tipo, activo: true },
+      include: {
+        pasaje: {
+          // Removed tipoAsiento include as it does not exist in the schema
+        }
+      }
+    });
+    res.json(vuelos);
+  } catch (err) {
+    console.error('Error al obtener vuelos:', err);
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ message: 'Error al obtener vuelos', error: errorMessage });
+  }
 });
 
 // Endpoint para obtener solo los hoteles
@@ -102,9 +135,9 @@ router.post('/pedidos', authMiddleware, async (req, res) => {
 });
 
 // Endpoint para eliminar productos
-router.delete('/:id', authMiddleware, adminOnly, deleteProduct);
+// router.delete('/:id', authMiddleware, adminOnly, deleteProduct); // Se mueve abajo con las rutas de :id
 
-// Endpoint para obtener solo los autos
+// RUTAS ESPECÍFICAS PRIMERO
 router.get('/autos', async (req: Request, res: Response) => {
   try {
     const tipoAuto = await prisma.tipoProducto.findFirst({
@@ -129,11 +162,59 @@ router.get('/autos', async (req: Request, res: Response) => {
   }
 });
 
+router.get(
+  '/individuals', 
+  // authMiddleware, // Consider if auth is needed for just listing individuals for an admin
+  ProductController.getIndividualProducts // New controller method
+);
+
+// --- NUEVAS RUTAS PARA FUNCIONALIDADES DE VUELO (MOVIDAS ARRIBA) ---
+router.get(
+  '/pasajes/:idProductoPasaje/mapa-asientos',
+  // authMiddleware, // Descomentar si se requiere autenticación para ver el mapa
+  ProductController.getAvionMapaAsientos
+);
+
+router.get(
+  '/opciones-equipaje',
+  // authMiddleware, // Descomentar si se requiere autenticación
+  ProductController.getOpcionesEquipaje
+);
+
+router.get(
+  '/clases-servicio',
+  // authMiddleware, // Descomentar si se requiere autenticación
+  ProductController.getClasesServicio
+);
+// --- FIN DE NUEVAS RUTAS MOVIDAS ARRIBA ---
+
+
+// RUTAS GENERALES Y CON PARÁMETROS AL FINAL
 // Endpoint para obtener todos los productos
 router.get('/', ProductController.getAllProducts);
+router.post('/', ProductController.createProduct);
+
+// Rutas que operan sobre un producto específico por ID
 router.get('/:id', ProductController.getProductById);
-router.post('/', ProductController.createProduct); // <-- ESTA LÍNEA ES CLAVE
-router.put('/:id', ProductController.updateProduct);
-router.delete('/:id', ProductController.deleteProduct);
+router.put('/:id', authMiddleware, adminOnly, ProductController.updateProduct);
+router.delete('/:id', ProductController.deleteProduct); // Combinada con la anterior de ProductController
+
+// Rutas para detalles de paquetes (también usan parámetros, pero son más específicas que solo /:id)
+router.post(
+  '/paquetes/:id_paquete/details', 
+  authMiddleware, 
+  adminOnly, 
+  ProductController.agregarComponenteAPaquete // New controller method
+);
+
+router.delete(
+  '/paquetes/:id_paquete/details/:id_producto_componente', 
+  authMiddleware, 
+  adminOnly, 
+  ProductController.eliminarComponenteDePaquete // New controller method
+);
+
+// La sección duplicada de "NUEVAS RUTAS PARA FUNCIONALIDADES DE VUELO" que estaba aquí ha sido eliminada.
+// Las definiciones correctas y reordenadas de estas rutas ya están más arriba en el archivo.
 
 export default router;

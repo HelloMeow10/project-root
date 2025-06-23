@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Administrativo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+    <div id="accessOverlay" style="position:fixed;z-index:9999;inset:0;background:#fff;display:flex;align-items:center;justify-content:center;">
+      <div id="accessMessage" style="font-size:1.2rem;color:#333;">
+        <i class="fas fa-spinner fa-spin"></i> Validando acceso...
+      </div>
+    </div>
+    <div class="dashboard">
+        <!-- Header -->
+        <header class="header">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Buscar..." id="searchInput">
+            </div>
+            <div class="user-menu">
+                <button class="notification-btn" id="notificationBtn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="notificationBadge">0</span>
+                </button>
+                <div class="user-info" id="userInfo">
+                    <span id="userName">Admin Usuario</span>
+                    <i class="fas fa-chevron-down"></i>
+                    <button id="logoutBtn" title="Cerrar sesión" style="background:none;border:none;cursor:pointer;">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <div class="logo">
+                <h2><i class="fas fa-chart-line"></i> Dashboard</h2>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-page="dashboard">
+                        <i class="fas fa-home"></i>
+                        <span>Inicio</span>
+                    </a>
+                </li>
+                <li><a id="tabProductos" class="nav-link" data-page="productos"><i class="fas fa-box-open"></i><span>Productos</span></a></li>
+                <li><a id="tabPaquetes" class="nav-link" data-page="paquetes"><i class="fas fa-suitcase-rolling"></i><span>Paquetes</span></a></li>
+                <li><a id="tabPedidos" class="nav-link" data-page="orders"><i class="fas fa-file-invoice-dollar"></i><span>Pedidos</span></a></li>
+                <li><a id="tabUsuarios" class="nav-link" data-page="usuarios"><i class="fas fa-users-cog"></i><span>Usuarios</span></a></li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="roles">
+                        <i class="fas fa-user-shield"></i>
+                        <span>Gestión de Roles</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="page active">
+                <div class="page-title">
+                    <h1>Dashboard</h1>
+                    <div class="breadcrumb"><a href="inicio.html">Inicio</a> / <a href="dashboard.html">Dashboard</a></div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card users">
+                        <div class="stat-info">
+                            <h3 id="total-users" class="counter">0</h3>
+                            <p>Total Usuarios</p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card sales">
+                        <div class="stat-info">
+                            <h3 id="total-sales" class="counter">$0</h3>
+                            <p>Ventas Totales</p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card orders">
+                        <div class="stat-info">
+                            <h3 id="total-orders" class="counter">0</h3>
+                            <p>Pedidos</p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card revenue">
+                        <div class="stat-info">
+                            <h3 id="monthly-revenue" class="counter">$0</h3>
+                            <p>Ingresos del Mes</p>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Grid -->
+                <div class="content-grid">
+                    <!-- Chart -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Ventas por Mes</h3>
+                            <select id="chart-period" class="form-control">
+                                <option value="6">Últimos 6 meses</option>
+                                <option value="12">Último año</option>
+                            </select>
+                        </div>
+                        <div class="card-content">
+                            <div class="chart-container">
+                                <canvas id="salesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Actividad Reciente</h3>
+                            <button class="btn btn-sm btn-primary" id="refreshActivity">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                        <div class="card-content">
+                            <div id="activity-list" class="activity-list">
+                                <!-- Activity items will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Datos Recientes</h3>
+                        <div class="card-actions">
+                            <button class="btn btn-sm btn-secondary" id="exportBtn">
+                                <i class="fas fa-download"></i> Exportar
+                            </button>
+                            <button class="btn btn-sm btn-primary" id="addNewBtn">
+                                <i class="fas fa-plus"></i> Agregar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="table-controls">
+                            <div class="table-search">
+                                <input type="text" placeholder="Buscar en tabla..." id="tableSearch" class="form-control">
+                            </div>
+                            <div class="table-filters">
+                                <select id="statusFilter" class="form-control">
+                                    <option value="">Todos los estados</option>
+                                    <option value="active">Activo</option>
+                                    <option value="inactive">Inactivo</option>
+                                    <option value="pending">Pendiente</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table id="dataTable" class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="id">ID <i class="fas fa-sort"></i></th>
+                                        <th data-sort="name">Nombre <i class="fas fa-sort"></i></th>
+                                        <th data-sort="email">Email <i class="fas fa-sort"></i></th>
+                                        <th data-sort="status">Estado <i class="fas fa-sort"></i></th>
+                                        <th data-sort="date">Fecha <i class="fas fa-sort"></i></th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody">
+                                    <!-- Data will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-pagination">
+                            <div class="pagination-info">
+                                <span id="paginationInfo">Mostrando 0 de 0 registros</span>
+                            </div>
+                            <div class="pagination-controls">
+                                <button class="btn btn-sm" id="prevPage" disabled>
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span id="pageNumbers" class="page-numbers"></span>
+                                <button class="btn btn-sm" id="nextPage" disabled>
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Page -->
+            <div id="usuarios-page" class="page">
+                <div class="page-title">
+                    <h1>Gestión de Usuarios</h1>
+                    <div class="breadcrumb">Inicio / Usuarios</div>
+                </div>
+                <div class="page-content">
+                    <div class="tabs">
+                        <button id="tabUsuariosInternos" class="active">Usuarios Internos</button>
+                        <button id="tabClientes">Clientes</button>
+                    </div>
+                    <div id="usuariosInternosTable">
+                        <button id="btnAnadirUsuarioInterno" class="btn btn-primary" style="margin-bottom: 15px; margin-top: 10px;"><i class="fas fa-plus"></i> Añadir Usuario Interno</button>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Apellido</th>
+                                    <th>Email</th>
+                                    <th>Teléfono</th>
+                                    <th>Activo</th>
+                                    <th>Rol</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usuariosInternosTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="clientesTable" style="display:none;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Apellido</th>
+                                    <th>Email</th>
+                                    <th>Teléfono</th>
+                                    <th>Activo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clientesTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Page -->
+            <div id="productos-page" class="page">
+                <div class="page-title">
+                    <h1>Gestión de Productos</h1>
+                    <div class="breadcrumb">Inicio / Productos</div>
+                </div>
+                <div class="page-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Lista de Productos Generales</h3>
+                            <div class="card-actions">
+                                <button class="btn btn-sm btn-primary" id="btnAgregarProducto">
+                                    <i class="fas fa-plus"></i> Agregar Producto
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nombre</th>
+                                            <th>Descripción</th>
+                                            <th>Precio</th>
+                                            <th>Stock</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaProductosBody">
+                                        <!-- Product data will be loaded here by js/dashboard.js -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Page -->
+            <div id="orders-page" class="page">
+                <div class="page-title">
+                    <h1>Gestión de Pedidos</h1>
+                    <div class="breadcrumb">Inicio / Pedidos</div>
+                </div>
+                <div class="page-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Todos los Pedidos</h3>
+                            <div class="table-filters">
+                                <select id="filtroEstadoPedido" class="form-control">
+                                    <option value="">Todos los Estados</option>
+                                    <option value="PENDIENTE_PAGO">Pendiente de Pago</option>
+                                    <option value="PAGADO">Pagado</option>
+                                    <option value="EN_PROCESO">En Proceso</option>
+                                    <option value="ENVIADO">Enviado</option>
+                                    <option value="ENTREGADO">Entregado</option>
+                                    <option value="COMPLETADO">Completado</option>
+                                    <option value="CANCELADO">Cancelado</option>
+                                </select>
+                                <input type="text" id="filtroClientePedido" class="form-control" placeholder="Filtrar por ID Cliente...">
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID Pedido</th>
+                                            <th>Cliente</th>
+                                            <th>Fecha</th>
+                                            <th>Total</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaPedidosBody">
+                                        <!-- Pedidos se cargarán aquí -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Page -->
+            <div id="analytics-page" class="page">
+                <div class="page-title">
+                    <h1>Analíticas</h1>
+                    <div class="breadcrumb">Inicio / Analíticas</div>
+                </div>
+                <div class="page-content">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div id="settings-page" class="page">
+                <div class="page-title">
+                    <h1>Configuración</h1>
+                    <div class="breadcrumb">Inicio / Configuración</div>
+                </div>
+                <div class="page-content">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Paquetes Page -->
+            <div id="paquetes-page" class="page">
+                <div class="page-title">
+                    <h1>Gestión de Paquetes</h1>
+                    <div class="breadcrumb">Inicio / Paquetes</div>
+                </div>
+                <div class="page-content">
+                    <!-- Form to add new package -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Agregar Nuevo Paquete</h3>
+                        </div>
+                        <div class="card-content">
+                            <form id="formAgregarPaquete">
+                                <div class="form-group" style="margin-bottom: 1rem;">
+                                    <label for="nombrePaquete">Nombre del Paquete:</label>
+                                    <input type="text" id="nombrePaquete" class="form-control" required>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 1rem;">
+                                    <label for="precioPaquete">Precio del Paquete:</label>
+                                    <input type="number" id="precioPaquete" class="form-control" step="0.01" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Agregar Paquete</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Table for existing packages -->
+                    <div class="card" style="margin-top: 2rem;">
+                        <div class="card-header">
+                            <h3 class="card-title">Lista de Paquetes</h3>
+                        </div>
+                        <div class="card-content">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nombre</th>
+                                            <th>Descripción</th>
+                                            <th>Precio</th>
+                                            <th>Stock</th>
+                                            <th>Activo</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaPaquetesBody">
+                                        <!-- Package data will be loaded here by js/dashboard.js -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Roles Page -->
+            <div id="roles-page" class="page">
+                <div class="page-title">
+                    <h1>Gestión de Roles</h1>
+                    <div class="breadcrumb">Inicio / Roles</div>
+                </div>
+                <div class="page-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Lista de Roles</h3>
+                            <div class="card-actions">
+                                <button class="btn btn-sm btn-primary" id="btnAnadirRol">
+                                    <i class="fas fa-plus"></i> Añadir Nuevo Rol
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID Rol</th>
+                                            <th>Nombre</th>
+                                            <th>Descripción</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tablaRolesBody">
+                                        <!-- Los roles se cargarán aquí por JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Content Area -->
+            <div id="dashboardContent" class="dashboard-content">
+                <!-- Default content or loading spinner can go here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Template -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Modal</h3>
+                <button class="close-btn" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Modal content will be loaded here -->
+            </div>
+            <div class="modal-footer" id="modalFooter">
+                <!-- Modal buttons will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Modal -->
+    <div id="modalProducto" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalProductoTitulo">Agregar/Editar Producto</h3>
+                <button class="close-btn" id="cerrarModalProducto">&times;</button>
+            </div>
+            <form id="formProducto">
+                <div class="modal-body">
+                    <input type="hidden" id="productoId">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="productoNombre">Nombre:</label>
+                        <input type="text" id="productoNombre" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="productoDescripcion">Descripción:</label>
+                        <textarea id="productoDescripcion" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="productoTipo">Tipo:</label>
+                        <select id="productoTipo" class="form-control" required>
+                            <option value="paquete">Paquete</option>
+                            <option value="vuelo">Vuelo</option>
+                            <option value="hotel">Hotel</option>
+                            <option value="auto">Auto</option>
+                            <!-- Add other types if necessary -->
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="productoPrecio">Precio:</label>
+                        <input type="number" id="productoPrecio" class="form-control" step="0.01" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="productoStock">Stock:</label>
+                        <input type="number" id="productoStock" class="form-control" min="0">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <input type="checkbox" id="productoActivo" style="margin-right: 0.5rem;">
+                        <label for="productoActivo">Activo</label>
+                    </div>
+
+                    <!-- Campos específicos por tipo de producto (inicialmente ocultos) -->
+                    <div id="camposHospedaje" class="tipo-especifico" style="display:none; border-top: 1px solid #eee; margin-top:1rem; padding-top:1rem;">
+                        <h4>Detalles de Hospedaje</h4>
+                        <div class="form-group"><label for="hospedajeUbicacion">Ubicación:</label><input type="text" id="hospedajeUbicacion" class="form-control"></div>
+                        <div class="form-row">
+                            <div class="form-group"><label for="hospedajeFechaInicio">Fecha Inicio:</label><input type="date" id="hospedajeFechaInicio" class="form-control"></div>
+                            <div class="form-group"><label for="hospedajeFechaFin">Fecha Fin:</label><input type="date" id="hospedajeFechaFin" class="form-control"></div>
+                        </div>
+                        <div class="form-group"><label for="hospedajeCapacidad">Capacidad:</label><input type="number" id="hospedajeCapacidad" class="form-control" min="0"></div>
+                    </div>
+
+                    <div id="camposPasaje" class="tipo-especifico" style="display:none; border-top: 1px solid #eee; margin-top:1rem; padding-top:1rem;">
+                        <h4>Detalles de Pasaje</h4>
+                        <div class="form-row">
+                            <div class="form-group"><label for="pasajeOrigen">Origen:</label><input type="text" id="pasajeOrigen" class="form-control"></div>
+                            <div class="form-group"><label for="pasajeDestino">Destino:</label><input type="text" id="pasajeDestino" class="form-control"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label for="pasajeFechaSalida">Fecha Salida:</label><input type="datetime-local" id="pasajeFechaSalida" class="form-control"></div>
+                            <div class="form-group"><label for="pasajeFechaRegreso">Fecha Regreso:</label><input type="datetime-local" id="pasajeFechaRegreso" class="form-control"></div>
+                        </div>
+                        <div class="form-group"><label for="pasajeClase">Clase:</label><input type="text" id="pasajeClase" class="form-control"></div>
+                        <div class="form-group"><label for="pasajeAsientos">Asientos Disponibles:</label><input type="number" id="pasajeAsientos" class="form-control" min="0"></div>
+                        <div class="form-group"><label for="pasajeAerolinea">Aerolínea:</label><input type="text" id="pasajeAerolinea" class="form-control"></div>
+                        <div class="form-group"><label for="pasajeTipoAsiento">ID Tipo Asiento:</label><input type="number" id="pasajeTipoAsiento" class="form-control" min="1"></div>
+                    </div>
+
+                    <div id="camposAlquiler" class="tipo-especifico" style="display:none; border-top: 1px solid #eee; margin-top:1rem; padding-top:1rem;">
+                        <h4>Detalles de Alquiler de Vehículo</h4>
+                        <div class="form-group"><label for="alquilerTipoVehiculo">Tipo Vehículo:</label><input type="text" id="alquilerTipoVehiculo" class="form-control"></div>
+                        <div class="form-group"><label for="alquilerUbicacion">Ubicación:</label><input type="text" id="alquilerUbicacion" class="form-control"></div>
+                        <div class="form-row">
+                            <div class="form-group"><label for="alquilerFechaInicio">Fecha Inicio:</label><input type="date" id="alquilerFechaInicio" class="form-control"></div>
+                            <div class="form-group"><label for="alquilerFechaFin">Fecha Fin:</label><input type="date" id="alquilerFechaFin" class="form-control"></div>
+                        </div>
+                        <div class="form-group"><label for="alquilerCantidad">Cantidad (Stock Alquiler):</label><input type="number" id="alquilerCantidad" class="form-control" min="0"></div>
+                    </div>
+
+                    <div id="camposAuto" class="tipo-especifico" style="display:none; border-top: 1px solid #eee; margin-top:1rem; padding-top:1rem;">
+                        <h4>Detalles de Auto (para Venta)</h4>
+                        <div class="form-group"><label for="autoModelo">Modelo:</label><input type="text" id="autoModelo" class="form-control"></div>
+                        <div class="form-group"><label for="autoMarca">Marca:</label><input type="text" id="autoMarca" class="form-control"></div>
+                        <div class="form-group"><label for="autoCapacidad">Capacidad (Pasajeros):</label><input type="number" id="autoCapacidad" class="form-control" min="1"></div>
+                        <div class="form-group"><label for="autoUbicacion">Ubicación Actual:</label><input type="text" id="autoUbicacion" class="form-control"></div>
+                        <div class="form-group"><label for="autoEstado">Estado (ej. Nuevo, Usado):</label><input type="text" id="autoEstado" class="form-control"></div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelarProducto">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Edit Modal -->
+    <div id="modalEditarUsuario" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Usuario Interno</h3>
+                <button class="close-btn" id="cerrarModalEditar">&times;</button>
+            </div>
+            <form id="formEditarUsuario">
+                <div class="modal-body">
+                    <input type="hidden" id="editIdUsuario">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="editNombre">Nombre:</label>
+                        <input type="text" id="editNombre" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="editApellido">Apellido:</label>
+                        <input type="text" id="editApellido" class="form-control">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="editEmail">Email:</label>
+                        <input type="email" id="editEmail" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="editTelefono">Teléfono:</label>
+                        <input type="tel" id="editTelefono" class="form-control">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="editRol">Rol:</label>
+                        <select id="editRol" class="form-control" required>
+                            <option value="">Seleccione un rol</option>
+                            <option value="1">Admin</option>
+                            <option value="2">Empleado</option>
+                            <option value="3">Otro Rol</option> 
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelarEditarUsuario">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="modalAnadirUsuarioInterno" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Añadir Usuario Interno</h3>
+                <button class="close-btn" id="cerrarModalAnadir">&times;</button>
+            </div>
+            <form id="formAnadirUsuarioInterno">
+                <div class="modal-body">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="anadirNombre">Nombre:</label>
+                        <input type="text" id="anadirNombre" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="anadirApellido">Apellido:</label>
+                        <input type="text" id="anadirApellido" class="form-control">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="anadirEmail">Email:</label>
+                        <input type="email" id="anadirEmail" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="anadirTelefono">Teléfono:</label>
+                        <input type="tel" id="anadirTelefono" class="form-control">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="anadirContrasena">Contraseña:</label>
+                        <input type="password" id="anadirContrasena" class="form-control" required autocomplete="new-password">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="anadirRol">Rol:</label>
+                        <select id="anadirRol" class="form-control" required>
+                            <option value="">Seleccione un rol</option>
+                            <option value="1">Admin</option>
+                            <option value="2">Empleado</option>
+                            <option value="3">Otro Rol</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelarAnadirUsuario">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Añadir Usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Manage Package Components Modal -->
+    <div id="modalGestionarComponentes" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width: 800px;"> <!-- Wider modal for more content -->
+            <div class="modal-header">
+                <h3 id="modalGestionarComponentesTitulo">Gestionar Componentes del Paquete: <span id="nombrePaqueteGestion"></span></h3>
+                <button class="close-btn" id="cerrarModalGestionarComponentes">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="idPaqueteGestionActual">
+
+                <h4>Componentes Actuales</h4>
+                <div id="listaComponentesActuales" style="margin-bottom: 20px; max-height: 200px; overflow-y: auto;">
+                    <!-- Current components will be listed here by JS -->
+                    <p>Cargando componentes...</p>
+                </div>
+
+                <h4>Agregar Nuevo Componente</h4>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <input type="text" id="buscarProductoIndividual" placeholder="Buscar producto individual (vuelo, hotel, auto)..." class="form-control" style="flex-grow: 1;">
+                    <!-- <button id="btnFiltrarProductosIndividuales" class="btn btn-sm btn-secondary">Filtrar</button> -->
+                </div>
+                <div id="listaProductosIndividualesDisponibles" style="max-height: 250px; overflow-y: auto; border: 1px solid #ddd; padding: 10px;">
+                    <!-- Available individual products will be listed here by JS -->
+                    <p>Buscar para ver productos disponibles.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btnCerrarGestionComponentes">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Añadir/Editar Rol -->
+    <div id="modalGestionRol" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalRolTitulo">Añadir Rol</h3> <!-- Título cambiará dinámicamente -->
+                <button class="close-btn" id="cerrarModalRol">&times;</button>
+            </div>
+            <form id="formGestionRol">
+                <div class="modal-body">
+                    <input type="hidden" id="gestionRolId"> <!-- Para ID del rol al editar -->
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="gestionRolNombre">Nombre del Rol:</label>
+                        <input type="text" id="gestionRolNombre" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="gestionRolDescripcion">Descripción:</label>
+                        <textarea id="gestionRolDescripcion" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelarGestionRol">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Rol</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Cargando...</p>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <script src="../js/dashboard.js"></script>
+    <script>
+  const overlay = document.getElementById('accessOverlay');
+  const message = document.getElementById('accessMessage');
+  const token = localStorage.getItem('token');
+  let valid = false;
+
+  function showErrorAndRedirect(msg, redirect) {
+    message.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#e74c3c"></i> ${msg}`;
+    setTimeout(() => {
+      window.location.href = redirect;
+    }, 1800);
+  }
+
+  if (!token) {
+    showErrorAndRedirect('Debes iniciar sesión para acceder al dashboard.', 'login.html');
+  } else {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (payload.tipo !== 'admin') {
+        showErrorAndRedirect('No tienes permisos para acceder al dashboard.', 'inicio.html');
+      } else {
+        valid = true;
+      }
+    } catch (e) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('tipo');
+      showErrorAndRedirect('Sesión inválida. Por favor inicia sesión nuevamente.', 'login.html');
+    }
+  }
+
+  // Si es válido, muestra el dashboard y oculta el overlay
+  if (valid) {
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelector('.dashboard').style.display = '';
+      const mainContent = document.querySelector('.main-content');
+      if (mainContent) {
+        mainContent.style.display = 'block'; // Make .main-content visible
+      }
+      overlay.style.display = 'none';
+    });
+  }
+</script>
+</body>
+</html>

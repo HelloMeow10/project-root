@@ -1,0 +1,614 @@
+:root {
+  --black: #242424;
+  --white: #f5f5f5;
+  --pill: #e0d4be;
+  --red: #cc033f;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: var(--black);
+  background: var(--white);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* HEADER ESTILOS DE HOTEL */
+.header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: var(--white);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.navbar {
+  padding: 1rem 0;
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--red);
+}
+
+.nav-logo i {
+  margin-right: 0.5rem;
+  font-size: 1.8rem;
+}
+
+.nav-menu {
+  display: flex;
+  list-style: none;
+  gap: 2rem;
+}
+
+.nav-menu a {
+  text-decoration: none;
+  color: var(--black);
+  font-weight: 500;
+  transition: color 0.3s ease;
+  position: relative;
+}
+
+.nav-menu a:hover,
+.nav-menu a.active {
+  color: var(--red);
+}
+
+.nav-menu a::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--red);
+  transition: width 0.3s ease;
+}
+
+.nav-menu a:hover::after,
+.nav-menu a.active::after {
+  width: 100%;
+}
+
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+.nav-toggle span {
+  width: 25px;
+  height: 3px;
+  background: var(--black);
+  margin: 3px 0;
+  transition: 0.3s;
+}
+
+/* Animated background particles */
+.bg-animation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.particle {
+  position: absolute;
+  background: rgba(224, 212, 190, 0.1); /* var(--pill) con opacidad */
+  border-radius: 50%;
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+    opacity: 1;
+  }
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  animation: fadeInUp 1s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* HEADER CONTENT ESTILO HOTEL */
+.header {
+  background: var(--white);
+  padding: 2rem;
+  border-radius: 20px;
+  margin-bottom: 2rem;
+  box-shadow: 0 20px 60px rgba(36, 36, 36, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--pill);
+  animation: slideInDown 1s ease-out 0.2s both;
+  position: relative;
+  overflow: hidden;
+}
+
+.header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(245,245,245,0.3), transparent);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.header-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--pill);
+  animation: rotate 10s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.header-text {
+  text-align: center;
+}
+
+.header h1 {
+  color: var(--red);
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  background: none;
+  -webkit-background-clip: unset;
+  -webkit-text-fill-color: unset;
+  background-clip: unset;
+  animation: textGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes textGlow {
+  from {
+    filter: brightness(1);
+  }
+  to {
+    filter: brightness(1.1);
+  }
+}
+
+.header p {
+  color: var(--black);
+  font-size: 1.2rem;
+  animation: fadeIn 1s ease-out 0.5s both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* BOTÓN CARRITO */
+.cart-btn {
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 1.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-left: 2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  box-shadow: 0 4px 16px rgba(204,3,63,0.10);
+  transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  
+}
+.fas.fa-shopping-cart{
+  color: var(--red);
+}
+#span-a-href a{
+  
+ 
+  color: var(--red);
+ 
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.cart-btn img {
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
+  margin-right: 0.4rem;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.08));
+  background: transparent;
+}
+
+.cart-btn i {
+  font-size: 1.3rem;
+  color: var(--white);
+  margin-right: 0.2rem;
+  display: none; /* Oculta el ícono de fontawesome si usas el PNG */
+}
+
+#cartCount {
+  background: var(--red);
+  color: var(--white);
+  border-radius: 50%;
+  padding: 2px 8px;
+  font-size: 0.9rem;
+  margin-left: 0.3rem;
+  font-weight: bold;
+  display: inline-block;
+  min-width: 24px;
+  text-align: center;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  box-shadow: 0 2px 8px rgba(204,3,63,0.10);
+}
+
+.cart-btn:hover, .cart-btn:focus {
+  background: var(--pill);
+  color: var(--red);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 8px 24px rgba(204,3,63,0.18);
+  outline: none;
+}
+
+#span-a-href {
+  color: var(--red);
+}
+
+/* Responsive: centrar el botón debajo del título en móviles */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    align-items: center;
+  }
+  .cart-btn {
+    margin: 1.2rem 0 0 0;
+    width: 90%;
+    justify-content: center;
+  }
+  .cart-btn img {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* Resto de estilos de vuelos (puedes mantener los tuyos, pero cambia los colores directos por variables de root) */
+
+/* Ejemplo de cambio de color en .search-section */
+.search-section {
+  background: var(--white);
+  padding: 2.5rem;
+  border-radius: 20px;
+  margin-bottom: 2rem;
+  box-shadow: 0 20px 60px rgba(36, 36, 36, 0.1);
+  border: 1px solid var(--pill);
+  animation: slideInLeft 1s ease-out 0.4s both;
+  transition: all 0.3s ease;
+}
+
+.search-section:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 30px 80px rgba(36, 36, 36, 0.15);
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.search-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.search-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+.search-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  animation: fadeInUp 0.6s ease-out both;
+}
+
+.form-group label {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--red);
+  transition: color 0.3s ease;
+}
+
+.form-group input,
+.form-group select {
+  padding: 1rem;
+  border: 2px solid var(--pill);
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: var(--white);
+  color: var(--black);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--red);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(204, 3, 63, 0.08);
+  background: var(--white);
+}
+
+.search-btn {
+  background: linear-gradient(135deg, var(--pill) 0%, var(--red) 100%);
+  color: var(--white);
+  border: none;
+  padding: 1rem 3rem;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  grid-column: 1 / -1;
+  justify-self: center;
+  position: relative;
+  overflow: hidden;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(204, 3, 63, 0.18);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(204, 3, 63, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(204, 3, 63, 0);
+  }
+}
+
+.search-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(204, 3, 63, 0.12);
+  background: linear-gradient(135deg, var(--red) 0%, var(--pill) 100%);
+}
+
+/* Nuevos estilos para la sección de vuelos */
+.flights-section {
+  background: var(--white);
+  padding: 2.5rem;
+  border-radius: 20px;
+  margin-bottom: 2rem;
+  box-shadow: 0 20px 60px rgba(36, 36, 36, 0.10);
+  border: 1px solid var(--pill);
+  animation: fadeInUp 1s ease-out;
+  transition: all 0.3s ease;
+}
+
+.flights-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.flights-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--pill);
+  padding: 6px;
+  box-shadow: 0 2px 8px rgba(36,36,36,0.06);
+}
+
+.flights-header h2 {
+  color: var(--red);
+  font-size: 1.8rem;
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .flights-section {
+    padding: 1.2rem;
+    border-radius: 12px;
+  }
+  .flights-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+  .flights-header h2 {
+    font-size: 1.2rem;
+  }
+  .flights-icon {
+    width: 32px;
+    height: 32px;
+    padding: 3px;
+  }
+}
+
+/* Footer Styles (copiado de autos.css) */
+.footer {
+  background: var(--black);
+  color: var(--white);
+  padding: 60px 0 20px;
+  margin-top: 3rem; /* Añadir un margen superior para separarlo del contenido */
+}
+
+.footer .container { /* Asegurar que la clase container dentro del footer funcione como se espera */
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px; /* Padding estándar del container */
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 40px;
+  margin-bottom: 40px;
+}
+
+.footer-section h3,
+.footer-section h4 {
+  margin-bottom: 20px;
+  color: var(--white);
+}
+
+.footer-section ul {
+  list-style: none;
+  padding: 0; /* Resetear padding para ul */
+  margin: 0; /* Resetear margen para ul */
+}
+
+.footer-section ul li {
+  margin-bottom: 10px;
+}
+
+.footer-section a {
+  color: var(--pill);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-section a:hover {
+  color: var(--red);
+}
+
+.footer-section p { /* Estilo para los párrafos dentro de footer-section */
+    line-height: 1.6;
+}
+
+.footer-section p i { /* Estilo para los íconos dentro de los párrafos */
+    margin-right: 8px;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid var(--pill);
+  color: var(--pill);
+}
+/* Fin de Footer Styles */
