@@ -21,6 +21,23 @@ body {
   overflow-x: hidden;
 }
 
+/* HEADER PRINCIPAL SIEMPRE DELANTE */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  background: var(--white);
+  backdrop-filter: blur(10px);
+  z-index: 12000 !important;
+  transition: all 0.3s ease;
+  border-radius: 0 !important;
+  margin-bottom: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  animation: none !important;
+}
+
 /* HEADER ESTILOS DE HOTEL */
 .header {
   position: fixed;
@@ -62,6 +79,7 @@ body {
   display: flex;
   list-style: none;
   gap: 2rem;
+  z-index: 2002;
 }
 
 .nav-menu a {
@@ -139,7 +157,7 @@ body {
 
 .container {
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 100px auto 0 auto;
   padding: 20px;
   animation: fadeInUp 1s ease-out;
 }
@@ -166,7 +184,6 @@ body {
   border: 1px solid var(--pill);
   animation: slideInDown 1s ease-out 0.2s both;
   position: relative;
-  overflow: hidden;
 }
 
 .header::before {
@@ -723,15 +740,92 @@ body {
   box-sizing: border-box;
 }
 
-@media (max-width: 700px) {
+.flight-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding: 0 1rem;
+  justify-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.flight-card {
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--white);
+  box-shadow: 0 10px 30px rgba(36, 36, 36, 0.1);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: fadeInScale 0.6s ease-out both;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 400px;
+  min-width: 0; /* <-- Esto es clave para evitar overflow en grid */
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .flight-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 0 8px;
+  }
   .flight-card {
-    padding: 1.2rem 0.7rem;
+    margin: 0 auto;
     max-width: 100%;
+    min-width: 0;
   }
 }
 @media (max-width: 900px) {
-  .flight-card {
-    flex-basis: 100%;
-    max-width: 100%;
+  .nav-menu {
+    position: fixed;
+    left: -100%;
+    top: 70px;
+    flex-direction: column;
+    background-color: var(--white);
+    width: 100vw;
+    height: calc(100vh - 70px);
+    text-align: center;
+    transition: left 0.3s;
+    box-shadow: 0 8px 24px rgba(36,36,36,0.10);
+    padding: 2rem 0;
+    z-index: 9999;
+    overflow-y: auto;
   }
+
+  .nav-menu.active {
+    left: 0;
+  }
+
+  .nav-toggle {
+    display: flex;
+  }
+
+  .nav-menu li {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 0.7em 1.2em;
+  }
+}
+@media (min-width: 901px) {
+  .nav-menu {
+    display: flex !important;
+    position: static;
+    flex-direction: row;
+    box-shadow: none;
+    width: auto;
+    padding: 0;
+  }
+  .nav-toggle {
+    display: none;
+  }
+}
+
+/* Ajuste: baja el z-index de .header para evitar stacking conflict con el menú */
+.header {
+  z-index: 1000;
 }

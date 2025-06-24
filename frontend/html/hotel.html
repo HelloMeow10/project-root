@@ -17,13 +17,14 @@
                     <i class="fas fa-globe-americas"></i>   
                     <span id="span-a-href"><a href="inicio.html">MUSIMUNDO/Travel</a></span>
                 </div>
-                <div class="nav-menu">        
+                <ul class="nav-menu" id="nav-menu">
+                    <li><a href="inicio.html">Inicio</a></li>
                     <li><a href="paquetes.html">Paquetes</a></li>
                     <li><a href="vuelos.html">Vuelos</a></li>
                     <li><a href="hotel.html">Hoteles</a></li>
                     <li><a href="autos.html">Autos</a></li>
-                </div>
-                <div class="nav-toggle">
+                </ul>
+                <div class="nav-toggle" id="hamburger">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -35,24 +36,18 @@
     <div class="bg-animation" id="bgAnimation"></div>
 
     <div class="container">
-        <div class="header">
-            <div class="header-content">
-                
-                <div class="header-text">
-                    <h1>Hoteles de lujo</h1>
-                    <p>Encuentra el alojamiento perfecto para tus vacaciones de ensueño</p>
-                </div>
-                 <div class="cart-header">
+        <div class="header-content">
+            <div class="header-text">
+                <h1>Hoteles de lujo</h1>
+                <p>Encuentra el alojamiento perfecto para tus vacaciones de ensueño</p>
+            </div>
+            <div class="cart-header">
                 <h1>
                     <a href="carrito.html"><i class="fas fa-shopping-cart"></i></a>
-                    
                 </h1>
             </div>
-            </div>
-
         </div>
 
-        
         <div class="hotels-section scroll-reveal">
             <div class="hotels-header">
                 <img src="../imagenes/—Pngtree—hotel icon_4771675.png" alt="Available hotels" class="hotels-icon">
@@ -60,9 +55,6 @@
             </div>
             <div id="hotelResults" class="hotel-grid"></div>
         </div>
-
-        
-
 
     <!-- Hotel details modal -->
     <div class="modal" id="hotelModal">
@@ -75,6 +67,18 @@
     </div>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="../js/hotel.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        const hamburger = document.getElementById("hamburger");
+        const navMenu = document.getElementById("nav-menu");
+
+        if (hamburger && navMenu) {
+          hamburger.addEventListener("click", function() {
+            navMenu.classList.toggle("active");
+          });
+        }
+      });
+    </script>
 
 <footer class="footer">
     <div class="container">

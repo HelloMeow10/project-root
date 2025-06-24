@@ -17,14 +17,14 @@
                     <i class="fas fa-globe-americas"></i>
                     <span id="span-a-href"><a href="inicio.html">MUSIMUNDO/Travel</a></span>
                 </div>
-                <div class="nav-menu">
+                <ul class="nav-menu" id="nav-menu">
                     <li><a href="inicio.html">Inicio</a></li>
                     <li><a href="paquetes.html">Paquetes</a></li>
                     <li><a href="vuelos.html">Vuelos</a></li>
-                    <li><a href="hotel.html">Hoteles.</a></li>
+                    <li><a href="hotel.html">Hoteles</a></li>
                     <li><a href="autos.html">Autos</a></li>
-                </div>
-                <div class="nav-toggle">
+                </ul>
+                <div class="nav-toggle" id="hamburger">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -32,33 +32,28 @@
             </div>
         </nav>
     </header>
-    <!-- Animated b ackground -->
+    <!-- Animated background -->
     <div class="bg-animation" id="bgAnimation"></div>
 
     <div class="container">
-        <div class="header">
-            <div class="header-content">
-                <div class="header-text">
-                    <h1>Reserva tu vuelo</h1>
-                    <p>Encuentra el vuelo perfecto para tus vacaciones todo incluido</p>
-                </div>
+        <div class="header-content">
+            <div class="header-text">
+                <h1>Reserva tu vuelo</h1>
+                <p>Encuentra el vuelo perfecto para tus vacaciones todo incluido</p>
+            </div>
             <div class="cart-header">
                 <h1>
                     <a href="carrito.html"><i class="fas fa-shopping-cart"></i></a>
-                    
                 </h1>
-</a>
             </div>
         </div>
-
-            
 
         <div class="flights-section scroll-reveal">
             <div class="flights-header">
                 <img src="../imagenes/plane.png" alt="Available flights" class="flights-icon">
                 <h2 style="color: #4a5568; font-size: 1.8rem; margin: 0;">Vuelos Disponibles</h2>
             </div>
-            <div id="flightResults"></div>
+            <div id="flightResults" class="flight-grid"></div>
         </div>
 
         

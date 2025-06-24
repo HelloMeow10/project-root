@@ -19,14 +19,22 @@ body {
 }
 
 
+/* HEADER PRINCIPAL SIEMPRE DELANTE */
 .header {
   position: fixed;
   top: 0;
-  width: 100%;
+  left: 0;
+  width: 100vw;
   background: var(--white);
   backdrop-filter: blur(10px);
-  z-index: 1000;
+  z-index: 12000 !important;
   transition: all 0.3s ease;
+  border-radius: 0 !important;
+  margin-bottom: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  animation: none !important;
+  overflow: visible !important;
 }
 
 .navbar {
@@ -59,6 +67,9 @@ body {
   display: flex;
   list-style: none;
   gap: 2rem;
+  width: 100vw;
+  overflow: visible !important;
+  margin-left: auto; /* Esto alinea los enlaces a la derecha en desktop */
 }
 
 .nav-menu a {
@@ -136,7 +147,7 @@ body {
 
 .container {
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 100px auto 0 auto;
   padding: 20px;
   animation: fadeInUp 1s ease-out;
 }
@@ -1085,11 +1096,15 @@ text-decoration: none;
     top: 70px;
     flex-direction: column;
     background-color: var(--white);
-    width: 100%;
+    width: 100vw;
+    height: calc(100vh - 70px);
     text-align: center;
-    transition: 0.3s;
-    box-shadow: 0 10px 27px rgba(36, 36, 36, 0.05);
-    padding: 20px 0;
+    transition: left 0.3s;
+    box-shadow: 0 8px 24px rgba(36,36,36,0.10);
+    padding: 2rem 0;
+    z-index: 9999;
+    overflow-y: auto !important;
+    overflow-x: visible !important;
   }
 
   .nav-menu.active {
@@ -1141,6 +1156,27 @@ text-decoration: none;
   .modal-content {
     width: 99%;
     padding: 0.5rem;
+  }
+}
+
+/* Ajuste: header normal desktop, menú a la derecha */
+@media (min-width: 901px) {
+  .nav-menu {
+    display: flex !important;
+    position: static;
+    flex-direction: row;
+    box-shadow: none;
+    width: auto;
+    padding: 0;
+    margin-left: auto;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
   }
 }
 
