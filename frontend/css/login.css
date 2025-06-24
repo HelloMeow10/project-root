@@ -209,39 +209,41 @@ body {
 }
 
 .features {
-    display: grid;
-    gap: 1.5rem;
-    text-align: left;
+    /* Styles for features section, can be removed or adjusted if features are removed */
+    /* display: grid; */
+    /* gap: 1.5rem; */
+    /* text-align: left; */
+    min-height: 100px; /* Ensure space is maintained even if empty */
 }
 
 .feature {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: var(--border-radius-sm);
-    backdrop-filter: blur(10px);
-    transition: var(--transition);
-    animation: slideInLeft 0.8s ease calc(0.4s + var(--delay, 0s)) both;
+    /* display: flex; */
+    /* align-items: center; */
+    /* gap: 1rem; */
+    /* padding: 1rem; */
+    /* background: rgba(255, 255, 255, 0.1); */
+    /* border-radius: var(--border-radius-sm); */
+    /* backdrop-filter: blur(10px); */
+    /* transition: var(--transition); */
+    /* animation: slideInLeft 0.8s ease calc(0.4s + var(--delay, 0s)) both; */
 }
 
-.feature:nth-child(1) { --delay: 0s; }
-.feature:nth-child(2) { --delay: 0.1s; }
-.feature:nth-child(3) { --delay: 0.2s; }
+/* .feature:nth-child(1) { --delay: 0s; } */
+/* .feature:nth-child(2) { --delay: 0.1s; } */
+/* .feature:nth-child(3) { --delay: 0.2s; } */
 
-.feature:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: translateX(5px);
-}
+/* .feature:hover { */
+    /* background: rgba(255, 255, 255, 0.15); */
+    /* transform: translateX(5px); */
+/* } */
 
-.feature i {
-    font-size: 1.5rem;
-    opacity: 0.9;
-}
+/* .feature i { */
+    /* font-size: 1.5rem; */
+    /* opacity: 0.9; */
+/* } */
 
-.feature span {
-    font-weight: 500;
+/* .feature span { */
+    /* font-weight: 500; */
 }
 
 /* Form Panel */
