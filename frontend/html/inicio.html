@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const usuarioVerificado = localStorage.getItem('verificado'); // Asumiendo que guardas esto en localStorage
 
     if (usuarioVerificado !== 'true') {
-      menuHtml += `<a href="verificar-email.html" id="verifyEmailBtn" style="margin-left:10px; color: orange;">Verificar Email</a>`;
+      menuHtml += `<a href="verificar-email.html" id="verifyEmailBtn" class="verify-email-btn">Verificar Email</a>`;
     }
 
     userMenuContainer.innerHTML = menuHtml;

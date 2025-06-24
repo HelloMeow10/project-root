@@ -260,6 +260,23 @@ section {
   margin: 0.2em 0 0 0;
 }
 
+.verify-email-btn {
+  background: var(--red);
+  color: #fff !important;
+  padding: 0.4em 1em;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 10px;
+  transition: background 0.2s, color 0.2s;
+  border: none;
+  display: inline-block;
+}
+.verify-email-btn:hover {
+  background: var(--pill);
+  color: #fff;
+}
+
 @media screen and (max-width: 600px) {
   /* nav y nav h1 ya no se estilizan aquí, se usa shared-header.css */
   
