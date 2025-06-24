@@ -12,7 +12,7 @@ import { Producto } from '../models/producto';
 interface ProductoComponente {
   id_producto: number;
   nombre: string;
-  // tipo?: string; // Uncomment if type was selected in repo for components
+  tipo?: string; // Ahora se incluye el tipo del componente
 }
 
 /**
@@ -28,7 +28,7 @@ function mapPrismaProductoToProducto(prismaProducto: any): Producto & { componen
     componentes = prismaProducto.paqueteDetallesAsPaquete.map((detalle: any) => ({
       id_producto: detalle.producto.id_producto,
       nombre: detalle.producto.nombre,
-      // tipo: detalle.producto.tipoProducto?.nombre // Uncomment if type was selected in repo
+      tipo: detalle.producto.tipoProducto?.nombre // Se mapea el nombre del tipo de producto componente
     }));
   }
 
