@@ -26,13 +26,19 @@ body {
 
 /* Estilos del Header Compartido */
 .header {
-  position: fixed;
-  top: 0;
+  /* position: fixed; */ /* Movido a una regla condicional más abajo */
+  /* top: 0; */ /* Movido a una regla condicional más abajo */
   width: 100%;
   background: var(--white); /* Fondo por defecto para el header */
   box-shadow: var(--shadow);
   z-index: 1000; /* Asegura que el header esté por encima de otros elementos */
   transition: var(--transition);
+}
+
+/* Aplicar position:fixed y top:0 solo si body NO tiene la clase .page-politicas */
+body:not(.page-politicas) .header {
+  position: fixed;
+  top: 0;
 }
 
 .navbar {
@@ -243,7 +249,7 @@ body {
   background-color: #e69500; /* Naranja más oscuro para hover */
 }
 
-/* Ajuste para el contenido debajo del header fijo */
-.content-below-header {
+/* Ajuste para el contenido debajo del header fijo, solo si no es page-politicas */
+body:not(.page-politicas) .content-below-header {
   padding-top: 70px; /* Ajustar este valor a la altura real del header fijo */
 }

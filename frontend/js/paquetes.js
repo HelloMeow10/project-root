@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeModals()
   initializeNavigation()
   initializeAnimations()
-  cargarProductos()
+  // cargarProductos() // Comentado para evitar carga duplicada y error de SVG. fetchPaquetes se encarga de los paquetes.
 })
 
 // Filter functionality
@@ -325,7 +325,7 @@ async function cargarProductos() {
 
       card.innerHTML = `
         <div class="package-image">
-          <img src="/placeholder.svg?height=250&width=400" alt="${producto.nombre}">
+          <img src="https://via.placeholder.com/400x250.png?text=${encodeURIComponent(producto.nombre)}" alt="${producto.nombre}">
           <div class="package-badge">Nuevo</div>
           <div class="package-overlay">
             <button class="quick-view-btn" data-package="${producto.id}">Vista rápida</button>
@@ -402,16 +402,23 @@ async function fetchPaquetes() {
 function renderPaquetes(paquetes) {
   const grid = document.getElementById('packagesGrid');
   grid.innerHTML = '';
-  if (!paquetes.length) {
+  if (!paquetes || !paquetes.length) {
     grid.innerHTML = `<div style="text-align: center; padding: 3rem;">No hay paquetes disponibles.</div>`;
     return;
   }
   paquetes.forEach(pkg => {
-    // Extrae vuelo y hotel del detalle si existen
-    const vuelo = pkg.paqueteDetallesAsPaquete?.find(d => d.producto.pasaje)?.producto.pasaje;
-    const hotel = pkg.paqueteDetallesAsPaquete?.find(d => d.producto.hospedaje)?.producto.hospedaje;
-    const vueloDesc = vuelo ? `${vuelo.origen} → ${vuelo.destino}` : 'Vuelo incluido';
-    const hotelDesc = hotel ? `${hotel.ubicacion || ''}` : 'Hotel incluido';
+    let componentesDesc = '';
+    // Usar pkg.paqueteDetallesAsPaquete en lugar de pkg.componentes
+    if (pkg.paqueteDetallesAsPaquete && pkg.paqueteDetallesAsPaquete.length > 0) {
+      componentesDesc = pkg.paqueteDetallesAsPaquete.map(detalle => {
+        // Acceder a los datos del producto anidado y al tipo de producto
+        const producto = detalle.producto;
+        const tipoProducto = producto.tipoProducto ? producto.tipoProducto.nombre : 'Componente';
+        return `${tipoProducto}: ${producto.nombre}`;
+      }).join('<br>');
+    } else {
+      componentesDesc = 'Detalles no disponibles.';
+    }
 
     const card = document.createElement('div');
     card.className = 'package-card';
@@ -421,12 +428,12 @@ function renderPaquetes(paquetes) {
           <h3>${pkg.nombre}</h3>
         </div>
         <p class="package-description">
-          Vuelo: ${vueloDesc}<br>
-          Hotel: ${hotelDesc}
+          ${componentesDesc}
         </p>
         <div class="package-features">
-          <span><i class="fas fa-plane"></i> Vuelo incluido</span>
-          <span><i class="fas fa-bed"></i> Hotel incluido</span>
+          ${pkg.paqueteDetallesAsPaquete && pkg.paqueteDetallesAsPaquete.some(d => d.producto && d.producto.tipoProducto && d.producto.tipoProducto.nombre.toLowerCase().includes('vuelo')) ? '<span><i class="fas fa-plane"></i> Vuelo incluido</span>' : ''}
+          ${pkg.paqueteDetallesAsPaquete && pkg.paqueteDetallesAsPaquete.some(d => d.producto && d.producto.tipoProducto && d.producto.tipoProducto.nombre.toLowerCase().includes('hotel')) ? '<span><i class="fas fa-bed"></i> Hotel incluido</span>' : ''}
+          ${componentesDesc === 'Detalles no disponibles.' ? '<span><i class="fas fa-info-circle"></i> Consultar detalles</span>' : ''}
         </div>
         <div class="package-footer">
           <div class="price">
@@ -443,8 +450,20 @@ function renderPaquetes(paquetes) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const paquetes = await fetchPaquetes();
-  renderPaquetes(paquetes);
+  try {
+    const paquetes = await fetchPaquetes();
+    // Asegurarse de que la respuesta de fetchPaquetes sea el array de productos directamente
+    // Si fetchPaquetes devuelve un objeto con una propiedad que contiene los paquetes (ej. { data: [...] }),
+    // entonces se debe ajustar aquí: renderPaquetes(paquetes.data) o similar.
+    // Por ahora, asumimos que 'paquetes' es el array.
+    renderPaquetes(paquetes);
+  } catch (error) {
+    console.error('Error al cargar y renderizar paquetes:', error);
+    const grid = document.getElementById('packagesGrid');
+    if (grid) {
+      grid.innerHTML = `<div style="text-align: center; padding: 3rem; color: red;">Error al cargar paquetes. Intente más tarde.</div>`;
+    }
+  }
 });
 
 // Evento global para agregar paquete al carrito

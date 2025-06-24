@@ -61,7 +61,8 @@ router.get('/paquetes', async (req, res) => {
                         producto: {
                             include: {
                                 hospedaje: true,
-                                pasaje: true
+                                pasaje: true,
+                                tipoProducto: true // Añadido para obtener el tipo de cada componente
                             }
                         }
                     }

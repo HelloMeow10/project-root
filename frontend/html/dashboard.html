@@ -17,27 +17,26 @@
     <div class="dashboard">
         <!-- Header -->
         <header class="header">
-            <nav class="navbar">
-                <div class="nav-container">
-                    <div class="nav-logo">
-                        <i class="fas fa-car"></i>
-                        <span id="span-a-href"><a href="inicio.html">MUSIMUNDO/TRAVEL</a></span>
-                    </div>
-                    <ul class="nav-menu">
-                        <li><a href="inicio.html">Inicio</a></li>
-                        <li><a href="paquetes.html">Paquetes</a></li>
-                        <li><a href="vuelos.html">Vuelos</a></li>
-                        <li><a href="hotel.html">Hoteles</a></li>
-                        <li><a href="autos.html">Autos</a></li>
-                        <li><a href="info.html">Info</a></li>
-                    </ul>
-                    <div class="nav-toggle">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </div>
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Buscar..." id="searchInput">
+            </div>
+            <div class="user-menu">
+                <button class="notification-btn" id="notificationBtn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="notificationBadge">0</span>
+                </button>
+                <div class="user-info" id="userInfo">
+                    <span id="userName">Admin Usuario</span>
+                    <i class="fas fa-chevron-down"></i>
+                    <button id="logoutBtn" title="Cerrar sesión" style="background:none;border:none;cursor:pointer;">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
                 </div>
-            </nav>
+            </div>
         </header>
 
         <!-- Sidebar -->

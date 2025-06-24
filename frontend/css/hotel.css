@@ -1,5 +1,108 @@
-/* Estilos específicos de hotel.css */
-/* Las variables globales, reset básico y estilos de header están en shared-header.css */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+:root {
+  --black: #242424;
+  --white: #f5f5f5;
+  --pill: #e0d4be;
+  --red: #cc033f;
+}
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: var(--black);
+  background: var(--white);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+
+.header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: var(--white);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.navbar {
+  padding: 1rem 0;
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--red);
+}
+
+.nav-logo i {
+  margin-right: 0.5rem;
+  font-size: 1.8rem;
+}
+
+.nav-menu {
+  display: flex;
+  list-style: none;
+  gap: 2rem;
+}
+
+.nav-menu a {
+  text-decoration: none;
+  color: var(--black);
+  font-weight: 500;
+  transition: color 0.3s ease;
+  position: relative;
+}
+
+.nav-menu a:hover,
+.nav-menu a.active {
+  color: var(--red);
+}
+
+.nav-menu a::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--red);
+  transition: width 0.3s ease;
+}
+
+.nav-menu a:hover::after,
+.nav-menu a.active::after {
+  width: 100%;
+}
+
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+.nav-toggle span {
+  width: 25px;
+  height: 3px;
+  background: var(--black);
+  margin: 3px 0;
+  transition: 0.3s;
+}
 
 /* Animated background particles */
 .bg-animation {

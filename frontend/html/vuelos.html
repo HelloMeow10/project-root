@@ -4,29 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reserva vuelos - MUSIMUNDO</title>
-    <link rel="stylesheet" href="../css/shared-header.css"> <!-- Enlace al CSS compartido -->
     <link rel="stylesheet" href="../css/vuelos.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 <body>
-    <!-- Header -->
     <header class="header">
         <nav class="navbar">
             <div class="nav-container">
                 <div class="nav-logo">
-                    <i class="fas fa-plane"></i> <!-- Icono actualizado para vuelos -->
-                    <span id="span-a-href"><a href="inicio.html">MUSIMUNDO/TRAVEL</a></span>
+                    <i class="fas fa-globe-americas"></i>
+                    <span id="span-a-href"><a href="inicio.html">MUSIMUNDO/Travel</a></span>
                 </div>
-                <ul class="nav-menu">
+                <div class="nav-menu">
                     <li><a href="inicio.html">Inicio</a></li>
                     <li><a href="paquetes.html">Paquetes</a></li>
                     <li><a href="vuelos.html">Vuelos</a></li>
-                    <li><a href="hotel.html">Hoteles</a></li>
+                    <li><a href="hotel.html">Hoteles.</a></li>
                     <li><a href="autos.html">Autos</a></li>
-                    <li><a href="info.html">Info</a></li>
-                </ul>
+                </div>
                 <div class="nav-toggle">
                     <span></span>
                     <span></span>
@@ -68,7 +65,7 @@
     </div>
 
     <!-- Modal de Personalización de Vuelo -->
-<div id="vueloOpcionesModal" class="modal" style="display:none;">
+<div id="vueloOpcionesModal" class="modal">
   <div class="modal-content">
     <span class="close-button" onclick="document.getElementById('vueloOpcionesModal').style.display='none'">&times;</span>
     <h2 id="modalTituloVuelo">Personalizar Vuelo</h2>
@@ -102,9 +99,8 @@
     <button id="modalConfirmarBtn" class="btn btn-primary">Confirmar y Añadir al Carrito</button>
   </div>
 </div>
-    <script src="../js/shared-nav.js"></script> <!-- Script de navegación compartido -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="../js/vuelos.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
 <footer class="footer">
     <div class="container">
