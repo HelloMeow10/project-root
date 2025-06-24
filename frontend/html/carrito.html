@@ -10,20 +10,33 @@
 <body>
     <!-- Header -->
     <header class="header">
-      <div class="container header-content">
-        <a href="inicio.html" class="logo">
-          <i class="fas fa-shopping-cart"></i>
-          MUSIMUNDO/TRAVEL
-        </a>
-        <nav class="nav">
-          <a href="inicio.html" class="nav-link">Inicio</a>
-          <a href="paquetes.html" class="nav-link">Paquetes</a>
-          <a href="vuelos.html" class="nav-link">Vuelos</a>
-          <a href="hotel.html" class="nav-link">Hoteles</a>
-          <a href="autos.html" class="nav-link">Autos</a>
-          <a href="info.html" class="nav-link">Info</a>
-        </nav>
-      </div>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-plane"></i>
+                    <span><a href="inicio.html">MUSIMUNDO/TRAVEL</a></span>
+                </div>
+                <nav class="nav">
+                    <a href="hotel.html" class="nav-link">
+                        <i class="fas fa-hotel"></i>
+                        Hoteles
+                    </a>
+                    <a href="vuelos.html" class="nav-link">
+                        <i class="fas fa-plane"></i>
+                        Vuelos
+                    </a>
+                    <a href="autos.html" class="nav-link">
+                        <i class="fas fa-car"></i>
+                        Autos
+                    </a>
+                    <a href="carrito.html" class="nav-link active">
+                        <i class="fas fa-shopping-cart"></i>
+                        Carrito
+                        <span class="cart-count" id="cartCount">0</span>
+                    </a>
+                </nav>
+            </div>
+        </div>
     </header>
 
     <!-- Main Content -->
@@ -117,6 +130,5 @@
       </div>
     </div>
     <script src="../js/carrito.js"></script>
-    <script src="../js/shared-nav.js"></script>
 </body>
 </html>

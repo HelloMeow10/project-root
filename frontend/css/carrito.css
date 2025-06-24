@@ -88,31 +88,30 @@ body {
     transition: var(--transition-fast);
     position: relative;
 }
- .nav-link:hover, 
- .nav-link.active { 
-    color: var(--primary-color); 
- } 
 
- .cart-count { 
-    background: var(--error-color); 
-    color: white; 
-    border-radius: 50%; 
-    width: 20px; 
-    height: 20px; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    font-size: 0.75rem; 
-    font-weight: 600; 
-    position: absolute; 
-    top: -8px; 
-    right: -8px; 
- } 
+.nav-link:hover,
+.nav-link.active {
+    color: var(--primary-color);
+}
+
+.cart-count {
+    background: var(--error-color);
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    position: absolute;
+    top: -8px;
+    right: -8px;
+}
 
 /* Main Content */
 .main {
-    /* Add padding-top to account for the fixed header */
-    padding-top: 70px; /* Adjust if header height changes */
     padding: 2rem 0;
     min-height: calc(100vh - 80px);
 }
