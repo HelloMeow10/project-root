@@ -42,48 +42,16 @@
   <div class="verify-container">
     <i class="fas fa-envelope-open-text" style="font-size:2.5rem;color:#007bff;"></i>
     <h1>Verifica tu Email</h1>
-    <div class="info">Esta página procesa la verificación de tu correo electrónico. Si has recibido un email de verificación, haz clic en el enlace proporcionado en ese correo. Si el token es válido, tu email será verificado automáticamente.</div>
-    <div id="verifyMessage" style="margin-top:1rem; font-size: 1.1rem;"></div>
-    <p style="margin-top: 1rem;">Si no has recibido el email o el enlace ha expirado, puedes solicitar uno nuevo desde la página anterior o intentar iniciar sesión de nuevo para que se te solicite la verificación.</p>
-    <a href="login.html" style="display:block;margin-top:1.5rem;color:#007bff;">Volver a iniciar sesión</a>
+    <div class="info">
+      Se ha enviado un correo de verificación a tu dirección de email. Por favor, haz clic en el enlace del correo para completar el proceso.
+    </div>
+    <div id="messageContainer" style="margin-top:1rem; font-size: 1.1rem; min-height: 20px;"></div>
+    
+    <button id="resendVerificationEmailBtn" class="btn" style="margin-top: 1rem;">Reenviar correo de verificación</button>
+    
+    <p style="margin-top: 1rem;">Si ya verificaste tu email o tienes problemas, puedes intentar iniciar sesión:</p>
+    <a href="login.html" style="display:block;margin-top:0.5rem;color:#007bff;">Ir a Iniciar Sesión</a>
   </div>
   <script src="../js/verificar-email.js"></script>
-  <script>
-    // Ensure the form and resend button are hidden by default if JS is enabled,
-    // as the verificar-email.js script handles the visibility logic based on URL token.
-    // This is a fallback for the script's own logic.
-    document.addEventListener('DOMContentLoaded', function() {
-      const verifyForm = document.getElementById('verifyForm');
-      const resendBtn = document.getElementById('resendBtn');
-      if (verifyForm) {
-        verifyForm.style.display = 'none';
-      }
-      if (resendBtn) {
-        resendBtn.style.display = 'none';
-      }
-
-      // The script verificar-email.js will display messages in #verifyMessage.
-      // If no token is found in URL, it will show the form and resend button.
-      // We want to avoid showing the form at all, as per user request.
-      // So, if after a brief moment the verifyMessage is empty and the form is visible
-      // (meaning no token was processed and the script made them visible),
-      // we ensure the form is hidden and provide a generic message.
-
-      const params = new URLSearchParams(window.location.search);
-      const urlToken = params.get('token');
-      if (!urlToken) {
-        // If no token in URL, the script might show the form. We override this.
-        if (verifyForm) verifyForm.style.display = 'none';
-        if (resendBtn) resendBtn.style.display = 'none';
-
-        const verifyMessageDiv = document.getElementById('verifyMessage');
-        // Check if the main script has already put a message
-        if (verifyMessageDiv && verifyMessageDiv.textContent.trim() === "") {
-             verifyMessageDiv.innerHTML = 'Por favor, verifica tu correo electrónico haciendo clic en el enlace que te enviamos. Si necesitas un nuevo enlace, solicítalo desde la pantalla anterior.';
-             verifyMessageDiv.style.color = '#555';
-        }
-      }
-    });
-  </script>
 </body>
 </html>

@@ -32,25 +32,27 @@
 </head>
 <body>
     <header class="header">
-        <div class="container">
-            <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-plane"></i>
-                    <span>MUSIMUNDO/TRAVEL</span>
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <i class="fas fa-car"></i>
+                    <span id="span-a-href"><a href="inicio.html">MUSIMUNDO/TRAVEL</a></span>
                 </div>
-                <nav class="nav">
-                    <a href="inicio.html" class="nav-link">Paquetes</a>
-                    <a href="hotel.html" class="nav-link">Hoteles</a>
-                    <a href="vuelos.html" class="nav-link">Vuelos</a>
-                    <a href="autos.html" class="nav-link">Autos</a>
-                    <a href="carrito.html" class="nav-link">
-                        <i class="fas fa-shopping-cart"></i> Carrito <span class="cart-count" id="cartCountHeader">0</span>
-                    </a>
-                    <a href="mis-pedidos.html" class="nav-link active">Mis Pedidos</a>
-                    <!-- Añadir enlace de logout si está logueado -->
-                </nav>
+                <ul class="nav-menu">
+                    <li><a href="inicio.html">Inicio</a></li>
+                    <li><a href="paquetes.html">Paquetes</a></li>
+                    <li><a href="vuelos.html">Vuelos</a></li>
+                    <li><a href="hotel.html">Hoteles</a></li>
+                    <li><a href="autos.html">Autos</a></li>
+                    <li><a href="info.html">Info</a></li>
+                </ul>
+                <div class="nav-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
             </div>
-        </div>
+        </nav>
     </header>
 
     <main class="main container">

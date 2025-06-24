@@ -23,15 +23,19 @@ ul {
   position: relative;
 }
 
+
 header {
   width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
 }
+.nav-logo{
+  margin-left: -10em;
+}
 
 
 nav {
-  width: 100%;
+  width:  100%;
   position: fixed;
   z-index: 10;
   padding: 1em 5em;
@@ -43,6 +47,7 @@ nav h1 {
   font-weight: normal;
   text-transform: uppercase;
   color: var(--pill);
+  gap:5em;
   font-size: 1.3rem;
   background-color: var(--red);
   padding: 5px 10px;

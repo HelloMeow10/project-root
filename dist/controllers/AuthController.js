@@ -12,7 +12,6 @@ exports.resendVerificationEmail = resendVerificationEmail;
 const AuthService_1 = require("../services/AuthService");
 const mailer_1 = require("../mailer");
 const db_1 = require("../config/db");
-const nodemailer_1 = __importDefault(require("nodemailer"));
 const crypto_1 = __importDefault(require("crypto"));
 const authService = new AuthService_1.AuthService();
 /**
@@ -68,10 +67,11 @@ async function register(req, res, next) {
  * @param {string} token - El token de verificación.
  */
 async function enviarEmailVerificacion(email, nombre, token) {
-    // Puedes personalizar la plantilla
-    const verifyUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verificar-email?token=${token}`;
+    // Usa la URL del backend desde env o fallback a localhost:3000
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
+    const verifyUrl = `${backendUrl}/api/auth/verify-email?token=${token}`;
     const html = `<h2>Hola ${nombre},</h2><p>Gracias por registrarte. Por favor, verifica tu email haciendo clic en el siguiente enlace:</p><a href="${verifyUrl}">${verifyUrl}</a>`;
-    const transporter = nodemailer_1.default.createTransport({
+    const transporter = require('nodemailer').createTransport({
         service: 'gmail',
         auth: {
             user: process.env.GMAIL_USER,
@@ -89,21 +89,32 @@ async function enviarEmailVerificacion(email, nombre, token) {
  * Verifica el token de verificación de email de un cliente.
  * @async
  * @function verifyEmail
- * @param {Request} req - El objeto de solicitud de Express, que debe contener el `token` en `req.body`.
+ * @param {Request} req - El objeto de solicitud de Express, que debe contener el `token` en `req.query`.
  * @param {Response} res - El objeto de respuesta de Express.
  */
 async function verifyEmail(req, res) {
-    const { token } = req.body;
-    if (!token)
-        return res.status(400).json({ message: 'Token requerido.' });
-    const user = await db_1.prisma.cliente.findFirst({ where: { token_verificacion_email: token } });
-    if (!user)
-        return res.status(400).json({ message: 'Token inválido.' });
-    await db_1.prisma.cliente.update({
-        where: { id_cliente: user.id_cliente },
-        data: { email_verificado: true, token_verificacion_email: null }
-    });
-    res.json({ message: 'Email verificado correctamente.' });
+    const { token } = req.query; // Cambiado de req.body a req.query
+    if (!token || typeof token !== 'string') { // Asegura que token sea string
+        return res.status(400).json({ message: 'Token requerido y debe ser un string.' });
+    }
+    try {
+        const user = await db_1.prisma.cliente.findFirst({ where: { token_verificacion_email: token } });
+        if (!user) {
+            return res.status(400).json({ message: 'Token inválido o expirado.' });
+        }
+        await db_1.prisma.cliente.update({
+            where: { id_cliente: user.id_cliente },
+            data: { email_verificado: true, token_verificacion_email: null } // Limpia el token después de usarlo
+        });
+        // Redirige a la página de verificación exitosa en el frontend
+        // Asegúrate que esta URL coincida con tu frontend.
+        return res.redirect(`http://turismo.tecnica7ldz.edu.ar/verificacion-exitosa.html`);
+    }
+    catch (error) {
+        console.error("Error al verificar el email:", error);
+        // Idealmente, redirigir a una página de error en el frontend o mostrar un mensaje genérico.
+        return res.status(500).json({ message: 'Error al verificar el email.' });
+    }
 }
 /**
  * Maneja la solicitud de reseteo de contraseña.
@@ -137,7 +148,7 @@ async function forgotPassword(req, res) {
  * @param {string} token - El token de reseteo.
  */
 async function enviarResetPasswordEmail(email, nombre, token) {
-    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:8080'}/reset-contrasena.html?token=${token}`;
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://turismo.tecnica7ldz.edu.ar'}/reset-contrasena.html?token=${token}`;
     const html = `<h2>Hola ${nombre},</h2><p>Has solicitado restablecer tu contraseña. Haz clic en el siguiente enlace para continuar:</p><a href="${resetUrl}">${resetUrl}</a>`;
     const transporter = require('nodemailer').createTransport({
         service: 'gmail',
