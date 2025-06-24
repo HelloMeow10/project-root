@@ -1,0 +1,249 @@
+/* Variables CSS Globales */
+:root {
+  --black: #242424;
+  --white: #f5f5f5;
+  --pill: #e0d4be;
+  --red: #cc033f;
+  --shadow: 0 4px 6px -1px rgba(36, 36, 36, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(36, 36, 36, 0.1);
+  --border-radius: 8px;
+  --transition: all 0.3s ease;
+}
+
+/* Reset Básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Poppins", sans-serif; /* Fuente base, puede ser sobreescrita por CSS específico de página */
+  line-height: 1.6;
+  color: var(--black);
+  background: var(--white); /* Fondo base, puede ser sobreescrito */
+}
+
+/* Estilos del Header Compartido */
+.header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: var(--white); /* Fondo por defecto para el header */
+  box-shadow: var(--shadow);
+  z-index: 1000; /* Asegura que el header esté por encima de otros elementos */
+  transition: var(--transition);
+}
+
+.navbar {
+  padding: 1rem 0;
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px; /* Padding estándar para el contenido del nav */
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--red);
+}
+
+.nav-logo i {
+  font-size: 1.8rem; /* Tamaño del icono del logo */
+}
+
+.nav-logo a {
+  color: var(--red);
+  text-decoration: none;
+  font-weight: 600; /* Como en autos.css #span-a-href a */
+}
+
+/* Para el span que a veces envuelve al <a> del logo */
+#span-a-href a {
+  color: var(--red);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+
+.nav-menu {
+  display: flex;
+  list-style: none;
+  gap: 2rem;
+  margin: 0; /* Reset de margen */
+  padding: 0; /* Reset de padding */
+}
+
+.nav-menu a {
+  text-decoration: none;
+  color: var(--black);
+  font-weight: 500;
+  transition: var(--transition);
+  position: relative; /* Para el efecto ::after */
+}
+
+.nav-menu a:hover,
+.nav-menu a.active { /* Para marcar la página activa si se implementa */
+  color: var(--red);
+}
+
+/* Efecto subrayado opcional para el hover/active como en hotel.css */
+.nav-menu a::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--red);
+  transition: width 0.3s ease;
+}
+
+.nav-menu a:hover::after,
+.nav-menu a.active::after {
+  width: 100%;
+}
+
+.nav-toggle {
+  display: none; /* Oculto por defecto, se muestra en mobile */
+  flex-direction: column;
+  cursor: pointer;
+  padding: 10px; /* Para facilitar el click */
+  background-color: transparent; /* O un color específico si se prefiere */
+  border: none; /* Sin borde por defecto */
+}
+
+.nav-toggle span {
+  width: 25px;
+  height: 3px;
+  background: var(--black); /* Color de las líneas del toggle */
+  margin: 3px 0;
+  transition: var(--transition);
+  border-radius: 2px; /* Ligeramente redondeadas */
+}
+
+/* Estilos para el menú desplegable en mobile */
+@media (max-width: 768px) {
+  .nav-menu {
+    position: fixed;
+    left: -100%; /* Oculto fuera de la pantalla */
+    top: 60px; /* Ajustar según la altura del header. Asumiendo ~60px. */
+    flex-direction: column;
+    background-color: var(--white); /* Fondo para el menú desplegado */
+    width: 100%;
+    text-align: center;
+    transition: var(--transition);
+    box-shadow: var(--shadow-lg); /* Sombra más pronunciada para el menú desplegado */
+    padding: 1rem 0; /* Padding vertical para los items del menú */
+    z-index: 999; /* Debajo del .header pero encima del contenido */
+  }
+
+  .nav-menu.active { /* Clase que se añade con JS para mostrar el menú */
+    left: 0; /* Mover a la pantalla */
+  }
+
+  .nav-menu li {
+    padding: 0.5rem 0; /* Espaciado para los elementos del menú desplegado */
+  }
+  
+  .nav-menu a::after { /* Desactivar efecto after en mobile si no se desea */
+    display: none;
+  }
+
+  .nav-toggle {
+    display: flex; /* Mostrar el botón de hamburguesa */
+  }
+  
+  /* Animación del icono hamburguesa a X (opcional, si se usa JS para añadir clase 'active' al toggle) */
+  .nav-toggle.active span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+  }
+  .nav-toggle.active span:nth-child(2) {
+    opacity: 0;
+  }
+  .nav-toggle.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
+  }
+
+  /* Estilos específicos para el userMenuContainer en el menú desplegable */
+  .nav-menu #userMenuContainer.nav-menu-item-user {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 0; /* Espaciado adicional para el user menu */
+    border-top: 1px solid var(--pill); /* Separador opcional */
+    margin-top: 0.5rem; /* Espacio antes del separador */
+  }
+
+  .nav-menu #userMenuContainer.nav-menu-item-user span,
+  .nav-menu #userMenuContainer.nav-menu-item-user button,
+  .nav-menu #userMenuContainer.nav-menu-item-user a {
+    margin-left: 0 !important; /* Resetear márgenes */
+    width: auto; /* Permitir que los botones/links tomen su ancho natural */
+  }
+}
+
+/* Estilos para #userMenuContainer y sus hijos (principalmente para desktop) */
+#userMenuContainer.nav-menu-item-user {
+  padding: 0;
+  margin-left: auto; /* Empuja a la derecha en desktop si es el último elemento visible */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#userMenuContainer span {
+  color: var(--black); /* Color del texto de bienvenida, ajustable */
+  font-weight: 500;
+}
+
+#loginBoton, /* Asumiendo que este ID se usa para el enlace de login */
+#userMenuContainer #logoutBtn,
+#userMenuContainer #dashboardBtn,
+#userMenuContainer #verifyEmailBtn { /* Añadido botón de verificar email */
+  padding: 0.5rem 1rem; /* Padding consistente para botones */
+  font-size: 0.9rem;
+  background: var(--red);
+  color: var(--white);
+  border: none;
+  border-radius: var(--border-radius); /* Usar variable global */
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--transition);
+  display: inline-block;
+  vertical-align: middle;
+}
+
+#loginBoton:hover,
+#userMenuContainer #logoutBtn:hover,
+#userMenuContainer #dashboardBtn:hover,
+#userMenuContainer #verifyEmailBtn:hover {
+    background: #e60036; /* Un rojo un poco más oscuro para el hover */
+    transform: translateY(-1px); /* Ligero efecto de elevación */
+    box-shadow: var(--shadow);
+}
+
+#userMenuContainer #verifyEmailBtn { /* Estilo específico para el botón de verificar email */
+  background-color: orange; /* Color distintivo */
+  color: var(--white);
+}
+
+#userMenuContainer #verifyEmailBtn:hover {
+  background-color: #e69500; /* Naranja más oscuro para hover */
+}
+
+/* Ajuste para el contenido debajo del header fijo */
+.content-below-header {
+  padding-top: 70px; /* Ajustar este valor a la altura real del header fijo */
+}

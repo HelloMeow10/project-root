@@ -1,14 +1,4 @@
-// Nuevo JS para el menú de hamburguesa (adaptado de autos.js o similar)
-const navToggle = document.querySelector(".nav-toggle");
-const navMenu = document.querySelector(".nav-menu");
-
-if (navToggle && navMenu) {
-  navToggle.addEventListener("click", () => {
-    navMenu.classList.toggle("active");
-    // Opcional: animar el ícono de hamburguesa si se añaden clases para el toggle
-    // navToggle.classList.toggle("active");
-  });
-}
+// La funcionalidad del menú de hamburguesa ahora está en shared-nav.js
 
 // La lógica original de GSAP y Lenis scroll se mantiene abajo,
 // pero la interacción con el menú anterior (burger, overlay) se elimina o comenta.

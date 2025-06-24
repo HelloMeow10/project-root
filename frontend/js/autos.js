@@ -12,6 +12,7 @@ let filteredCars = []
 // Inicialización cuando el DOM está listo
 document.addEventListener("DOMContentLoaded", () => {
   initializeApp()
+  // La navegación móvil ahora se maneja en shared-nav.js
 })
 
 // Función principal de inicialización
@@ -23,8 +24,7 @@ function initializeApp() {
 
 // Configurar todos los event listeners
 function setupEventListeners() {
-  // Navegación móvil
-  setupMobileNavigation()
+  // Navegación móvil eliminada de aquí, manejada por shared-nav.js
 
   // Formulario de búsqueda
   setupSearchForm()
@@ -39,30 +39,7 @@ function setupEventListeners() {
   setupBookingForm()
 }
 
-// Navegación móvil
-function setupMobileNavigation() {
-  const navToggle = document.querySelector(".nav-toggle")
-  const navMenu = document.querySelector(".nav-menu")
-
-  if (navToggle && navMenu) {
-    navToggle.addEventListener("click", () => {
-      navMenu.classList.toggle("active")
-
-      // Animar el ícono hamburguesa
-      const spans = navToggle.querySelectorAll("span")
-      spans.forEach((span, index) => {
-        if (navMenu.classList.contains("active")) {
-          if (index === 0) span.style.transform = "rotate(45deg) translate(5px, 5px)"
-          if (index === 1) span.style.opacity = "0"
-          if (index === 2) span.style.transform = "rotate(-45deg) translate(7px, -6px)"
-        } else {
-          span.style.transform = "none"
-          span.style.opacity = "1"
-        }
-      })
-    })
-  }
-}
+// Navegación móvil eliminada de aquí
 
 // Configurar formulario de búsqueda
 function setupSearchForm() {
