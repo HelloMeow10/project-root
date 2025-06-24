@@ -640,3 +640,98 @@ body {
   background: none;
   border: none;
 }
+
+/* Estilos para las tarjetas de vuelos */
+.flight-card {
+  background: var(--white);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(36,36,36,0.08);
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  transition: box-shadow 0.2s;
+  border: 1px solid var(--pill);
+  max-width: 500px;
+  width: 100%;
+}
+
+.flight-card:hover {
+  box-shadow: 0 8px 32px rgba(36,36,36,0.16);
+}
+
+.flight-info {
+  margin-bottom: 1rem;
+}
+
+.flight-destination {
+  color: var(--red);
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.flight-details {
+  color: var(--black);
+  font-size: 1rem;
+  margin-bottom: 0.2rem;
+}
+
+.flight-price {
+  color: var(--red);
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.add-to-cart-btn,
+.btn-personalizar-vuelo {
+  background: linear-gradient(135deg, var(--pill) 0%, var(--red) 100%);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 0.7rem;
+  margin-top: 0.5rem;
+  transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(204,3,63,0.10);
+}
+
+.add-to-cart-btn:hover,
+.btn-personalizar-vuelo:hover {
+  background: linear-gradient(135deg, var(--red) 0%, var(--pill) 100%);
+  color: var(--red);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 8px 24px rgba(204,3,63,0.18);
+}
+
+.flight-cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+}
+
+.flight-card {
+  flex: 1 1 45%;
+  max-width: 45%;
+  min-width: 300px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 700px) {
+  .flight-card {
+    padding: 1.2rem 0.7rem;
+    max-width: 100%;
+  }
+}
+@media (max-width: 900px) {
+  .flight-card {
+    flex-basis: 100%;
+    max-width: 100%;
+  }
+}
