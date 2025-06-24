@@ -976,26 +976,28 @@ text-decoration: none;
     grid-template-columns: 1fr;
   }
 
-  .nav-menu {
-    position: fixed;
-    left: -100%;
-    top: 70px;
-    flex-direction: column;
-    background-color: var(--white);
-    width: 100%;
-    text-align: center;
-    transition: 0.3s;
-    box-shadow: 0 10px 27px rgba(36, 36, 36, 0.05);
-    padding: 20px 0;
-  }
+  /* Estas reglas están duplicadas de shared-header.css y pueden causar conflictos. */
+  /* Se eliminan para permitir que shared-header.css controle el menú hamburguesa. */
+  /* .nav-menu { */
+  /*   position: fixed; */
+  /*   left: -100%; */
+  /*   top: 70px; */
+  /*   flex-direction: column; */
+  /*   background-color: var(--white); */
+  /*   width: 100%; */
+  /*   text-align: center; */
+  /*   transition: 0.3s; */
+  /*   box-shadow: 0 10px 27px rgba(36, 36, 36, 0.05); */
+  /*   padding: 20px 0; */
+  /* } */
 
-  .nav-menu.active {
-    left: 0;
-  }
+  /* .nav-menu.active { */
+  /*   left: 0; */
+  /* } */
 
-  .nav-toggle {
-    display: flex;
-  }
+  /* .nav-toggle { */
+  /*   display: flex; */ /* Esta regla es importante y está en shared-header.css */
+  /* } */
 
   .modal-content {
     width: 95%;
