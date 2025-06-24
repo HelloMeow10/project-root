@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeModals()
   initializeNavigation()
   initializeAnimations()
-  cargarProductos()
+  // cargarProductos() // Comentado para evitar carga duplicada y error de SVG. fetchPaquetes se encarga de los paquetes.
 })
 
 // Filter functionality
@@ -325,7 +325,7 @@ async function cargarProductos() {
 
       card.innerHTML = `
         <div class="package-image">
-          <img src="/placeholder.svg?height=250&width=400" alt="${producto.nombre}">
+          <img src="https://via.placeholder.com/400x250.png?text=${encodeURIComponent(producto.nombre)}" alt="${producto.nombre}">
           <div class="package-badge">Nuevo</div>
           <div class="package-overlay">
             <button class="quick-view-btn" data-package="${producto.id}">Vista rápida</button>
