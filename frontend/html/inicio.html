@@ -217,6 +217,13 @@ document.addEventListener('DOMContentLoaded', async function() {
       menuHtml += `<a href="dashboard.html" id="dashboardBtn" style="margin-left:10px;">Dashboard</a>`;
     }
 
+    // Verificar si el usuario está verificado
+    const usuarioVerificado = localStorage.getItem('verificado'); // Asumiendo que guardas esto en localStorage
+
+    if (usuarioVerificado !== 'true') {
+      menuHtml += `<a href="verificar-email.html" id="verifyEmailBtn" style="margin-left:10px; color: orange;">Verificar Email</a>`;
+    }
+
     userMenuContainer.innerHTML = menuHtml;
 
     // Cerrar sesión

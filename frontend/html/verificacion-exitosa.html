@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación Exitosa - MUSIMUNDO/Travel</title>
+    <link rel="stylesheet" href="../css/login.css"> <!-- Puedes usar estilos existentes o crear nuevos -->
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4; /* Color de fondo similar a otras páginas */
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #4CAF50; /* Verde para éxito */
+        }
+        p {
+            font-size: 1.2em;
+            color: #333;
+        }
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff; /* Azul similar a botones de login/registro */
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>¡Verificación Exitosa!</h1>
+        <p>Tu dirección de correo electrónico ha sido verificada correctamente.</p>
+        <p>Ahora puedes iniciar sesión y disfrutar de todas las funcionalidades de MUSIMUNDO/Travel.</p>
+        <a href="login.html">Ir a Iniciar Sesión</a>
+    </div>
+
+    <script>
+        // Opcional: Limpiar el token de la URL para que no quede visible
+        if (window.history.replaceState) {
+            // Previene que el usuario pueda volver atrás al estado con el token
+            window.history.replaceState(null, null, window.location.pathname);
+        }
+
+        // Actualizar localStorage para reflejar que el email está verificado
+        // Esto es crucial para que el header se actualice correctamente
+        localStorage.setItem('verificado', 'true');
+    </script>
+</body>
+</html>
