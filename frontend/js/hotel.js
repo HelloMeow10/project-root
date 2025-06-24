@@ -104,44 +104,34 @@ class HotelBooking {
   }
 }
 
-// Notificación visual (como en login/dashboard)
+// Notificación visual con ToastifyJS
 function showNotification(message, type = 'info', duration = 3500) {
-  let container = document.getElementById('notificationContainer');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'notificationContainer';
-    container.className = 'notification-container';
-    document.body.appendChild(container);
+  let backgroundColor;
+  switch (type) {
+    case 'success':
+      backgroundColor = "linear-gradient(to right, #00b09b, #96c93d)";
+      break;
+    case 'error':
+      backgroundColor = "linear-gradient(to right, #ff5f6d, #ffc371)";
+      break;
+    case 'warning':
+      backgroundColor = "linear-gradient(to right, #f39c12, #f1c40f)";
+      break;
+    case 'info':
+    default:
+      backgroundColor = "linear-gradient(to right, #007bff, #0056b3)";
+      break;
   }
-  const notification = document.createElement('div');
-  notification.className = `notification ${type}`;
-  notification.innerHTML = `
-    <i class="fas fa-${getNotificationIcon(type)}"></i>
-    <span>${message}</span>
-    <button class="notification-close" aria-label="Cerrar mensaje">
-      <i class="fas fa-times"></i>
-    </button>
-  `;
-  container.appendChild(notification);
-  setTimeout(() => closeNotification(notification), duration);
-  notification.querySelector('.notification-close').onclick = () => closeNotification(notification);
-}
-function closeNotification(notification) {
-  if (notification && notification.parentNode) {
-    notification.style.animation = 'slideOutRight 0.3s ease';
-    setTimeout(() => {
-      if (notification.parentNode) notification.remove();
-    }, 300);
-  }
-}
-function getNotificationIcon(type) {
-  const icons = {
-    success: 'check-circle',
-    error: 'exclamation-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  };
-  return icons[type] || 'info-circle';
+
+  Toastify({
+    text: message,
+    duration: duration,
+    close: true,
+    gravity: "top", // `top` or `bottom`
+    position: "right", // `left`, `center` or `right`
+    backgroundColor: backgroundColor,
+    stopOnFocus: true, // Prevents dismissing of toast on hover
+  }).showToast();
 }
 
 // Inicializar

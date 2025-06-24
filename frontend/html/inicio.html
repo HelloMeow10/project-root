@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MUSIMUNDO/Travel</title>
+    <link rel="stylesheet" href="../css/shared-header.css"> <!-- Enlace al CSS compartido -->
     <link rel="stylesheet" href="../css/inicio.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> <!-- Añadido Font Awesome -->
 </head>
@@ -11,35 +12,34 @@
     
   
     <div class="page-wrap">
-        <!-- Header adaptado de autos.html -->
-        <header class="header">
-            <nav class="navbar">
-                <div class="nav-container">
-                    <div class="nav-logo">
-                        <i class="fas fa-car"></i>
-                        <span id="span-a-href"><a href="inicio.html">MUSIMUNDO/TRAVEL</a></span>
-                    </div>
-                    <ul class="nav-menu">
-                        <li><a href="inicio.html">Inicio</a></li>
-                        <li><a href="paquetes.html">Paquetes</a></li>
-                        <li><a href="vuelos.html">Vuelos</a></li>
-                        <li><a href="hotel.html">Hoteles</a></li>
-                        <li><a href="autos.html">Autos</a></li>
-                        <li><a href="info.html">Info</a></li>
-                         <!-- Contenedor para el menú de usuario/login, integrado en nav-menu para responsividad -->
-                         <li id="userMenuContainer" class="nav-menu-item-user">
-                            <!-- Aquí se inyectará el menú dinámico (login/logout/dashboard) -->
-                         </li>
-                    </ul>
-                    <div class="nav-toggle">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </div>
+    <!-- Header -->
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <i class="fas fa-home"></i> <!-- Icono actualizado para inicio -->
+                    <span id="span-a-href"><a href="inicio.html">MUSIMUNDO/TRAVEL</a></span>
                 </div>
-            </nav>
-        </header>
-        <!-- Fin del Header adaptado -->
+                <ul class="nav-menu">
+                    <li><a href="inicio.html">Inicio</a></li>
+                    <li><a href="paquetes.html">Paquetes</a></li>
+                    <li><a href="vuelos.html">Vuelos</a></li>
+                    <li><a href="hotel.html">Hoteles</a></li>
+                    <li><a href="autos.html">Autos</a></li>
+                    <li><a href="info.html">Info</a></li>
+                    <!-- Contenedor para el menú de usuario/login, integrado en nav-menu para responsividad -->
+                    <li id="userMenuContainer" class="nav-menu-item-user">
+                        <!-- Aquí se inyectará el menú dinámico (login/logout/dashboard) -->
+                    </li>
+                </ul>
+                <div class="nav-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
       
         <!-- El 'main' original de inicio.html ahora está fuera del nuevo header -->
         <main class="content-below-header">
@@ -189,6 +189,7 @@
     
     
       <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+      <script src="../js/shared-nav.js"></script> <!-- Script de navegación compartido -->
 <script src="../js/inicio.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', async function() {

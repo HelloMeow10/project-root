@@ -12,6 +12,7 @@ let filteredCars = []
 // Inicialización cuando el DOM está listo
 document.addEventListener("DOMContentLoaded", () => {
   initializeApp()
+  // La navegación móvil ahora se maneja en shared-nav.js
 })
 
 // Función principal de inicialización
@@ -23,8 +24,7 @@ function initializeApp() {
 
 // Configurar todos los event listeners
 function setupEventListeners() {
-  // Navegación móvil
-  setupMobileNavigation()
+  // Navegación móvil eliminada de aquí, manejada por shared-nav.js
 
   // Formulario de búsqueda
   setupSearchForm()
@@ -39,30 +39,7 @@ function setupEventListeners() {
   setupBookingForm()
 }
 
-// Navegación móvil
-function setupMobileNavigation() {
-  const navToggle = document.querySelector(".nav-toggle")
-  const navMenu = document.querySelector(".nav-menu")
-
-  if (navToggle && navMenu) {
-    navToggle.addEventListener("click", () => {
-      navMenu.classList.toggle("active")
-
-      // Animar el ícono hamburguesa
-      const spans = navToggle.querySelectorAll("span")
-      spans.forEach((span, index) => {
-        if (navMenu.classList.contains("active")) {
-          if (index === 0) span.style.transform = "rotate(45deg) translate(5px, 5px)"
-          if (index === 1) span.style.opacity = "0"
-          if (index === 2) span.style.transform = "rotate(-45deg) translate(7px, -6px)"
-        } else {
-          span.style.transform = "none"
-          span.style.opacity = "1"
-        }
-      })
-    })
-  }
-}
+// Navegación móvil eliminada de aquí
 
 // Configurar formulario de búsqueda
 function setupSearchForm() {
@@ -408,44 +385,34 @@ async function addToCart(car) {
   }
 }
 
-// Notificación visual (puedes copiar la de vuelos.js si no la tienes)
+// Notificación visual con ToastifyJS
 function showNotification(message, type = 'info', duration = 3500) {
-  let container = document.getElementById('notificationContainer');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'notificationContainer';
-    container.className = 'notification-container';
-    document.body.appendChild(container);
+  let backgroundColor;
+  switch (type) {
+    case 'success':
+      backgroundColor = "linear-gradient(to right, #00b09b, #96c93d)";
+      break;
+    case 'error':
+      backgroundColor = "linear-gradient(to right, #ff5f6d, #ffc371)";
+      break;
+    case 'warning':
+      backgroundColor = "linear-gradient(to right, #f39c12, #f1c40f)";
+      break;
+    case 'info':
+    default:
+      backgroundColor = "linear-gradient(to right, #007bff, #0056b3)";
+      break;
   }
-  const notification = document.createElement('div');
-  notification.className = `notification ${type}`;
-  notification.innerHTML = `
-    <i class="fas fa-${getNotificationIcon(type)}"></i>
-    <span>${message}</span>
-    <button class="notification-close" aria-label="Cerrar mensaje">
-      <i class="fas fa-times"></i>
-    </button>
-  `;
-  container.appendChild(notification);
-  setTimeout(() => closeNotification(notification), duration);
-  notification.querySelector('.notification-close').onclick = () => closeNotification(notification);
-}
-function closeNotification(notification) {
-  if (notification && notification.parentNode) {
-    notification.style.animation = 'slideOutRight 0.3s ease';
-    setTimeout(() => {
-      if (notification.parentNode) notification.remove();
-    }, 300);
-  }
-}
-function getNotificationIcon(type) {
-  const icons = {
-    success: 'check-circle',
-    error: 'exclamation-circle',
-    warning: 'exclamation-triangle',
-    info: 'info-circle'
-  };
-  return icons[type] || 'info-circle';
+
+  Toastify({
+    text: message,
+    duration: duration,
+    close: true,
+    gravity: "top", // `top` or `bottom`
+    position: "right", // `left`, `center` or `right`
+    backgroundColor: backgroundColor,
+    stopOnFocus: true, // Prevents dismissing of toast on hover
+  }).showToast();
 }
 
 // Procesar reserva
