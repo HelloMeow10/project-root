@@ -530,27 +530,6 @@ body {
   letter-spacing: 0.5px;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .flights-section {
-    padding: 1.2rem;
-    border-radius: 12px;
-  }
-  .flights-header {
-    flex-direction: column;
-    gap: 0.5rem;
-    align-items: flex-start;
-  }
-  .flights-header h2 {
-    font-size: 1.2rem;
-  }
-  .flights-icon {
-    width: 32px;
-    height: 32px;
-    padding: 3px;
-  }
-}
-
 /* Footer Styles (copiado de autos.css) */
 .footer {
   background: var(--black);
@@ -612,4 +591,52 @@ body {
   border-top: 1px solid var(--pill);
   color: var(--pill);
 }
-/* Fin de Footer Styles */
+
+/* Modal tipo push (notificación flotante) */
+.modal {
+  display: none;
+  position: fixed;
+  top: 2.5em;
+  right: 2.5em;
+  z-index: 2000;
+  width: 350px;
+  max-width: 95vw;
+  background: none;
+  box-shadow: none;
+  justify-content: flex-end;
+  align-items: flex-start;
+  pointer-events: none; /* Solo el contenido será clickeable */
+}
+
+.modal.show {
+  display: flex;
+  animation: slideInPush 0.4s;
+}
+
+@keyframes slideInPush {
+  from { opacity: 0; transform: translateY(-30px) translateX(30px);}
+  to { opacity: 1; transform: translateY(0) translateX(0);}
+}
+
+.modal-content {
+  background: var(--white, #fff);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(36,36,36,0.18);
+  padding: 1.5em 1.2em 1.2em 1.2em;
+  min-width: 0;
+  width: 100%;
+  max-width: 350px;
+  position: relative;
+  pointer-events: auto;
+}
+
+.close-button {
+  position: absolute;
+  top: 0.7em;
+  right: 0.7em;
+  font-size: 1.3em;
+  color: var(--red, #cc033f);
+  cursor: pointer;
+  background: none;
+  border: none;
+}

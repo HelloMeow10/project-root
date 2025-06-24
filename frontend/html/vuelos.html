@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../css/vuelos.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 <body>
     <header class="header">
@@ -64,7 +65,7 @@
     </div>
 
     <!-- Modal de Personalización de Vuelo -->
-<div id="vueloOpcionesModal" class="modal" style="display:none;">
+<div id="vueloOpcionesModal" class="modal">
   <div class="modal-content">
     <span class="close-button" onclick="document.getElementById('vueloOpcionesModal').style.display='none'">&times;</span>
     <h2 id="modalTituloVuelo">Personalizar Vuelo</h2>
@@ -98,7 +99,7 @@
     <button id="modalConfirmarBtn" class="btn btn-primary">Confirmar y Añadir al Carrito</button>
   </div>
 </div>
-
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="../js/vuelos.js"></script>
 
 <footer class="footer">

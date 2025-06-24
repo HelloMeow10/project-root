@@ -200,6 +200,8 @@ document.addEventListener('click', async function(e) {
 
     recalcularPrecioTotalModal();
     document.getElementById('vueloOpcionesModal').style.display = 'block';
+    // Mostrar el modal tipo push
+    document.getElementById('vueloOpcionesModal').classList.add('show');
   }
 });
 
@@ -633,6 +635,7 @@ document.getElementById('modalConfirmarBtn').addEventListener('click', async fun
     if (res.ok) {
       showNotification('Vuelo personalizado agregado al carrito', 'success');
       document.getElementById('vueloOpcionesModal').style.display = 'none';
+      document.getElementById('vueloOpcionesModal').classList.remove('show');
     } else {
       const data = await res.json();
       showNotification(data.message || 'Error al agregar al carrito', 'error');
