@@ -408,9 +408,13 @@ function renderPaquetes(paquetes) {
   }
   paquetes.forEach(pkg => {
     let componentesDesc = '';
-    if (pkg.componentes && pkg.componentes.length > 0) {
-      componentesDesc = pkg.componentes.map(comp => {
-        return `${comp.tipo || 'Componente'}: ${comp.nombre}`;
+    // Usar pkg.paqueteDetallesAsPaquete en lugar de pkg.componentes
+    if (pkg.paqueteDetallesAsPaquete && pkg.paqueteDetallesAsPaquete.length > 0) {
+      componentesDesc = pkg.paqueteDetallesAsPaquete.map(detalle => {
+        // Acceder a los datos del producto anidado y al tipo de producto
+        const producto = detalle.producto;
+        const tipoProducto = producto.tipoProducto ? producto.tipoProducto.nombre : 'Componente';
+        return `${tipoProducto}: ${producto.nombre}`;
       }).join('<br>');
     } else {
       componentesDesc = 'Detalles no disponibles.';
@@ -427,8 +431,8 @@ function renderPaquetes(paquetes) {
           ${componentesDesc}
         </p>
         <div class="package-features">
-          ${pkg.componentes && pkg.componentes.some(c => c.tipo && c.tipo.toLowerCase().includes('vuelo')) ? '<span><i class="fas fa-plane"></i> Vuelo incluido</span>' : ''}
-          ${pkg.componentes && pkg.componentes.some(c => c.tipo && c.tipo.toLowerCase().includes('hotel')) ? '<span><i class="fas fa-bed"></i> Hotel incluido</span>' : ''}
+          ${pkg.paqueteDetallesAsPaquete && pkg.paqueteDetallesAsPaquete.some(d => d.producto && d.producto.tipoProducto && d.producto.tipoProducto.nombre.toLowerCase().includes('vuelo')) ? '<span><i class="fas fa-plane"></i> Vuelo incluido</span>' : ''}
+          ${pkg.paqueteDetallesAsPaquete && pkg.paqueteDetallesAsPaquete.some(d => d.producto && d.producto.tipoProducto && d.producto.tipoProducto.nombre.toLowerCase().includes('hotel')) ? '<span><i class="fas fa-bed"></i> Hotel incluido</span>' : ''}
           ${componentesDesc === 'Detalles no disponibles.' ? '<span><i class="fas fa-info-circle"></i> Consultar detalles</span>' : ''}
         </div>
         <div class="package-footer">
