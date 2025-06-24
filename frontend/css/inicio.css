@@ -1,77 +1,39 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;800&display=swap");
 
 /* Estilos específicos de inicio.css */
-/* Las variables globales, reset básico y estilos de header están en shared-header.css */
-
-/* La definición de body aquí puede sobreescribir la de shared-header.css si es necesario,
-   o se puede eliminar si la de shared-header.css es suficiente. */
 body {
   font-family: "Poppins", sans-serif;
-  /* Las variables --black, --white, etc., ya están en :root en shared-header.css */
+}
+
+/* Estilo para hacer transparente el header de navegación en la página de inicio */
+/* Se aplica a <header class="header"> que es la barra de navegación principal */
+body.page-inicio .header {
+  background-color: transparent !important; /* !important para asegurar que anule otros fondos */
+  box-shadow: none !important; /* Opcional: quitar la sombra si el fondo es transparente */
 }
 
 ul {
-  list-style: none; /* Esto podría ser demasiado general, considerar selectores más específicos */
+  list-style: none; /* Esto podría ser demasiado general, pero estaba en el original */
 }
 
 .page-wrap {
   position: relative;
 }
 
-/* El 'header' tag styling aquí es para el contenedor del slider, no para el nav.
-   Si el nav header (ahora .header) necesita estilos específicos para inicio.html,
-   se pueden añadir aquí con mayor especificidad o ajustar en shared-header.css */
-header { /* Esto se refiere al <header> que contiene el slider, no a <header class="header"> del nav */
-  width: 100%;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-.nav-logo{
-  margin-left: -10em;
-}
-
-
-/* Los estilos de 'nav' y sus hijos se eliminan ya que ahora se manejan por .header, .navbar, etc. */
-/*
-nav {
-  width:  100%;
-  position: fixed;
-  z-index: 10;
-  padding: 1em 5em;
-  display: flex;
-  justify-content: space-between;
-}
-nav h1 {
-  font-size: clamp(1.2rem, 6vw, 3rem);
-  font-weight: normal;
-  text-transform: uppercase;
-  color: var(--pill);
-  gap:5em;
-  font-size: 1.3rem;
-  background-color: var(--red);
-  padding: 5px 10px;
-}
-nav ul {
-  display: flex;
-  color: var(--white);
-}
-*/
-
-/*  MAIN: Slider Section
------------------------------------------------ */
+/* MAIN: Slider Section (se refiere al <main> que contiene los <article id="hero-N">) */
 main {
   width: 100vw;
   height: 100vh;
   position: relative;
-  overflow: hidden;
+  overflow: hidden; /* Clave para el efecto slider y posible causa de solapamiento si no se maneja bien el resto del contenido */
 }
-article {
+article { /* Se refiere a los <article id="hero-N"> dentro del main slider */
   width: 100%;
   height: 100%;
   position: absolute;
   top: 0;
   left: 0;
-  z-index: var(--i);
+  z-index: var(--i); /* Para ordenar los slides */
 }
 
 .hero-info {
@@ -79,7 +41,7 @@ article {
   top: 50%;
   left: 5%;
   transform: translateY(-50%);
-  z-index: 8;
+  z-index: 8; /* Encima del hero-image pero debajo de la UI de navegación de slides si la hubiera */
 }
 .hero-info h2 {
   font-size: clamp(2rem, 9vw, 5rem);
@@ -119,37 +81,24 @@ article {
 .hi-1 {
   background-image: url("https://images.unsplash.com/photo-1501785888041-af3ef285b470?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80");
 }
-
-/* Photo by Lucas Favre
-   https://unsplash.com/photos/BRTV55ErUZg
------------------------------------------------ */
 .hi-2 {
   background-image: url("https://images.unsplash.com/photo-1517057011470-8f36d636e6ca?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80");
 }
-
-/* Photo by Roell de Ram
-   https://unsplash.com/photos/2DM7eOR5iyc
------------------------------------------------ */
 .hi-3 {
   background-image: url("https://images.unsplash.com/flagged/photo-1552035791-b3cc1632e933?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2069&q=80");
 }
-
-/* Photo by Go to Bernd Wahlbrinck
-   https://unsplash.com/photos/lVVvYiR66kw
------------------------------------------------ */
 .hi-4 {
   background-image: url("https://images.unsplash.com/photo-1574700273608-7962d3602a9f?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80");
 }
-
-/* Photo by Micheal Schofield
-   https://unsplash.com/photos/d0ohwP3BRf4
------------------------------------------------ */
 .hi-5 {
   background-image: url("https://images.unsplash.com/photo-1605045544284-d13c6d6a60a6?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2070&q=80");
 }
 
-/*  SECTION: Overlay Menu Section
------------------------------------------------ */
+/* SECTION: Overlay Menu Section (referido a .main-content-section en el HTML) */
+/* La regla 'section' original con position:absolute y clip-path no parece aplicar al HTML actual. */
+/* Se estiliza .main-content-section en su lugar si es necesario. */
+/* Si la antigua 'section' era para un menú overlay que ya no se usa, estos estilos pueden eliminarse. */
+/*
 section {
   position: absolute;
   top: 0;
@@ -161,233 +110,24 @@ section {
   background-image: url("https://www.transparenttextures.com/patterns/church.png");
   clip-path: polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%);
 }
+*/
 
-.content-below-header {
-  padding-top: 70px; /* Ajusta este valor a la altura de tu header fijo */
-}
-
+/* Estilos para .main-content-section (antigua 'section' o nueva sección de contenido) */
 .main-content-section {
-  /* Estilos existentes para la sección principal, si los había, o nuevos.
-     Es posible que necesite un padding-top si el header es fixed y no transparente.
-     Pero como el header nuevo es transparente y el main ya tiene su propio posicionamiento,
-     puede que no sea necesario, o se ajuste con .content-below-header. */
+  padding: 2em 5em; /* Ajustar padding según sea necesario */
+  /* Si esta sección debe estar visualmente separada del slider,
+     puede necesitar un background o margen. */
+  position: relative; /* Para asegurar que esté en el flujo normal y pueda tener z-index si es necesario */
+  z-index: 1; /* Menor que el footer si el footer necesita estar encima de todo */
 }
 
 
-/* Estilos del menú de hamburguesa adaptados de autos.css */
-.header { /* Contenedor principal del header en autos.html, adaptar si es necesario */
-  position: fixed; /* O relative/absolute según el diseño de inicio.html */
-  top: 0;
-  width: 100%;
-  background: transparent; /* Hacer transparente para que se vea el fondo de inicio.html */
-  z-index: 1000; /* Asegurar que esté por encima de otros elementos */
-  /* box-shadow: var(--shadow); No se necesita sombra si es transparente */
+.content-below-header { /* Esta clase está en el <main> del slider */
+  padding-top: 70px; /* Heredado de shared-header.css, asegura espacio para el nav fijo.
+                        En inicio.html, el nav es transparente, así que el contenido del slider
+                        comenzará desde arriba pero el padding asegura que los controles del slider (si los hubiera)
+                        no queden debajo del nav. Para el texto .hero-info, su posicionamiento absoluto lo maneja. */
 }
-
-.navbar { /* Barra de navegación dentro del header */
-  padding: 1rem 0;
-}
-
-.nav-container { /* Contenedor para alinear elementos de la navbar */
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 1200px; /* O el ancho deseado */
-  margin: 0 auto;
-  padding: 0 5em; /* Coincidir con el padding de nav en inicio.css */
-}
-
-.nav-logo { /* Estilo para el logo/título */
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.3rem; /* Coincidir con nav h1 en inicio.css */
-  font-weight: normal; /* Coincidir con nav h1 en inicio.css */
-  text-transform: uppercase; /* Coincidir con nav h1 en inicio.css */
-  color: var(--pill); /* Coincidir con nav h1 en inicio.css */
-  background-color: var(--red); /* Coincidir con nav h1 en inicio.css */
-  padding: 5px 10px; /* Coincidir con nav h1 en inicio.css */
-}
-
-.nav-logo a { /* Si el logo es un enlace */
-  color: inherit;
-  text-decoration: none;
-}
-
-.nav-menu { /* Lista de elementos del menú */
-  display: flex;
-  list-style: none;
-  gap: 2rem; /* Espacio entre elementos del menú */
-  margin: 0; /* Reset de margen */
-  padding: 0; /* Reset de padding */
-}
-
-.nav-menu li { /* Elementos individuales del menú */
-  /* No se necesitan estilos adicionales aquí si .nav-menu a los maneja */
-}
-
-.nav-menu a {
-  text-decoration: none;
-  color: var(--white); /* Color de los enlaces del menú */
-  font-weight: 500;
-  transition: color 0.3s ease;
-}
-
-.nav-menu a:hover {
-  color: var(--red); /* Color al pasar el mouse sobre el enlace */
-}
-
-.nav-toggle { /* Contenedor del ícono de hamburguesa */
-  display: none; /* Oculto por defecto, se muestra en mobile */
-  flex-direction: column;
-  cursor: pointer;
-  padding: 10px; /* Añadir padding para facilitar el click */
-  background-color: var(--red); /* Fondo rojo para el botón */
-  border-radius: 5px; /* Bordes redondeados */
-}
-
-.nav-toggle span { /* Líneas del ícono de hamburguesa */
-  width: 25px;
-  height: 3px;
-  background: var(--white); /* Color de las líneas */
-  margin: 3px 0;
-  transition: all 0.3s ease;
-  border-radius: 2px; /* Ligeramente redondeadas */
-}
-
-/* Estilos para el menú desplegable en mobile (adaptados de autos.css) */
-@media (max-width: 768px) { /* O el breakpoint deseado, ej. 600px */
-  .nav-menu {
-    position: fixed; /* O absolute, dependiendo del efecto deseado */
-    left: -100%; /* Oculto fuera de la pantalla */
-    top: 60px; /* Ajustar según la altura del header o nav */
-    flex-direction: column;
-    background-color: var(--black); /* Fondo oscuro para el menú desplegado */
-    width: 100%;
-    text-align: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px -1px rgba(36, 36, 36, 0.1);
-    padding: 2rem 0;
-    z-index: 999; /* Debajo del .header pero encima del contenido */
-  }
-
-  .nav-menu.active { /* Clase que se añade con JS para mostrar el menú */
-    left: 0; /* Mover a la pantalla */
-  }
-
-  .nav-menu li {
-    padding: 1rem 0; /* Espaciado para los elementos del menú desplegado */
-  }
-
-  .nav-menu a {
-    color: var(--white); /* Color de los enlaces en el menú desplegable */
-  }
-
-  .nav-menu a:hover {
-    color: var(--red);
-  }
-
-  .nav-toggle {
-    display: flex; /* Mostrar el botón de hamburguesa */
-  }
-
-  /* Ajustar el padding del nav-container en mobile si es necesario */
-  .nav-container {
-    padding: 0 1em; /* Menos padding en mobile */
-  }
-
-  #userMenuContainer.nav-menu-item-user {
-    /* En mobile, los elementos li ya tienen padding y se centran por .nav-menu */
-    /* Asegurar que los botones/texto dentro de userMenuContainer se alineen bien */
-    display: flex;
-    flex-direction: column; /* Apilar botones/texto si es necesario */
-    align-items: center;
-    gap: 0.5rem; /* Espacio entre elementos si se apilan */
-  }
-
-  #userMenuContainer.nav-menu-item-user span,
-  #userMenuContainer.nav-menu-item-user button,
-  #userMenuContainer.nav-menu-item-user a {
-    margin-left: 0 !important; /* Resetear márgenes de los botones/links */
-  }
-}
-/* Fin de estilos del menú de hamburguesa */
-
-
-/* Estilos para #userMenuContainer y sus hijos */
-#userMenuContainer.nav-menu-item-user {
-  /* Como es un <li> ahora, reseteamos algunos estilos de <li> si es necesario */
-  padding: 0;
-  margin-left: auto; /* Para empujarlo a la derecha en desktop si es el último elemento visible */
-  display: flex; /* Para alinear sus hijos en línea */
-  align-items: center; /* Centrar verticalmente los hijos */
-  gap: 10px; /* Espacio entre el mensaje de bienvenida y los botones */
-}
-
-#userMenuContainer span { /* Mensaje de bienvenida */
-  color: var(--white); /* Asegurar que el texto sea visible */
-  font-weight: 500;
-}
-
-#loginBoton,
-#userMenuContainer #logoutBtn,
-#userMenuContainer #dashboardBtn {
-  padding: 0.4rem 1rem;
-  font-size: 0.9rem; /* Ligeramente más pequeño para que quepa mejor */
-  background: var(--red);
-  color: var(--white);
-  border: none;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 25px;
-  cursor: pointer;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  display: inline-block;
-  vertical-align: middle;
-  margin-left: 5px; /* Pequeño margen entre botones si están juntos */
-}
-
-#loginBoton:hover,
-#userMenuContainer #logoutBtn:hover,
-#userMenuContainer #dashboardBtn:hover {
-    background: #e60036; /* Un rojo un poco más oscuro para el hover */
-    transform: scale(1.05);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-/* Eliminamos el posicionamiento absoluto anterior para userMenuContainer */
-/* #userMenuContainer{
-  position: absolute;
-  top: 5rem;
-  right: 5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-} */
-
-/* section h3,li ya no debe aplicar a los li del nav-menu de forma genérica si interfiere */
-/* Nos aseguramos que los li del nav-menu no tengan list-style */
-.nav-menu li {
-  list-style: none;
-  margin:0; /* Resetear margen por si acaso */
-  padding:0; /* Resetear padding por si acaso */
-}
-.nav-menu > li > a { /* Estilo para los links directos del nav-menu */
-    padding: 0.5em 0; /* Añadir algo de padding vertical si es necesario */
-}
-
-
-/* #userIcon ya no se usa o no estaba definido en el HTML proporcionado */
-/* #userIcon {
-  width: 2rem;
-  height: 2rem;
-  margin-right: 0.3rem;
-  vertical-align: middle;
-  border-radius: 50%;
-  background: var(--pill);
-  border: 1px solid var(--red);
-} */
 
 .level-1 {
   display: grid;
@@ -447,7 +187,7 @@ section {
   font-weight: 600;
   margin: 1em 0;
   text-transform: uppercase;
-  border-bottom: 1px solid #fde0ac;
+  border-bottom: 1px solid #fde0ac; /* Considerar usar var(--pill) o un color de variable */
 }
 
 .level-3 {
@@ -455,12 +195,12 @@ section {
   flex-wrap: wrap;
 }
 .level-3 li {
-  padding: 0.5em 1em !important;
+  padding: 0.5em 1em !important; /* Evitar !important si es posible */
   background-color: var(--pill);
   border-radius: 500px;
   margin-right: 10px;
   margin-bottom: 10px;
-  font-size: 1rem !important;
+  font-size: 1rem !important; /* Evitar !important si es posible */
   cursor: pointer;
   color: var(--black);
 }
@@ -494,15 +234,12 @@ section {
   margin-top: 0;
   margin-bottom: 0;
   padding: 1.2em 1em 1em 1em;
-  
   border-radius: 16px;
-  
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 0.2em;
 }
-
 .compra-experiencia h3 {
   margin-bottom: 0.3em;
   font-size: 1.3rem;
@@ -510,123 +247,91 @@ section {
   font-weight: 700;
   text-transform: uppercase;
 }
-
 .compra-experiencia ul {
   margin: 0 0 0.2em 0;
   padding-left: 1.2em;
   list-style: disc inside;
 }
-
 .compra-experiencia ul li {
   margin-bottom: 0.2em;
   font-size: 1.1rem;
 }
-
 .compra-experiencia p {
   margin: 0.2em 0 0 0;
 }
 
 @media screen and (max-width: 600px) {
-  nav {
-    padding: 1em 0.5em; /* Menos padding para más espacio */
-    /* justify-content: flex-start; Ya no es necesario */
-  }
-  nav h1 {
-    font-size: 0.9rem;
-  }
-  /* nav ul y nav ul li ya no necesitan estilos específicos aquí para el menú hamburguesa anterior */
-  /* #burger ya no existe o será reemplazado por .nav-toggle */
+  /* nav y nav h1 ya no se estilizan aquí, se usa shared-header.css */
 
-  section {
-    padding: 8em 0.5em 2em 0.5em;
+  /* La 'section' original con padding: 8em... probablemente se refería a un layout diferente.
+     Ajustar el padding de .main-content-section para mobile si es necesario. */
+  .main-content-section {
+    padding: 2em 1em; /* Ejemplo de padding reducido para mobile */
   }
-  #userMenuContainer {
-    top: 1em; /* Reduce top spacing */
-    right: 1em; /* Reduce right spacing */
-    /* Or alternatively, to ensure it's within bounds and allow text to wrap if needed:
-    max-width: calc(100% - 2em);
-    box-sizing: border-box;
-    */
-  }
+
+  /* userMenuContainer es parte del nav, sus estilos mobile están en shared-header.css */
+
   .level-1 {
     grid-template-columns: 1fr;
   }
-  .level-1 li:nth-of-type(1) {
-    grid-column: 1/2;
-    grid-row: 1/2;
-  }
-  .level-1 li:nth-of-type(2) {
-    grid-column: 1/2;
-    grid-row: 2/3;
-  }
-  .level-1 li:nth-of-type(3) {
-    grid-column: 1/2;
-    grid-row: 3/4;
-  }
+  .level-1 li:nth-of-type(1),
+  .level-1 li:nth-of-type(2),
+  .level-1 li:nth-of-type(3),
   .level-1 li:nth-of-type(4) {
     grid-column: 1/2;
-    grid-row: 4/5;
+    grid-row: auto; /* Dejar que fluya normalmente en una columna */
   }
 }
 
-/* Footer Styles (copiado de autos.css) */
+/* Footer Styles */
 .footer {
   background: var(--black);
   color: var(--white);
   padding: 60px 0 20px;
+  position: relative; /* Para permitir z-index */
+  z-index: 10;       /* Para asegurar que esté sobre el slider main (z-index < 10) y .main-content-section (z-index:1) */
 }
-
-.footer .container { /* Asegurar que la clase container dentro del footer funcione como se espera */
+.footer .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px; /* Padding estándar del container */
+  padding: 0 20px;
 }
-
 .footer-content {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 40px;
   margin-bottom: 40px;
 }
-
 .footer-section h3,
 .footer-section h4 {
   margin-bottom: 20px;
   color: var(--white);
 }
-
 .footer-section ul {
   list-style: none;
-  padding: 0; /* Resetear padding para ul */
-  margin: 0; /* Resetear margen para ul */
+  padding: 0;
+  margin: 0;
 }
-
 .footer-section ul li {
   margin-bottom: 10px;
 }
-
 .footer-section a {
   color: var(--pill);
   text-decoration: none;
   transition: color 0.3s ease;
 }
-
 .footer-section a:hover {
   color: var(--red);
 }
-
-.footer-section p { /* Estilo para los párrafos dentro de footer-section */
-    line-height: 1.6;
+.footer-section p {
+  line-height: 1.6;
 }
-
-.footer-section p i { /* Estilo para los íconos dentro de los párrafos */
-    margin-right: 8px;
+.footer-section p i {
+  margin-right: 8px;
 }
-
 .footer-bottom {
   text-align: center;
   padding-top: 20px;
   border-top: 1px solid var(--pill);
   color: var(--pill);
 }
-/* Fin de Footer Styles */
