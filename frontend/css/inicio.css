@@ -260,10 +260,11 @@ section {
   margin: 0.2em 0 0 0;
 }
 
-.verify-email-btn {
+/* Botón general para navegación y login */
+.nav-btn {
   background: var(--red);
   color: #fff !important;
-  padding: 0.4em 1em;
+  padding: 0.3em 0.5em;
   border-radius: 8px;
   font-weight: 600;
   text-decoration: none;
@@ -272,10 +273,34 @@ section {
   border: none;
   display: inline-block;
 }
-.verify-email-btn:hover {
+.nav-btn:hover {
   background: var(--pill);
-  color: #fff;
+  color: var(--red) !important;
 }
+
+/* El botón de verificar email hereda de nav-btn */
+.verify-email-btn {
+  composes: nav-btn;
+  background: orange;
+  color: #fff !important;
+}
+.verify-email-btn:hover {
+  background: #ff9800;
+  color: #fff !important;
+}
+
+/* Ajuste para que los enlaces normales no sobrescriban el estilo de nav-btn */
+.nav-menu a:not(.nav-btn) {
+    color: var(--white);
+    background-color: var(--red);
+    padding: 0.5em 0.5em 1em 0.1em;
+    border-radius: 1em;
+    
+
+    
+    
+    
+  }
 
 @media screen and (max-width: 600px) {
   /* nav y nav h1 ya no se estilizan aquí, se usa shared-header.css */
@@ -304,51 +329,14 @@ section {
 .footer {
   background: var(--black);
   color: var(--white);
-  padding: 60px 0 20px;
+  padding: 0px 0 0px;
   position: relative; /* Para permitir z-index */
   z-index: 10;       /* Para asegurar que esté sobre el slider main (z-index < 10) y .main-content-section (z-index:1) */
 }
-.footer .container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-.footer-content {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 40px;
-  margin-bottom: 40px;
-}
-.footer-section h3,
-.footer-section h4 {
-  margin-bottom: 20px;
-  color: var(--white);
-}
-.footer-section ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.footer-section ul li {
-  margin-bottom: 10px;
-}
-.footer-section a {
-  color: var(--pill);
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-.footer-section a:hover {
-  color: var(--red);
-}
-.footer-section p {
-  line-height: 1.6;
-}
-.footer-section p i {
-  margin-right: 8px;
-}
+
 .footer-bottom {
   text-align: center;
-  padding-top: 20px;
   border-top: 1px solid var(--pill);
   color: var(--pill);
+  font-size: 2em;
 }

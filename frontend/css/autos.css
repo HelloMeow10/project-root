@@ -459,10 +459,20 @@
   text-decoration: none;
   font-weight: 600;
 }
+.cart-header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  text-decoration: none;
+color: var(--red);
+  border-bottom: 1px solid var(--pill);
+}
 .fas.fa.shopping-cart {
   color: var(--red);
   margin-right: 0.5rem;
   text-decoration: none;
+  
 }
 
 .form-actions {
