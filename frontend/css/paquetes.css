@@ -164,7 +164,12 @@
     outline: none;
     font-size: 1rem;
   }
-  
+  .cart-section {
+    padding: 2rem 0;
+    padding-left: 10rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+  }
   .search-btn {
     padding: 1rem 1.5rem;
     background: var(--red); /* Cambiado a --red */
