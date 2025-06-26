@@ -4,30 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reserva vuelos - MUSIMUNDO</title>
-    <link rel="stylesheet" href="../css/shared-header.css"> <!-- Enlace al CSS compartido -->
     <link rel="stylesheet" href="../css/vuelos.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 </head>
 <body>
-    <!-- Header -->
     <header class="header">
         <nav class="navbar">
             <div class="nav-container">
                 <div class="nav-logo">
-                    <i class="fas fa-plane"></i> <!-- Icono actualizado para vuelos -->
-                    <span id="span-a-href"><a href="inicio.html">MUSIMUNDO/TRAVEL</a></span>
+                    <i class="fas fa-plane"></i>
+                    <span id="span-a-href"><a href="inicio.html">MUSIMUNDO/Travel</a></span>
                 </div>
-                <ul class="nav-menu">
+                <ul class="nav-menu" id="nav-menu">
                     <li><a href="inicio.html">Inicio</a></li>
                     <li><a href="paquetes.html">Paquetes</a></li>
                     <li><a href="vuelos.html">Vuelos</a></li>
                     <li><a href="hotel.html">Hoteles</a></li>
                     <li><a href="autos.html">Autos</a></li>
-                    <li><a href="info.html">Info</a></li>
                 </ul>
-                <div class="nav-toggle">
+                <div class="nav-toggle" id="hamburger">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -35,40 +32,35 @@
             </div>
         </nav>
     </header>
-    <!-- Animated b ackground -->
+    <!-- Animated background -->
     <div class="bg-animation" id="bgAnimation"></div>
 
     <div class="container">
-        <div class="header">
-            <div class="header-content">
-                <div class="header-text">
-                    <h1>Reserva tu vuelo</h1>
-                    <p>Encuentra el vuelo perfecto para tus vacaciones todo incluido</p>
-                </div>
+        <div class="header-content">
+            <div class="header-text">
+                <h1>Reserva tu vuelo</h1>
+                <p>Encuentra el vuelo perfecto para tus vacaciones todo incluido</p>
+            </div>
             <div class="cart-header">
                 <h1>
                     <a href="carrito.html"><i class="fas fa-shopping-cart"></i></a>
-                    
                 </h1>
-</a>
             </div>
         </div>
-
-            
 
         <div class="flights-section scroll-reveal">
             <div class="flights-header">
                 <img src="../imagenes/plane.png" alt="Available flights" class="flights-icon">
                 <h2 style="color: #4a5568; font-size: 1.8rem; margin: 0;">Vuelos Disponibles</h2>
             </div>
-            <div id="flightResults"></div>
+            <div id="flightResults" class="flight-grid"></div>
         </div>
 
         
     </div>
 
     <!-- Modal de Personalización de Vuelo -->
-<div id="vueloOpcionesModal" class="modal" style="display:none;">
+<div id="vueloOpcionesModal" class="modal">
   <div class="modal-content">
     <span class="close-button" onclick="document.getElementById('vueloOpcionesModal').style.display='none'">&times;</span>
     <h2 id="modalTituloVuelo">Personalizar Vuelo</h2>
@@ -102,9 +94,8 @@
     <button id="modalConfirmarBtn" class="btn btn-primary">Confirmar y Añadir al Carrito</button>
   </div>
 </div>
-    <script src="../js/shared-nav.js"></script> <!-- Script de navegación compartido -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script src="../js/vuelos.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
 <footer class="footer">
     <div class="container">

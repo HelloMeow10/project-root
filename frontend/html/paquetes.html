@@ -15,7 +15,7 @@
         <nav class="navbar">
             <div class="nav-container">
                 <div class="nav-logo">
-                    <i class="fas fa-car"></i>
+                    <i class="fas fa-globe-americas"></i>
                     <span id="span-a-href"><a href="inicio.html">MUSIMUNDO/TRAVEL</a></span>
                 </div>
                 <ul class="nav-menu">
@@ -49,27 +49,25 @@
     <!-- Filter Section -->
     <section class="filters">
         <div class="container">
-            <div class="filter-tabs">
-                <button class="filter-btn active" data-filter="all">Todos</button>
-                <button class="filter-btn" data-filter="beach">Playa</button>
-                <button class="filter-btn" data-filter="mountain">Montaña</button>
-                <button class="filter-btn" data-filter="city">Ciudad</button>
-                <button class="filter-btn" data-filter="adventure">Aventura</button>
-            </div>
-            <div class="sort-options">
-                <select id="sortSelect">
-                    <option value="price-low">Precio: bajo a alto</option>
-                    <option value="price-high">Precio: alto a bajo.</option>
-                    <option value="duration">Duracion</option>
-                    <option value="rating">Rating</option>
-                </select>
-            </div>
-            <div class="cart-header">
-                <h1>
-                    <a href="carrito.html"><i class="fas fa-shopping-cart"></i></a>
-                    
-                </h1>
+            <div class="filters-row">
+                <div class="search-bar"> <!-- Contenedor para la barra de búsqueda -->
+                    <input type="text" id="searchInput" placeholder="Buscar paquetes...">
+                </div>
+                <div class="sort-options">
+                    <select id="sortSelect">
+                        <option value="price-low">Precio: bajo a alto</option>
+                        <option value="price-high">Precio: alto a bajo.</option>
+                        <option value="duration">Duracion</option>
+                        <option value="rating">Rating</option>
+                    </select>
+                </div>
+                <div class="cart-header">
+                    <h1>
+                        <a href="carrito.html"><i class="fas fa-shopping-cart"></i></a>
+                        
+                    </h1>
 </a>
+                </div>
             </div>
         </div>
     </section>

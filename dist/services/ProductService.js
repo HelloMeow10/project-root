@@ -15,11 +15,14 @@ function mapPrismaProductoToProducto(prismaProducto) {
     var _a;
     let componentes = [];
     if (prismaProducto.paqueteDetallesAsPaquete && prismaProducto.paqueteDetallesAsPaquete.length > 0) {
-        componentes = prismaProducto.paqueteDetallesAsPaquete.map((detalle) => ({
-            id_producto: detalle.producto.id_producto,
-            nombre: detalle.producto.nombre,
-            // tipo: detalle.producto.tipoProducto?.nombre // Uncomment if type was selected in repo
-        }));
+        componentes = prismaProducto.paqueteDetallesAsPaquete.map((detalle) => {
+            var _a;
+            return ({
+                id_producto: detalle.producto.id_producto,
+                nombre: detalle.producto.nombre,
+                tipo: (_a = detalle.producto.tipoProducto) === null || _a === void 0 ? void 0 : _a.nombre // Se mapea el nombre del tipo de producto componente
+            });
+        });
     }
     return {
         id_producto: prismaProducto.id_producto,

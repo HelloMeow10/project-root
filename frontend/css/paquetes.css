@@ -187,10 +187,16 @@
   
   .filters .container {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
+  }
+  
+  .filters-row {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
   }
   
   .filter-tabs {
