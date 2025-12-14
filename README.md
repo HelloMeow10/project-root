@@ -162,7 +162,7 @@ El archivo `necesidad.txt` contiene sentencias SQL para poblar la base de datos 
 Una vez que el servidor esté en ejecución:
 
 *   La página de inicio generalmente se sirve en la raíz: [http://localhost:3001/](http://localhost:3001/) o [http://localhost:3001/inicio.html](http://localhost:3001/inicio.html)
-*   Otras páginas HTML se encuentran en `frontend/html/` y son accesibles a través de sus respectivos nombres, por ejemplo, `http://localhost:3000/login.html`.
+*   Otras páginas HTML se encuentran en `frontend/html/` y son accesibles a través de sus respectivos nombres, por ejemplo, `http://localhost:3003/login.html`.
 
 ## API Endpoints Principales
 
