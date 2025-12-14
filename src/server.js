@@ -11,7 +11,7 @@ var authRoutes_1 = require("./routes/authRoutes");
 var errorHandler_1 = require("./middlewares/errorHandler");
 dotenv_1.default.config(); // Carga variables de entorno desde .env:contentReference[oaicite:8]{index=8}
 var app = (0, express_1.default)();
-var port = process.env.PORT || 3000;
+var port = process.env.PORT || 3001;
 // Middlewares globales
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());

@@ -35,6 +35,23 @@ app.use(express_1.default.static(path_1.default.join(__dirname, '../frontend/htm
 // Servir archivos estáticos de la carpeta js
 app.use('/js', express_1.default.static(path_1.default.join(__dirname, '../frontend/js')));
 app.use('/imagenes', express_1.default.static(path_1.default.join(__dirname, '../frontend/imagenes')));
+// Servir robots.txt
+app.get('/robots.txt', (req, res) => {
+    res.type('text/plain');
+    res.send(`User-agent: *
+Disallow:`);
+});
+// Servir sitemap.xml
+app.get('/sitemap.xml', (req, res) => {
+    res.type('application/xml');
+    res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://turismo.tecnica7ldz.edu.ar/</loc>
+    <priority>1.0</priority>
+  </url>
+</urlset>`);
+});
 // Rutas
 app.use('/api/products', productRoutes_1.default);
 app.use('/api/auth', authRoutes_1.default);

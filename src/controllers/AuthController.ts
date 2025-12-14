@@ -61,8 +61,8 @@ export async function register(req: Request, res: Response, next: NextFunction) 
  * @param {string} token - El token de verificación.
  */
 async function enviarEmailVerificacion(email: string, nombre: string, token: string) {
-  // Usa la URL del backend desde env o fallback a localhost:3000
-  const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
+  // Usa la URL del backend desde env o fallback a localhost:3001
+  const backendUrl = process.env.BACKEND_URL || 'http://localhost:3001';
   const verifyUrl = `${backendUrl}/api/auth/verify-email?token=${token}`;
   const html = `<h2>Hola ${nombre},</h2><p>Gracias por registrarte. Por favor, verifica tu email haciendo clic en el siguiente enlace:</p><a href="${verifyUrl}">${verifyUrl}</a>`;
   const transporter = require('nodemailer').createTransport({

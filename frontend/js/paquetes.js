@@ -310,7 +310,7 @@ window.addEventListener("scroll", () => {
 
 async function cargarProductos() {
   try {
-    const res = await fetch('http://localhost:3000/api/products');
+    const res = await fetch('http://localhost:3001/api/products');
     const productos = await res.json();
     const grid = document.getElementById('packagesGrid');
     grid.innerHTML = ''; // Limpia el grid

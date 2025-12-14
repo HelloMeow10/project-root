@@ -144,7 +144,7 @@ El archivo `necesidad.txt` contiene sentencias SQL para poblar la base de datos 
     ```bash
     npm run dev
     ```
-    El servidor se iniciará (por defecto en `http://localhost:3000`).
+    El servidor se iniciará (por defecto en `http://localhost:3001`).
 
 2.  **Para producción:**
     *   Primero, compila el código TypeScript a JavaScript:
@@ -155,13 +155,13 @@ El archivo `necesidad.txt` contiene sentencias SQL para poblar la base de datos 
         ```bash
         npm start
         ```
-    El servidor se iniciará (por defecto en `http://localhost:3000`).
+    El servidor se iniciará (por defecto en `http://localhost:3001`).
 
 ## Acceso al Frontend
 
 Una vez que el servidor esté en ejecución:
 
-*   La página de inicio generalmente se sirve en la raíz: [http://localhost:3000/](http://localhost:3000/) o [http://localhost:3000/inicio.html](http://localhost:3000/inicio.html)
+*   La página de inicio generalmente se sirve en la raíz: [http://localhost:3001/](http://localhost:3001/) o [http://localhost:3001/inicio.html](http://localhost:3001/inicio.html)
 *   Otras páginas HTML se encuentran en `frontend/html/` y son accesibles a través de sus respectivos nombres, por ejemplo, `http://localhost:3000/login.html`.
 
 ## API Endpoints Principales
